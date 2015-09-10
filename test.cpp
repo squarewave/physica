@@ -85,10 +85,10 @@ game_update_and_render(game_state_t* game_state, f64 dt,
     if (!game_state->initialized) {
         initialize_game_state(game_state);
 
-        game_state->camera.center = v2 {-20.0f, 70.0f};
+        game_state->camera.center = v2 {-80.0f, 200.0f};
         game_state->camera.to_top_left = v2 {
                 START_WIDTH / 2, START_HEIGHT / 2};
-        game_state->camera.scaling = 2.0f;
+        game_state->camera.scaling = 1.0f;
 
         phy_init(game_state->physics_arena);
 
@@ -96,27 +96,29 @@ game_update_and_render(game_state_t* game_state, f64 dt,
 
         sim_entity_t* entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
         entity->color = 0xddff55dd;
-        entity->body->position = {0,3.5};
+        entity->body->position = {0,2};
+        entity->body->velocity = {0,0};
+        entity->body->orientation = -0.01f;
+        entity->body->angular_velocity = 0.0f;
+
+        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
+        entity->color = 0xff55dddd;
+        entity->body->position = {0,4.1};
+        entity->body->velocity = {0,0};
+        entity->body->orientation = -0.01f;
+        entity->body->angular_velocity = -0.0f;
+
+        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
+        entity->color = 0xffdddd55;
+        entity->body->position = {0,6.2};
         entity->body->velocity = {0,0};
         entity->body->angular_velocity = 0.0f;
 
-        // entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-        // entity->color = 0xff55dddd;
-        // entity->body->position = {0,4};
-        // entity->body->velocity = {0,0};
-        // entity->body->angular_velocity = -0.0f;
-//
-//        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-//        entity->color = 0xffdddd55;
-//        entity->body->position = {-2,0};
-//        entity->body->velocity = {0,0};
-//        entity->body->angular_velocity = 0.0f;
-//
-//        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-//        entity->color = 0xffff8877;
-//        entity->body->position = {-2,6};
-//        entity->body->velocity = {0,0};
-//        entity->body->angular_velocity = 0.0f;
+        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
+        entity->color = 0xffff8877;
+        entity->body->position = {0,8.3};
+        entity->body->velocity = {0,0};
+        entity->body->angular_velocity = 0.0f;
 //
 //        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
 //        entity->color = 0xff22aacc;

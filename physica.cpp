@@ -544,7 +544,7 @@ try_find_collision(phy_state_t* state, u32 a_index, u32 b_index,
 }
 
 f32
-solve_constraint(phy_body_t *a,
+solve_velocity_constraint(phy_body_t *a,
                  phy_body_t *b,
                  f32 zeta,
                  v6 &jacobian,
@@ -624,6 +624,8 @@ is_stale(phy_state_t* state, phy_collision_t* c) {
     v2 new_world_a = transform_a * c->local_contact_a;
     v2 new_world_b = transform_b * c->local_contact_b;
 
+    static i32 depth_c = 0;
+
     f32 depth = dot(new_world_b - new_world_a, c->normal);
     if (depth > 0.0f) {
         return true;
@@ -631,6 +633,8 @@ is_stale(phy_state_t* state, phy_collision_t* c) {
     c->depth = depth;
 
     const f32 threshold_sq = 0.002f;
+
+    static i32 length_c = 0;
 
     if (length_squared(new_world_a - c->world_contact_a) > threshold_sq) {
         return true;
@@ -640,8 +644,9 @@ is_stale(phy_state_t* state, phy_collision_t* c) {
         return true;
     }
 
-    add_debug_point(new_world_a, 0xffffffff);
-    add_debug_point(c->world_contact_a, 0x00000000);
+
+    // add_debug_point(new_world_a, 0xffffffff);
+    // add_debug_point(c->world_contact_a, 0x00000000);
 
     return false;
 }
@@ -777,7 +782,8 @@ warm_start(phy_state_t* state, phy_manifold_t* manifold) {
     }
 }
 
-void find_narrow_phase_collisions(phy_state_t* state) {
+void
+find_narrow_phase_collisions(phy_state_t* state) {
     for (int i = 0; i < state->potential_collisions.count; ++i) {
         phy_potential_collision_t potential_collision =
                 state->potential_collisions[i];
@@ -799,7 +805,8 @@ void find_narrow_phase_collisions(phy_state_t* state) {
     }
 }
 
-void pre_solve_velocity_constraints(phy_state_t* state) {
+void
+pre_solve_velocity_constraints(phy_state_t* state) {
     for (int i = 0; i < state->collisions.count; ++i) {
         phy_collision_t *collision = state->collisions.at(i);
         phy_body_t *a = state->bodies.at(collision->a_index);
@@ -813,7 +820,8 @@ void pre_solve_velocity_constraints(phy_state_t* state) {
     }
 }
 
-void solve_velocity_constraints(phy_state_t* state, f32 dt) {
+void
+solve_velocity_constraints(phy_state_t* state, f32 dt) {
     for (int i = 0; i < state->collisions.count; ++i) {
         phy_collision_t *collision = state->collisions.at(i);
         phy_body_t *a = state->bodies.at(collision->a_index);
@@ -825,8 +833,8 @@ void solve_velocity_constraints(phy_state_t* state, f32 dt) {
 
         const f32 restitution = 0.4f;
         const f32 friction_coefficient = 0.55f;
-        const f32 baumgarte = 0.1f;
-        const f32 penetration_slop = 0.00f;
+        const f32 baumgarte = 0.2f;
+        const f32 penetration_slop = 0.002f;
         const f32 restitution_slop = 0.02f;
 
 //        warm_start(state, manifold);
@@ -835,8 +843,8 @@ void solve_velocity_constraints(phy_state_t* state, f32 dt) {
             auto c = &manifold->collisions[j];
 
             v2 n = c->normal;
-            v2 ra = c->local_contact_a;
-            v2 rb = c->local_contact_b;
+            v2 ra = c->world_contact_a - a->position;
+            v2 rb = c->world_contact_b - b->position;
             v2 va = a->velocity;
             v2 vb = b->velocity;
             f32 omega_a = a->angular_velocity;
@@ -856,7 +864,7 @@ void solve_velocity_constraints(phy_state_t* state, f32 dt) {
                     n.x, n.y, flt_cross(rb, n)
             };
 
-            solve_constraint(a, b, bf, jacobian, 0, FLT_MAX,
+            solve_velocity_constraint(a, b, bf, jacobian, 0, FLT_MAX,
                              &manifold->normal_sum);
 
             v2 t = normalize(triple(n, relative_velocity, n));
@@ -866,7 +874,7 @@ void solve_velocity_constraints(phy_state_t* state, f32 dt) {
                         t.x, t.y, flt_cross(rb, t)
                 };
 
-                solve_constraint(a, b,
+                solve_velocity_constraint(a, b,
                                  0,
                                  tangent_jacobian,
                                  -friction_coefficient *
@@ -880,13 +888,7 @@ void solve_velocity_constraints(phy_state_t* state, f32 dt) {
 }
 
 void
-_phy_update(phy_memory_t memory, f32 dt) {
-    phy_state_t* state = (phy_state_t*)memory.base;
-
-    find_broad_phase_collisions(state);
-
-    find_narrow_phase_collisions(state);
-
+integrate_velocities(phy_state_t* state, f32 dt) {
     for (int i = 0; i < state->bodies.count; ++i) {
         phy_body_t* body = &state->bodies.values[i];
         if (!(body->flags & FIXED_FLAG)) {
@@ -896,21 +898,54 @@ _phy_update(phy_memory_t memory, f32 dt) {
         f32 angular_accel = body->torque * body->inv_moment;
         body->velocity = body->velocity + accel * dt;
         body->angular_velocity = body->angular_velocity + angular_accel * dt;
-    }
 
-    const i32 velocity_iterations = 4;
+        body->velocity *= 1.0f / (1.0f + dt * 0.1f);
+        body->angular_velocity *= 1.0f / (1.0f + dt * 0.1f);
+    }
+}
+
+void
+integrate_positions(phy_state_t* state, f32 dt) {
+    for (int i = 0; i < state->bodies.count; ++i) {
+        phy_body_t* body = state->bodies.at(i);
+
+        f32 velocity_threshold = 0.001f;
+        if (abs(length_squared(body->velocity)) > velocity_threshold) {
+            body->position = body->position + body->velocity * dt;
+        }
+        if (abs(body->angular_velocity) > velocity_threshold) {
+            body->orientation = body->orientation + body->angular_velocity * dt;
+        }
+
+    }
+}
+
+void
+_phy_update(phy_memory_t memory, f32 dt) {
+    phy_state_t* state = (phy_state_t*)memory.base;
+
+    find_broad_phase_collisions(state);
+
+    find_narrow_phase_collisions(state);
+
+    integrate_velocities(state, dt);
+
     pre_solve_velocity_constraints(state);
+
+    const i32 velocity_iterations = 6;
     for (i32 i = 0; i < velocity_iterations; ++i) {
         solve_velocity_constraints(state, dt);
     }
 
-    state->collisions.count = 0;
+    integrate_positions(state, dt);
+
+    // const i32 position_iterations = 4;
+    // for (i32 i = 0; i < velocity_iterations; ++i) {
+    //     solve_position_constraints(state, dt);
+    // }
 
     for (int i = 0; i < state->bodies.count; ++i) {
         phy_body_t* body = state->bodies.at(i);
-        body->position = body->position + body->velocity * dt;
-
-        body->orientation = body->orientation + body->angular_velocity * dt;
         body->force = v2{0,0};
         body->torque = 0.0f;
         update_hulls(body);
@@ -925,6 +960,8 @@ _phy_update(phy_memory_t memory, f32 dt) {
             phy_add_aabb_for_body(memory, i);
         }
     }
+
+    state->collisions.count = 0;
 }
 
 void
@@ -939,7 +976,8 @@ phy_update(phy_memory_t memory, f32 dt) {
     }
 }
 
-void phy_set_gravity(phy_memory_t memory, v2 gravity) {
+void
+phy_set_gravity(phy_memory_t memory, v2 gravity) {
     phy_state_t *state = (phy_state_t*)memory.base;
     state->gravity = gravity;
 }

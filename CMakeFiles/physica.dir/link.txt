@@ -1,1 +1,0 @@
-/usr/bin/c++    -std=c++11 -O3    CMakeFiles/physica.dir/main.cpp.o  -o physica -rdynamic -lrt -lm -ldl -lxcb -lxcb-image -lxcb-icccm -lxcb-keysyms -lasound 

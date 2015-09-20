@@ -245,7 +245,7 @@ game_update_and_render(game_state_t* game_state, f64 dt,
 
             if (game_input.button_a.ended_down) {
                 ray_body_intersect_t r =
-                    ray_cast_from_body(game_state->physics_arena, entity->body, 0.45f, v2 {0,-1});
+                    ray_cast_from_body(game_state->physics_arena, entity->body, 0.55f, v2 {0,-1});
 
                 if (r.body && r.depth < 0.4f) {
                     entity->body->velocity.y = 23.0f;

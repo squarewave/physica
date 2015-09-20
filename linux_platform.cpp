@@ -380,7 +380,7 @@ int main(int argc, char const *argv[]) {
                     } break;
                     case L_STICK_Y: {
                         next_input.joystick_l.position.y =
-                            ((f32)game_pad_event.value) / 32768.0f;
+                            ((f32)game_pad_event.value) / -32768.0f;
                     } break;
                     case R_STICK_X: {
                         next_input.joystick_r.position.x =
@@ -388,7 +388,7 @@ int main(int argc, char const *argv[]) {
                     } break;
                     case R_STICK_Y: {
                         next_input.joystick_r.position.y =
-                            ((f32)game_pad_event.value) / 32768.0f;
+                            ((f32)game_pad_event.value) / -32768.0f;
                     } break;
                     case L_TRIGGER: {
                         next_input.analog_l_trigger.value =

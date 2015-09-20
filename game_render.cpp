@@ -306,6 +306,17 @@ void add_debug_point(v2 point, i32 color) {
     debug_colors[debug_point_count++] = color;
 }
 
+static i32 debug_rect_count = 0;
+static v2 debug_rects[20000];
+static i32 debug_rect_colors[10000];
+
+void add_debug_rect(v2 top_right, v2 bottom_left, i32 color) {
+    debug_rects[debug_rect_count] = top_right;
+    debug_rects[debug_rect_count+1] = bottom_left;
+    debug_colors[debug_rect_count / 2] = color;
+    debug_rect_count += 2;
+}
+
 void draw_debug_points(video_buffer_description_t buffer, camera_t camera) {
     m3x3 flip_y = identity_3x3();
     flip_y.r2.c2 = -1;
@@ -324,7 +335,17 @@ void draw_debug_points(video_buffer_description_t buffer, camera_t camera) {
         draw_rectangle(buffer, debug_colors[i], p.x, p.y, 2, 2, 0.0f);
     }
 
+    for (int i = 0; i < (debug_rect_count / 2); ++i) {
+        v2 top_right = debug_rects[i*2];
+        v2 bottom_left = debug_rects[i*2+1];
+        v2 p = camera_space_transform * ((top_right + bottom_left) * 0.5f);
+        v2 size = scale * (top_right - bottom_left);
+
+        draw_rectangle(buffer, debug_rect_colors[i], p.x, p.y, size.x, size.y, 0.0f);
+    }
+
     debug_point_count = 0;
+    debug_rect_count = 0;
 }
 
 // NOTE(doug): orientation is counter-clockwise radians from the x axis
@@ -409,7 +430,7 @@ void draw_rectangle(video_buffer_description_t buffer,
 
             diff_x = fclamp(diff_x + 0.5f, 0.0f, 1.0f);
             diff_y = fclamp(diff_y + 0.5f, 0.0f, 1.0f);
-            f32 ratio = (1.0f - diff_x) * (1.0f - diff_y) * 0.5f;
+            f32 ratio = (1.0f - diff_x) * (1.0f - diff_y);
             v3 existing = to_rgb(pixels[y * buffer.width + x]);
             pixels[y * buffer.width + x] =
                     from_rgb((1.0f - ratio) * existing + ratio * rgb);

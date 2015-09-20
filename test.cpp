@@ -62,6 +62,8 @@ make_block(game_state_t *game_state, f32 width, f32 height, f32 mass) {
     hull->inv_moment = 1.0f/12.0f *
             hull->mass *
             (width * width + height * height);
+
+    hull->type = HULL_MESH;
     hull->points = phy_add_points(game_state->physics_arena, 4);
 
     hull->points.values[0] = {result->width / 2.0f, result->height / 2.0f};
@@ -69,6 +71,110 @@ make_block(game_state_t *game_state, f32 width, f32 height, f32 mass) {
     hull->points.values[2] = {-result->width / 2.0f, -result->height / 2.0f};
     hull->points.values[3] = {result->width / 2.0f, -result->height / 2.0f};
     return result;
+}
+
+sim_entity_t*
+make_fillet_block(game_state_t *game_state, f32 width, f32 height, f32 fillet, f32 mass) {
+    assert(game_state->entity_count < game_state->entity_capacity);
+    sim_entity_t* result = game_state->entities + game_state->entity_count;
+    game_state->entity_count++;
+
+    result->width = width;
+    result->height = height;
+    result->body = phy_add_body(game_state->physics_arena);
+
+    phy_body_t* body = result->body;
+    body->mass = mass;
+    body->inv_mass = 1.0f / body->mass;
+    body->moment = 1.0f/12.0f * body->mass * (width * width + height * height);
+    body->inv_moment = 1.0f / body->moment;
+    body->hulls = phy_add_hulls(game_state->physics_arena, 1);
+    body->aabb_node_index = -1;
+
+    phy_hull_t * hull = body->hulls.values;
+    hull->mass = mass;
+    hull->inv_mass = 1.0f / hull->mass;
+    hull->moment = 1.0f;
+    hull->inv_moment = 1.0f/12.0f *
+            hull->mass *
+            (width * width + height * height);
+    hull->type = HULL_FILLET_RECT;
+    hull->width = width;
+    hull->height = height;
+    hull->fillet = fillet;
+
+    return result;
+}
+
+void add_blocks(game_state_t *game_state) {
+
+    const u32 tile_map_width = 36;
+    const u32 tile_map_height = 36;
+    u32 tile_map_data[tile_map_width * tile_map_height] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+        1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+        1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+        1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1,
+        1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
+        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+        1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
+
+    for (int y = 0; y < tile_map_height; ++y) {
+        for (int x = 0; x < tile_map_width; ++x) {
+            if (tile_map_data[y * tile_map_width + x]) {
+                f32 tile_size = 1.0f;
+                sim_entity_t* tile = make_block(game_state, tile_size, tile_size, 100.0f);
+                tile->body->position.x = (tile_size / 2) + (x * tile_size);
+                tile->body->position.y = (tile_size / 2) + (-(y + 1) * tile_size);
+                tile->body->flags = PHY_FIXED_FLAG;
+                tile->body->inv_moment = 0.0f;
+                tile->body->inv_mass = 0.0f;
+                tile->type = TILE;
+            }
+        }
+    }
+
+    sim_entity_t* player = make_fillet_block(game_state, 0.6f, 0.6f, 0.15f, 10.0f);
+    player->body->position = v2 {10.0f, -4.0f};
+    player->color = 0xffffffff;
+    player->type = PLAYER;
+    player->body->inv_moment = 0.0f;
+
+    sim_entity_t* block = make_fillet_block(game_state, 5.0f, 5.0f, 0.0001f, 5.0f);
+    block->body->position = v2 {8.0f, 10.0f};
+    block->color = 0xffaaaaaa;
+    block->type = TILE;
+    block->body->inv_moment = 0.0f;
 }
 
 i32
@@ -85,7 +191,7 @@ game_update_and_render(game_state_t* game_state, f64 dt,
     if (!game_state->initialized) {
         initialize_game_state(game_state);
 
-        game_state->camera.center = v2 {-80.0f, 200.0f};
+        game_state->camera.center = v2 {0.0f, 0.0f};
         game_state->camera.to_top_left = v2 {
                 START_WIDTH / 2, START_HEIGHT / 2};
         game_state->camera.scaling = 1.0f;
@@ -94,62 +200,9 @@ game_update_and_render(game_state_t* game_state, f64 dt,
 
         game_state->entities = (sim_entity_t*)game_state->world_arena.base;
 
-        sim_entity_t* entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-        entity->color = 0xddff55dd;
-        entity->body->position = {0,2};
-        entity->body->velocity = {0,0};
-        entity->body->orientation = -0.01f;
-        entity->body->angular_velocity = 0.0f;
+        add_blocks(game_state);
 
-        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-        entity->color = 0xff55dddd;
-        entity->body->position = {0,4.1};
-        entity->body->velocity = {0,0};
-        entity->body->orientation = -0.01f;
-        entity->body->angular_velocity = -0.0f;
-
-        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-        entity->color = 0xffdddd55;
-        entity->body->position = {0,6.2};
-        entity->body->velocity = {0,0};
-        entity->body->angular_velocity = 0.0f;
-
-        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-        entity->color = 0xffff8877;
-        entity->body->position = {0,8.3};
-        entity->body->velocity = {0,0};
-        entity->body->angular_velocity = 0.0f;
-//
-//        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-//        entity->color = 0xff22aacc;
-//        entity->body->position = {-2,8};
-//        entity->body->velocity = {0,0};
-//        entity->body->angular_velocity = 0.0f;
-//
-//        entity = make_block(game_state, 2.0f, 2.0f, 20.0f);
-//        entity->color = 0xffaaffaa;
-//        entity->body->position = {-2,10};
-//        entity->body->velocity = {0,0};
-//        entity->body->angular_velocity = 0.0f;
-
-        entity = make_block(game_state, 20.0f, 10.0f, 1000.0f);
-        entity->color = 0xffaaddcc;
-        entity->body->position = {7,-5.5};
-        entity->body->orientation = 0.0f;
-        entity->body->velocity = {0,0};
-        entity->body->flags = PHY_FIXED_FLAG;
-        entity->body->inv_mass = 0;
-        entity->body->inv_moment = 0;
-
-//        float thing = 1.0;
-//        for (f32 i = -6; i <= 6.1; i += thing) {
-//            for (f32 j = -6; j < 6.1; j += thing) {
-//                entity = make_block(game_state, 0.5f, 0.5f, 0.25f);
-//                entity->body->position = {i,j};
-//            }
-//        }
-
-        phy_set_gravity(game_state->physics_arena, v2 {0, -5});
+        phy_set_gravity(game_state->physics_arena, v2 {0, -52.8});
     }
 
     draw_rectangle(buffer_description, from_rgb(v3 {0.3f, 0.35f, 0.3f}),
@@ -159,11 +212,52 @@ game_update_and_render(game_state_t* game_state, f64 dt,
     phy_update(game_state->physics_arena, dt);
 
     camera_t camera = game_state->camera;
+    m3x3 scale = get_scaling_matrix(camera.scaling * 30.0f);
+
+    for (int i = 0; i < game_state->entity_count; ++i) {
+        sim_entity_t* entity = &game_state->entities[i];
+
+        if (entity->type == PLAYER) {
+            camera.center = camera.scaling * 30.0f * entity->body->position;
+
+            const f32 player_move_factor = 80.0f;
+            const f32 direction_deadzone = 0.1f;
+            const f32 max_vel = 8.0f;
+            if (game_input.joystick_l.position.x > direction_deadzone) {
+                if (entity->body->velocity.x < 0.0f) {
+                    entity->body->velocity.x = 0.0f;
+                }
+                if (entity->body->velocity.x <= max_vel) {
+                    entity->body->velocity.x = entity->body->velocity.x +
+                        player_move_factor * dt * game_input.joystick_l.position.x;   
+                }
+            } else if (game_input.joystick_l.position.x < -direction_deadzone) {
+                if (entity->body->velocity.x > 0.0f) {
+                    entity->body->velocity.x = 0.0f;
+                }
+                if (entity->body->velocity.x >= -max_vel) {
+                    entity->body->velocity.x = entity->body->velocity.x +
+                        player_move_factor * dt * game_input.joystick_l.position.x;   
+                }
+            } else {
+                entity->body->velocity.x = 0.0f;
+            }
+
+            if (game_input.button_a.ended_down) {
+                ray_body_intersect_t r =
+                    ray_cast_from_body(game_state->physics_arena, entity->body, 0.45f, v2 {0,-1});
+
+                if (r.body && r.depth < 0.4f) {
+                    entity->body->velocity.y = 23.0f;
+                }
+            }
+
+        }
+    }
+
     m3x3 flip_y = identity_3x3();
     flip_y.r2.c2 = -1;
     flip_y.r2.c3 = camera.to_top_left.y * 2;
-    m3x3 scale = get_scaling_matrix(camera.scaling) *
-            get_scaling_matrix(30.0f);
 
     m3x3 camera_space_transform =
             flip_y *
@@ -190,31 +284,4 @@ game_update_and_render(game_state_t* game_state, f64 dt,
 
     draw_debug_points(buffer_description, camera);
 
-}
-
-v2
-do_support(phy_hull_t* hull, v2 direction) {
-    f32 greatest = -FLT_MAX;
-    f32 last = -FLT_MAX;
-    m2x2 rotation = get_rotation_matrix(hull->orientation);
-    v2 result = {};
-    for (int i = 0; i < hull->points.count; ++i) {
-        v2 transformed = rotation * hull->points[i] + hull->position;
-        f32 test = dot(transformed, direction);
-        if (test > greatest) {
-            greatest = test;
-            result = transformed;
-        }
-        last = test;
-    }
-    return result;
-}
-
-phy_support_result_t
-do_support(phy_hull_t* a, phy_hull_t* b, v2 direction) {
-    phy_support_result_t result;
-    result.p_a = do_support(a, direction);
-    result.p_b = do_support(b, -direction);
-    result.p = result.p_a - result.p_b;
-    return result;
 }

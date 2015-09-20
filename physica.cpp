@@ -59,28 +59,13 @@ phy_init(phy_memory_t memory) {
             (state->potential_collisions.values +
              state->potential_collisions.capacity);    
 
-    assert(((i64)(state->potential_collisions.values +
-            state->potential_collisions.capacity) -
-            (i64)(memory.base)) < memory.size);
-}
+    void* free_memory = (void*)(state->potential_collisions.values +
+                state->potential_collisions.capacity);
+    const i32 free_memory_size = 2 * 1024 * 1024; //2MB
+    assert(((i64)free_memory - (i64)(memory.base)) + free_memory_size < memory.size);
 
-phy_aabb_t
-get_aabb(phy_body_t *body) {
-    phy_aabb_t result;
-    result.min = v2 {FLT_MAX, FLT_MAX};
-    result.max = v2 {-FLT_MAX, -FLT_MAX};
-    m2x2 rotation = get_rotation_matrix(body->orientation);
-    for (int i = 0; i < body->hulls.count; ++i) {
-        phy_hull_t *hull = body->hulls.at(i);
-        for (int j = 0; j < hull->points.count; ++j) {
-            v2 p = hull->position + rotation * hull->points[j];
-            if (p.x < result.min.x) { result.min.x = p.x; }
-            if (p.y < result.min.y) { result.min.y = p.y; }
-            if (p.x > result.max.x) { result.max.x = p.x; }
-            if (p.y > result.max.y) { result.max.y = p.y; }
-        }
-    }
-    return result;
+    state->free_memory = free_memory;
+    state->free_memory_size = free_memory_size;
 }
 
 phy_aabb_t
@@ -93,6 +78,103 @@ get_union(phy_aabb_t a, phy_aabb_t b) {
     return result;
 }
 
+ray_intersect_t
+ray_hull_intersect(v2 p, v2 d, phy_hull_t* hull) {
+    ray_intersect_t result;
+    result.intersecting = false;
+    if (hull->type == HULL_FILLET_RECT) {
+        return result;
+    }
+    m2x2 rotation = get_rotation_matrix(hull->orientation);
+    for (int i = 0; i < hull->points.count; ++i) {
+
+        v2 a = hull->position + rotation * hull->points[(i == 0 ? hull->points.count : i) - 1];
+        v2 b = hull->position + rotation * hull->points[i];
+        ray_intersect_t r = ray_segment_intersect(p,d,a,b);
+
+        if (!r.intersecting || (result.intersecting && result.depth < r.depth)) { continue; }
+
+        result = r;
+    }
+    return result;
+}
+
+inline v2 do_support_mesh(phy_hull_t* hull, v2 direction) {
+    f32 greatest = -FLT_MAX;
+    f32 last = -FLT_MAX;
+    m2x2 rotation = get_rotation_matrix(hull->orientation);
+    v2 result = {};
+    for (int i = 0; i < hull->points.count; ++i) {
+        v2 transformed = rotation * hull->points[i] + hull->position;
+        f32 test = dot(transformed, direction);
+        if (test > greatest) {
+            greatest = test;
+            result = transformed;
+        }
+        last = test;
+    }
+    return result;
+}
+
+inline v2 do_support_rect(phy_hull_t* hull, v2 direction) {
+    v2 local_direction = rotate(direction, -hull->orientation);
+    v2 local_result;
+    if (local_direction.x > 0.0f) {
+        local_result.x = hull->width * 0.5f;
+    } else {
+        local_result.x = -hull->width * 0.5f;
+    }
+    if (local_direction.y > 0.0f) {
+        local_result.y = hull->height * 0.5f;
+    } else {
+        local_result.y = -hull->height * 0.5f;
+    }
+
+    return hull->position + rotate(local_result, hull->orientation);
+}
+
+inline v2 do_support_rect_fillet(phy_hull_t* hull, v2 direction) {
+    v2 local_direction = rotate(direction, -hull->orientation);
+    v2 local_result;
+    if (local_direction.x > 0.0f) {
+        local_result.x = (hull->width * 0.5f) - hull->fillet;
+    } else {
+        local_result.x = (-hull->width * 0.5f) + hull->fillet;
+    }
+    if (local_direction.y > 0.0f) {
+        local_result.y = (hull->height * 0.5f) - hull->fillet;
+    } else {
+        local_result.y = (-hull->height * 0.5f) + hull->fillet;
+    }
+
+    v2 fillet = normalize(local_direction) * (hull->fillet);
+    return hull->position + rotate(local_result + fillet, hull->orientation);
+}
+
+v2
+do_support(phy_hull_t* hull, v2 direction) {
+    switch (hull->type) {
+        case HULL_MESH: {
+            return do_support_mesh(hull, direction);
+        } break;
+        case HULL_RECT: {
+            return do_support_rect(hull, direction);
+        } break;
+        case HULL_FILLET_RECT: {
+            return do_support_rect_fillet(hull, direction);
+        } break;
+    }
+}
+
+phy_support_result_t
+do_support(phy_hull_t* a, phy_hull_t* b, v2 direction) {
+    phy_support_result_t result;
+    result.p_a = do_support(a, direction);
+    result.p_b = do_support(b, -direction);
+    result.p = result.p_a - result.p_b;
+    return result;
+}
+
 f32
 area(phy_aabb_t aabb) {
     v2 vec = aabb.max - aabb.min;
@@ -100,18 +182,135 @@ area(phy_aabb_t aabb) {
 }
 
 b32
-are_intersecting(phy_aabb_t a, phy_aabb_t b) {
+aabb_are_intersecting(phy_aabb_t a, phy_aabb_t b) {
     if (a.max.x < b.min.x || b.max.x < a.min.x) return false;
     if (a.max.y < b.min.y || b.max.y < a.min.y) return false;
     return true;
 }
 
-b32 is_contained_in(phy_aabb_t inner, phy_aabb_t outer) {
+b32 aabb_is_contained_in(phy_aabb_t inner, phy_aabb_t outer) {
     return inner.max.x <= outer.max.x && inner.max.y <= outer.max.y &&
            inner.min.x >= outer.min.x && inner.min.y <= outer.min.y;
 }
 
-void find_broad_phase_collisions(phy_state_t* state, i32 a_index, i32 b_index);
+b32 aabb_is_contained_in(v2 p, phy_aabb_t aabb) {
+    return p.x >= aabb.min.x && p.y >= aabb.min.y &&
+           p.x <= aabb.max.x && p.y <= aabb.max.y;
+}
+
+phy_aabb_tree_node_t*
+aabb_insert_node(phy_aabb_tree_t* tree,
+            i32 parent_index,
+            phy_aabb_t fat_aabb,
+            i32 body_index) {
+    b32 found_leaf = false;
+    while (!found_leaf) {
+        phy_aabb_tree_node_t *parent = tree->nodes.at(parent_index);
+        if (parent->type == LEAF_NODE) {
+            i32 left_index;
+            if (tree->dead_nodes.count) {
+                left_index = tree->dead_nodes[--tree->dead_nodes.count];
+            }
+            else {
+                left_index = tree->nodes.push_unassigned();
+            }
+            i32 right_index;
+            if (tree->dead_nodes.count) {
+                right_index = tree->dead_nodes[--tree->dead_nodes.count];
+            }
+            else {
+                right_index = tree->nodes.push_unassigned();
+            }
+            phy_aabb_tree_node_t *left = tree->nodes.at(left_index);
+            phy_aabb_tree_node_t *right = tree->nodes.at(right_index);
+            i32 parent_body_index = parent->body_index;
+            parent->left = left_index;
+            parent->right = right_index;
+
+            left->parent = parent_index;
+            left->fat_aabb = parent->fat_aabb;
+            left->body_index = parent_body_index;
+            left->type = LEAF_NODE;
+
+            right->parent = parent_index;
+            right->fat_aabb = fat_aabb;
+            right->body_index = body_index;
+            right->type = LEAF_NODE;
+
+            parent->fat_aabb = get_union(parent->fat_aabb, fat_aabb);
+            found_leaf = true;
+        } else {
+            phy_aabb_tree_node_t *left = tree->nodes.at(parent->left);
+            phy_aabb_tree_node_t *right = tree->nodes.at(parent->right);
+
+            phy_aabb_t left_union = get_union(left->fat_aabb, fat_aabb);
+            phy_aabb_t right_union = get_union(right->fat_aabb, fat_aabb);
+
+            parent->fat_aabb = get_union(parent->fat_aabb, fat_aabb);
+
+            parent_index = area(left_union) < area(right_union)
+                           ? parent->left
+                           : parent->right;
+        }
+    }
+
+    return tree->nodes.at(parent_index);
+}
+
+void aabb_remove_node(phy_aabb_tree_t *tree, i32 index) {
+    i32 parent_index = tree->nodes[index].parent;
+    if (parent_index == -1) {
+        assert(tree->nodes.count == 1);
+        tree->nodes.count = 0;
+        tree->dead_nodes.count = 0;
+    } else {
+        phy_aabb_tree_node_t *parent = tree->nodes.at(parent_index);
+        i32 sibling_index = (parent->left == index) ? parent->right
+                                                    : parent->left;
+        phy_aabb_tree_node_t *sibling = tree->nodes.at(sibling_index);
+        if (parent->parent != -1) {
+            phy_aabb_tree_node_t *grandparent = tree->nodes.at(parent->parent);
+            sibling->parent = parent->parent;
+            i32 parent_was_right = grandparent->right == parent_index;
+            if (parent_was_right) {
+                grandparent->right = sibling_index;
+            } else {
+                grandparent->left = sibling_index;
+            }
+        } else {
+            tree->root = sibling_index;
+            tree->nodes.at(tree->root)->parent = -1;
+        }
+        tree->dead_nodes.push(parent_index);
+        tree->dead_nodes.push(index);
+    }
+}
+
+phy_aabb_t
+get_aabb(phy_body_t *body) {
+    phy_aabb_t result;
+    result.min = v2 {FLT_MAX, FLT_MAX};
+    result.max = v2 {-FLT_MAX, -FLT_MAX};
+    m2x2 rotation = get_rotation_matrix(body->orientation);
+    for (int i = 0; i < body->hulls.count; ++i) {
+        phy_hull_t *hull = body->hulls.at(i);
+        if (hull->type == HULL_MESH) {
+            for (int j = 0; j < hull->points.count; ++j) {
+                v2 p = hull->position + rotation * hull->points[j];
+                if (p.x < result.min.x) { result.min.x = p.x; }
+                if (p.y < result.min.y) { result.min.y = p.y; }
+                if (p.x > result.max.x) { result.max.x = p.x; }
+                if (p.y > result.max.y) { result.max.y = p.y; }
+            }   
+        } else {
+            result.min.x = do_support(hull, v2 {-1.0f, 0.0f}).x;
+            result.max.x = do_support(hull, v2 {1.0f, 0.0f}).x;
+            result.min.y = do_support(hull, v2 {0.0f, -1.0f}).y;
+            result.max.y = do_support(hull, v2 {0.0f, 1.0f}).y;
+        }
+    }
+    return result;
+}
 
 inline void
 check_children(phy_state_t *state,
@@ -124,9 +323,129 @@ check_children(phy_state_t *state,
     }
 }
 
+ray_intersect_t
+ray_segment_intersect(v2 p, v2 d, v2 a, v2 b) {
+    v2 v_1 = p - a;
+    v2 v_2 = b - a;
+    v2 v_3 = perp(d);
+    f32 t_1 = flt_cross(v_2, v_1) / dot(v_2, v_3);
+    f32 t_2 = dot(v_1, v_3) / dot(v_2, v_3);
+    ray_intersect_t result;
+    result.intersecting = t_2 >= 0.0f && t_2 <= 1.0f && t_1 >= 0.0f;
+
+    result.depth = t_1;
+    return result;
+}
+
+inline ray_intersect_t
+ray_aabb_intersect(v2 p, v2 d, phy_aabb_t aabb) {
+    ray_intersect_t result;
+    result.intersecting = false;
+
+    if (aabb_is_contained_in(p, aabb)) {
+        result.intersecting = true;
+        result.depth = 0;
+    } else {
+        if (p.x <= aabb.min.x) {
+            f32 t = (aabb.min.x - p.x) / d.x;
+            f32 y = p.y + t * d.y;
+
+            if (t > 0.0f && y >= aabb.min.y && y <= aabb.max.y) {
+                result.intersecting = true;
+                result.depth = t;
+            }
+        } else if(!result.intersecting && p.x >= aabb.max.x) {
+            f32 t = (aabb.max.x - p.x) / d.x;
+            f32 y = p.y + t * d.y;
+
+            if (t > 0.0f && y >= aabb.min.y && y <= aabb.max.y) {
+                result.intersecting = true;
+                result.depth = t;
+            }
+        }
+
+        if(!result.intersecting && p.y <= aabb.min.y) {
+            f32 t = (aabb.min.y - p.y) / d.y;
+            f32 x = p.x + t * d.x;
+
+            if (t > 0.0f && x >= aabb.min.x && x <= aabb.max.x) {
+                result.intersecting = true;
+                result.depth = t;
+            }
+        } else if (!result.intersecting && p.y >= aabb.max.y) {
+            f32 t = (aabb.max.y - p.y) / d.y;
+            f32 x = p.x + t * d.x;
+
+            if (t > 0.0f && x >= aabb.min.x && x <= aabb.max.x) {
+                result.intersecting = true;
+                result.depth = t;
+            }
+        }
+    }
+    return result;
+}
+
+inline ray_intersect_t
+ray_body_intersect(v2 p, v2 d, phy_body_t* body) {
+    ray_intersect_t result;
+    result.intersecting = false;
+    for (int i = 0; i < body->hulls.count; ++i) {
+        ray_intersect_t r = ray_hull_intersect(p,d,body->hulls.at(i));
+
+        if (!r.intersecting || (result.intersecting && result.depth < r.depth)) { continue; }
+
+        result = r;
+    }
+    return result;
+}
+
+ray_body_intersect_t
+ray_cast_from_body(phy_memory_t memory, phy_body_t* self, f32 width, v2 d) {
+
+    phy_state_t* state = (phy_state_t*)memory.base;
+    phy_aabb_tree_t* tree = &state->aabb_tree;
+
+    ray_body_intersect_t result = {0};
+
+    i32* stack = (i32*)state->free_memory;
+    for (int i = 0; i < 2; ++i) {
+        v2 pd = perp(d);
+        v2 p = i ?
+            self->position + (0.5f * width * pd) :
+            self->position + (-0.5f * width * pd);
+
+        i32 stack_index = 0;
+        stack[stack_index++] = tree->root;
+
+        while (stack_index >= 0) {
+            phy_aabb_tree_node_t* node = tree->nodes.at(stack[--stack_index]);
+            ray_intersect_t r = ray_aabb_intersect(p, d, node->fat_aabb);
+            if (!r.intersecting || (result.body && result.depth < r.depth)) {
+                continue;
+            }
+
+            if (node->type == LEAF_NODE) {
+                phy_body_t* body = state->bodies.at(node->body_index);
+                if (body == self) { continue; }
+                r = ray_body_intersect(p, d, body);
+
+                if (!r.intersecting || (result.body && result.depth < r.depth)) { continue; }
+
+                result.body = body;
+                result.depth = r.depth;
+            } else {
+                stack[stack_index++] = node->left;
+                stack[stack_index++] = node->right;
+            }
+        }
+    }
+
+    return result;
+}
+
 void
 find_broad_phase_collisions(phy_state_t* state,
-                         i32 a_index, i32 b_index) {
+                            i32 a_index, i32 b_index) {
     phy_aabb_tree_t* tree = &state->aabb_tree;
     phy_aabb_tree_node_t *a = tree->nodes.at(a_index);
     phy_aabb_tree_node_t *b = tree->nodes.at(b_index);
@@ -134,7 +453,7 @@ find_broad_phase_collisions(phy_state_t* state,
         if (b->type == LEAF_NODE) {
             phy_aabb_t aabb_a = state->bodies[a->body_index].aabb;
             phy_aabb_t aabb_b = state->bodies[b->body_index].aabb;
-            if (are_intersecting(aabb_a, aabb_b)) {
+            if (aabb_are_intersecting(aabb_a, aabb_b)) {
                 phy_potential_collision_t collision;
                 if (a->body_index < b->body_index) {
                     collision.a_index = a->body_index;
@@ -181,96 +500,6 @@ find_broad_phase_collisions(phy_state_t* state) {
         tree->checked_parents.values[i] = false;
     }
     find_broad_phase_collisions(state, root->left, root->right);
-}
-
-void
-insert_node(phy_state_t* state,
-            i32 parent_index,
-            phy_aabb_t fat_aabb,
-            i32 body_index) {
-    phy_aabb_tree_t* tree = &state->aabb_tree;
-    b32 found_leaf = false;
-    while (!found_leaf) {
-        phy_aabb_tree_node_t *parent = tree->nodes.at(parent_index);
-        if (parent->type == LEAF_NODE) {
-            found_leaf = true;
-            i32 left_index;
-            if (tree->dead_nodes.count) {
-                left_index = tree->dead_nodes[--tree->dead_nodes.count];
-            }
-            else {
-                left_index = tree->nodes.push_unassigned();
-            }
-            i32 right_index;
-            if (tree->dead_nodes.count) {
-                right_index = tree->dead_nodes[--tree->dead_nodes.count];
-            }
-            else {
-                right_index = tree->nodes.push_unassigned();
-            }
-            phy_aabb_tree_node_t *left = tree->nodes.at(left_index);
-            phy_aabb_tree_node_t *right = tree->nodes.at(right_index);
-            i32 parent_body_index = parent->body_index;
-            parent->left = left_index;
-            parent->right = right_index;
-
-            left->parent = parent_index;
-            left->fat_aabb = parent->fat_aabb;
-            left->body_index = parent_body_index;
-            left->type = LEAF_NODE;
-            state->bodies.at(left->body_index)->aabb_node_index = left_index;
-
-            right->parent = parent_index;
-            right->fat_aabb = fat_aabb;
-            right->body_index = body_index;
-            right->type = LEAF_NODE;
-            state->bodies.at(right->body_index)->aabb_node_index = right_index;
-
-            parent->fat_aabb = get_union(parent->fat_aabb, fat_aabb);
-        } else {
-            phy_aabb_tree_node_t *left = tree->nodes.at(parent->left);
-            phy_aabb_tree_node_t *right = tree->nodes.at(parent->right);
-
-            phy_aabb_t left_union = get_union(left->fat_aabb, fat_aabb);
-            phy_aabb_t right_union = get_union(right->fat_aabb, fat_aabb);
-
-            parent->fat_aabb = get_union(parent->fat_aabb, fat_aabb);
-
-            parent_index = area(left_union) < area(right_union)
-                           ? parent->left
-                           : parent->right;
-        }
-    }
-}
-
-void
-phy_add_aabb_for_body(phy_memory_t memory,
-                      i32 body_index) {
-    phy_state_t* state = (phy_state_t*)memory.base;
-    phy_aabb_tree_t* tree = &state->aabb_tree;
-
-    phy_body_t *body = state->bodies.at(body_index);
-    i32 index = -1;
-    phy_aabb_t aabb = get_aabb(body);
-    phy_aabb_t fat_aabb = phy_aabb_t {
-            aabb.min - FAT_AABB_MARGIN,
-            aabb.max + FAT_AABB_MARGIN
-    };
-    body->aabb = aabb;
-    if (tree->nodes.count == 0) { // this is our root
-        index = tree->dead_nodes.count
-                ? tree->dead_nodes[--tree->dead_nodes.count]
-                : (tree->nodes.count++);
-        phy_aabb_tree_node_t* node = tree->nodes.at(index);
-        tree->root = index;
-        node->parent = -1;
-        node->body_index = body_index;
-        node->fat_aabb = fat_aabb;
-        node->type = LEAF_NODE;
-        body->aabb_node_index = index;
-    } else {
-        insert_node(state, tree->root, fat_aabb, body_index);
-    }
 }
 
 phy_body_t*
@@ -475,6 +704,7 @@ do_epa(phy_hull_t* a,
 
     reorder_simplex(polytope);
     u32 vertex_count = 3;
+    const f32 threshold = 0.0001f;
 
     for (int i = 0; i < 20; i++) {
         phy_edge_t edge = find_closest_edge_to_origin(polytope,
@@ -482,7 +712,7 @@ do_epa(phy_hull_t* a,
         phy_support_result_t support = do_support(a, b, edge.normal);
 
         f32 d = dot(support.p, edge.normal);
-        if (fequals(d, edge.depth)) {
+        if (abs(d - edge.depth) < threshold) {
             if (edge.depth > 0.0f) {
                 *result = edge;
                 return true;
@@ -569,44 +799,50 @@ solve_velocity_constraint(phy_body_t *a,
     f32 new_sum = fclamp(*lambda_sum + lagrangian, lambda_min, lambda_max);
     lagrangian = new_sum - *lambda_sum;
     *lambda_sum = new_sum;
+
     v6 delta_state = lagrangian * j2;
 
     a->velocity += v2 {delta_state.vals[0], delta_state.vals[1]};
-    a->angular_velocity += delta_state.vals[2];
+    a->angular_velocity += delta_state.vals[2];   
 
     b->velocity += v2 {delta_state.vals[3], delta_state.vals[4]};
-    b->angular_velocity += delta_state.vals[5];
+    b->angular_velocity += delta_state.vals[5];   
 
     return lagrangian;
 }
 
 void
-remove_aabb(phy_aabb_tree_t *tree, i32 index) {
-    i32 parent_index = tree->nodes[index].parent;
-    if (parent_index == -1) {
-        assert(tree->nodes.count == 1);
-        tree->nodes.count = 0;
-        tree->dead_nodes.count = 0;
+phy_add_aabb_for_body(phy_memory_t memory,
+                      i32 body_index) {
+    phy_state_t* state = (phy_state_t*)memory.base;
+    phy_aabb_tree_t* tree = &state->aabb_tree;
+
+    phy_body_t *body = state->bodies.at(body_index);
+    i32 index = -1;
+    phy_aabb_t aabb = get_aabb(body);
+    phy_aabb_t fat_aabb = phy_aabb_t {
+            aabb.min - FAT_AABB_MARGIN,
+            aabb.max + FAT_AABB_MARGIN
+    };
+    body->aabb = aabb;
+    if (tree->nodes.count == 0) { // this is our root
+        index = tree->dead_nodes.count
+                ? tree->dead_nodes[--tree->dead_nodes.count]
+                : (tree->nodes.count++);
+        phy_aabb_tree_node_t* node = tree->nodes.at(index);
+        tree->root = index;
+        node->parent = -1;
+        node->body_index = body_index;
+        node->fat_aabb = fat_aabb;
+        node->type = LEAF_NODE;
+        body->aabb_node_index = index;
     } else {
-        phy_aabb_tree_node_t *parent = tree->nodes.at(parent_index);
-        i32 sibling_index = (parent->left == index) ? parent->right
-                                                    : parent->left;
-        phy_aabb_tree_node_t *sibling = tree->nodes.at(sibling_index);
-        if (parent->parent != -1) {
-            phy_aabb_tree_node_t *grandparent = tree->nodes.at(parent->parent);
-            sibling->parent = parent->parent;
-            i32 parent_was_right = grandparent->right == parent_index;
-            if (parent_was_right) {
-                grandparent->right = sibling_index;
-            } else {
-                grandparent->left = sibling_index;
-            }
-        } else {
-            tree->root = sibling_index;
-            tree->nodes.at(tree->root)->parent = -1;
-        }
-        tree->dead_nodes.push(parent_index);
-        tree->dead_nodes.push(index);
+        phy_aabb_tree_node_t *parent = aabb_insert_node(tree, tree->root, fat_aabb, body_index);
+        i32 left = parent->left;
+        i32 right = parent->right;
+
+        state->bodies.at(tree->nodes.at(left)->body_index)->aabb_node_index = left;
+        state->bodies.at(tree->nodes.at(right)->body_index)->aabb_node_index = right;
     }
 }
 
@@ -831,8 +1067,8 @@ solve_velocity_constraints(phy_state_t* state, f32 dt) {
                                                           collision,
                                                           a, b);
 
-        const f32 restitution = 0.4f;
-        const f32 friction_coefficient = 0.55f;
+        const f32 restitution = 0.8f;
+        const f32 friction_coefficient = 0.1f;
         const f32 baumgarte = 0.2f;
         const f32 penetration_slop = 0.002f;
         const f32 restitution_slop = 0.02f;
@@ -891,7 +1127,7 @@ void
 integrate_velocities(phy_state_t* state, f32 dt) {
     for (int i = 0; i < state->bodies.count; ++i) {
         phy_body_t* body = &state->bodies.values[i];
-        if (!(body->flags & FIXED_FLAG)) {
+        if (!(body->flags & PHY_FIXED_FLAG)) {
             body->force += state->gravity * body->mass;
         }
         v2 accel = body->force * body->inv_mass;
@@ -899,8 +1135,8 @@ integrate_velocities(phy_state_t* state, f32 dt) {
         body->velocity = body->velocity + accel * dt;
         body->angular_velocity = body->angular_velocity + angular_accel * dt;
 
-        body->velocity *= 1.0f / (1.0f + dt * 0.1f);
-        body->angular_velocity *= 1.0f / (1.0f + dt * 0.1f);
+        body->velocity *= 1.0f / (1.0f + dt * 0.01f);
+        body->angular_velocity *= 1.0f / (1.0f + dt * 0.01f);
     }
 }
 
@@ -909,7 +1145,7 @@ integrate_positions(phy_state_t* state, f32 dt) {
     for (int i = 0; i < state->bodies.count; ++i) {
         phy_body_t* body = state->bodies.at(i);
 
-        f32 velocity_threshold = 0.001f;
+        f32 velocity_threshold = 0.01f;
         if (abs(length_squared(body->velocity)) > velocity_threshold) {
             body->position = body->position + body->velocity * dt;
         }
@@ -922,6 +1158,23 @@ integrate_positions(phy_state_t* state, f32 dt) {
 
 void
 _phy_update(phy_memory_t memory, f32 dt) {
+    // phy_hull_t hull;
+    // hull.type = HULL_FILLET_RECT;
+    // hull.width = 2.0f;
+    // hull.height = 5.0f;
+    // hull.fillet = 1.0f;
+    // hull.position = v2 {0.0f, 0.0f};
+    // for (int i = 0; i < 40; ++i) {
+    //     f32 direction = 2.0f * 3.14159f * (40.0f / (f32)i);
+    //     v2 point = do_support(&hull, rotate(v2{1.0f,0.0f}, direction));
+    //     add_debug_point(point, 0xffffffff);
+    // }
+
+    // add_debug_point(do_support(&hull, v2{1.0f,-1.0f}), 0xffff0000);
+
+
+    // add_debug_point(v2{0.0f,0.0f}, 0xffffffff);
+
     phy_state_t* state = (phy_state_t*)memory.base;
 
     find_broad_phase_collisions(state);
@@ -939,11 +1192,6 @@ _phy_update(phy_memory_t memory, f32 dt) {
 
     integrate_positions(state, dt);
 
-    // const i32 position_iterations = 4;
-    // for (i32 i = 0; i < velocity_iterations; ++i) {
-    //     solve_position_constraints(state, dt);
-    // }
-
     for (int i = 0; i < state->bodies.count; ++i) {
         phy_body_t* body = state->bodies.at(i);
         body->force = v2{0,0};
@@ -955,8 +1203,8 @@ _phy_update(phy_memory_t memory, f32 dt) {
 
         if (body->aabb_node_index == -1) {
             phy_add_aabb_for_body(memory, i);
-        } else if (!is_contained_in(body->aabb, fat_aabb)) {
-            remove_aabb(&state->aabb_tree, body->aabb_node_index);
+        } else if (!aabb_is_contained_in(body->aabb, fat_aabb)) {
+            aabb_remove_node(&state->aabb_tree, body->aabb_node_index);
             phy_add_aabb_for_body(memory, i);
         }
     }

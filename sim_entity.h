@@ -36,6 +36,7 @@ struct sim_entity_t {
     f32 width;
     f32 height;
     u32 color;
+    entity_type type;
 };
 
 struct sim_region_t {

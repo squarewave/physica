@@ -187,6 +187,8 @@ game_update_and_render(game_state_t* game_state, f64 dt,
                             video_buffer_description_t buffer_description,
                             game_input_t game_input) {
 
+    TIMED_FUNC();
+
 //    dt /= 20.0f;
     if (!game_state->initialized) {
         initialize_game_state(game_state);

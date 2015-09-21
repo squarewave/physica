@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <locale.h>
 
 #include "SDL2/SDL.h"
 
@@ -154,6 +155,8 @@ f32 get_seconds_elapsed(u64 old, u64 current) {
 }
 
 int main(int argc, char const *argv[]) {
+    setlocale(LC_NUMERIC, "");
+
     platform_context_t context = {};
 
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
@@ -288,6 +291,8 @@ int main(int argc, char const *argv[]) {
         SDL_RenderCopy(context.renderer, context.texture, 0, 0);
 
         SDL_RenderPresent(context.renderer);
+
+        print_debug_log();
     }
 
     return 0;

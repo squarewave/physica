@@ -64,6 +64,8 @@ void draw_bmp(tex2 dest,
               u32 source_width, u32 source_height,
               f32 source_hotspot_x, f32 source_hotspot_y, f32 orientation) {
 
+    TIMED_BLOCK(draw_bmp);
+    
     assert(source.width >= (source_left + source_width));
     assert(source.height >= (source_top + source_height));
 
@@ -188,6 +190,7 @@ void draw_bmp(video_buffer_description_t buffer,
               u32 source_width, u32 source_height,
               f32 source_hotspot_x, f32 source_hotspot_y, f32 orientation) {
 
+    TIMED_BLOCK(draw_bmp);
     assert(bitmap.width >= (source_left + source_width));
     assert(bitmap.height >= (source_top + source_height));
 
@@ -352,6 +355,8 @@ void draw_debug_points(video_buffer_description_t buffer, camera_t camera) {
 void draw_rectangle(video_buffer_description_t buffer,
                     u32 value, i32 center_x, i32 center_y, u32 width, u32 height,
                     f32 orientation) {
+
+    TIMED_BLOCK(draw_rectangle);
 
     f32 half_width = ((f32)width) / 2.0f;
     f32 half_height = ((f32)height) / 2.0f;

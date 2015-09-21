@@ -6,6 +6,7 @@
 #define PHYSICA_GAME_H
 
 #include "typedefs.h"
+#include "game_debug.h"
 #include "game_render.h"
 #include "physica_math.h"
 #include "sim_entity.h"

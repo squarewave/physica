@@ -4,6 +4,8 @@
 
 #include <math.h>
 #include <time.h>
+#include <execinfo.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,9 +15,6 @@
 
 #include "game.h"
 #include "sdl_platform.h"
-
-const i32 width = 640;
-const i32 height = 480;
 
 void platform_free_file_memory(void* memory) {
     free(memory);
@@ -36,7 +35,9 @@ platform_read_entire_file_result_t platform_read_entire_file(const char * filena
     fseek(f, 0, SEEK_SET);
 
     char *string = (char *)malloc(fsize + 1);
-    fread(string, fsize, 1, f);
+    if (!fread(string, fsize, 1, f)) {
+        printf("No results from fread\n");
+    }
     fclose(f);
 
     string[fsize] = 0;
@@ -154,8 +155,24 @@ f32 get_seconds_elapsed(u64 old, u64 current) {
     return ((f32)(current - old) / (f32)(SDL_GetPerformanceFrequency()));
 }
 
+void segv_handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
 int main(int argc, char const *argv[]) {
+    signal(SIGSEGV, segv_handler);
     setlocale(LC_NUMERIC, "");
+
+    printf("%ld\n", sysconf(_SC_CLK_TCK));
 
     platform_context_t context = {};
 
@@ -167,8 +184,8 @@ int main(int argc, char const *argv[]) {
     context.window = SDL_CreateWindow("hello",
                                       SDL_WINDOWPOS_UNDEFINED,
                                       SDL_WINDOWPOS_UNDEFINED,
-                                      width,
-                                      height,
+                                      START_WIDTH,
+                                      START_HEIGHT,
                                       SDL_WINDOW_RESIZABLE);
 
 
@@ -187,15 +204,15 @@ int main(int argc, char const *argv[]) {
     context.texture = SDL_CreateTexture(context.renderer,
                                         SDL_PIXELFORMAT_ARGB8888,
                                         SDL_TEXTUREACCESS_STREAMING,
-                                        width,
-                                        height);
+                                        START_WIDTH,
+                                        START_HEIGHT);
 
     if (!context.texture) {
         printf("Unable to create texture: %s\n", SDL_GetError());
         return 1;
     }
 
-    void* pixels = malloc(width * height * 4);
+    void* pixels = malloc(START_WIDTH * START_HEIGHT * 4);
 
     const u64 one_gig = 1024LL * 1024LL * 1024LL;
     void* game_memory = calloc(one_gig, sizeof(u8));
@@ -274,16 +291,20 @@ int main(int argc, char const *argv[]) {
 
         video_buffer_description_t game_buffer = {};
         game_buffer.memory = pixels;
-        game_buffer.width = width;
-        game_buffer.height = height;
-        game_buffer.pitch = width * 4;
+        game_buffer.width = START_WIDTH;
+        game_buffer.height = START_HEIGHT;
+        game_buffer.pitch = START_WIDTH * 4;
         game_buffer.bytes_per_pixel = 4;
+
+        static u64 last_rdtsc = rdtsc();
+        printf("\n%'ld\n", rdtsc() - last_rdtsc);
+        last_rdtsc = rdtsc();
 
         game_update_and_render((game_state_t*)game_memory, dt, game_buffer, next_input);
 
         prev_input = next_input;
 
-        if (SDL_UpdateTexture(context.texture,0, pixels, width * 4)) {
+        if (SDL_UpdateTexture(context.texture,0, pixels, START_WIDTH * 4)) {
             printf("Unable to update SDL texture: %s\n", SDL_GetError());
             return 1;
         }

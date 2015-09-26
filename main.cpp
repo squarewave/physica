@@ -9,5 +9,5 @@
 #include "game_render.cpp"
 #include "hashmap.cpp"
 #include "physica.cpp"
-#include "test.cpp"
+#include "game.cpp"
 #pragma clang diagnostic pop

@@ -12,55 +12,35 @@ void
 phy_init(phy_memory_t memory) {
     phy_state_t* state = (phy_state_t*)memory.base;
 
-    state->time_step = 0.01f;
+    state->time_step = 0.005f;
+
+    u8* previous_loc = memory.base + sizeof(phy_state_t);
+    i32 previous_size = 0;
+#define __PUSH_STATE_INIT(o, cnt, prop) ({\
+    previous_loc = previous_loc + previous_size;\
+    previous_size = sizeof(*o.values) * (cnt);\
+    *((u8**)&o.values) = previous_loc;\
+    o.prop = (cnt);\
+})
+
+#define __PUSH_STATE_INIT_VEC(a,b) __PUSH_STATE_INIT(a,b,capacity);
+#define __PUSH_STATE_INIT_ARRAY(a,b) __PUSH_STATE_INIT(a,b,count);
 
     i32 body_capacity = 2000;
-    state->bodies.values = (phy_body_t*)(memory.base + sizeof(phy_state_t));
-    state->bodies.capacity = body_capacity;
 
-    i32 hull_capacity = body_capacity * 2;
-    state->hulls.values =
-            (phy_hull_t*)(state->bodies.values + state->bodies.capacity);
-    state->hulls.capacity = hull_capacity;
+    __PUSH_STATE_INIT_VEC(state->bodies, 2000);
+    __PUSH_STATE_INIT_ARRAY(state->previous_velocities, 2000);
+    __PUSH_STATE_INIT_ARRAY(state->previous_angular_velocities, 2000);
+    __PUSH_STATE_INIT_VEC(state->hulls, 4000);
+    __PUSH_STATE_INIT_VEC(state->points, 16000);
+    __PUSH_STATE_INIT_VEC(state->collisions, 2000);
+    __PUSH_STATE_INIT_VEC(state->aabb_tree.nodes, 8000);
+    __PUSH_STATE_INIT_ARRAY(state->aabb_tree.checked_parents, 8000);
+    __PUSH_STATE_INIT_VEC(state->aabb_tree.dead_nodes, 8000);
+    __PUSH_STATE_INIT_VEC(state->potential_collisions, 8000);
+    __PUSH_STATE_INIT_ARRAY(state->manifold_cache.pairs, 8000);
 
-    i32 point_capacity = hull_capacity * 4;
-    phy_hull_t* end_of_hulls = state->hulls.values + state->hulls.capacity;
-    state->points.values = (v2*)end_of_hulls;
-    state->points.capacity = point_capacity;
-
-    i32 collision_capacity = body_capacity;
-    state->collisions.values = (phy_collision_t*)
-            (state->points.values + state->points.capacity);
-    state->collisions.capacity = point_capacity;
-
-    i32 node_capacity = body_capacity * 4;
-    state->aabb_tree.nodes.values = (phy_aabb_tree_node_t*)
-            (state->collisions.values + state->collisions.capacity);
-    state->aabb_tree.nodes.capacity = node_capacity;
-
-    state->aabb_tree.checked_parents.count = node_capacity;
-    state->aabb_tree.checked_parents.values = (b32*)
-            (state->aabb_tree.nodes.values + state->aabb_tree.nodes.capacity);
-
-    state->aabb_tree.dead_nodes.capacity = node_capacity;
-    state->aabb_tree.dead_nodes.values = (i32*)
-            (state->aabb_tree.checked_parents.values +
-             state->aabb_tree.checked_parents.count);
-
-    i32 potential_collision_capacity = body_capacity * 4;
-    state->potential_collisions.capacity = potential_collision_capacity;
-    state->potential_collisions.values = (phy_potential_collision_t*)
-            (state->aabb_tree.dead_nodes.values +
-             state->aabb_tree.dead_nodes.capacity);
-
-    i32 collision_manifold_map_capacity = body_capacity * 4;
-    state->manifold_cache.pairs.count = collision_manifold_map_capacity;
-    state->manifold_cache.pairs.values = (hashpair<phy_manifold_t>*)
-            (state->potential_collisions.values +
-             state->potential_collisions.capacity);    
-
-    void* free_memory = (void*)(state->potential_collisions.values +
-                state->potential_collisions.capacity);
+    void* free_memory = (void*)(previous_loc + previous_size);
     const i32 free_memory_size = 2 * 1024 * 1024; //2MB
     assert(((i64)free_memory - (i64)(memory.base)) + free_memory_size < memory.size);
 
@@ -1139,6 +1119,7 @@ solve_velocity_constraints(phy_state_t* state, f32 dt) {
         phy_body_t *a = state->bodies.at(collision->a_index);
         phy_body_t *b = state->bodies.at(collision->b_index);
 
+
         phy_manifold_t *manifold = get_collision_manifold(state,
                                                           collision,
                                                           a, b);
@@ -1194,8 +1175,15 @@ solve_velocity_constraints(phy_state_t* state, f32 dt) {
                                  friction_coefficient *
                                  manifold->normal_sum,
                                  &manifold->tangent_sum);
-            }
+            }   
         }
+
+
+        *(state->previous_velocities.at(collision->a_index)) = a->velocity;
+        *(state->previous_velocities.at(collision->b_index)) = b->velocity;
+        *(state->previous_angular_velocities.at(collision->a_index)) = a->angular_velocity;
+        *(state->previous_angular_velocities.at(collision->b_index)) = b->angular_velocity;
+
     }
 }
 
@@ -1205,6 +1193,8 @@ integrate_velocities(phy_state_t* state, f32 dt) {
 
     for (int i = 0; i < state->bodies.count; ++i) {
         phy_body_t* body = &state->bodies.values[i];
+        *(state->previous_velocities.at(i)) = body->velocity;
+        *(state->previous_angular_velocities.at(i)) = body->angular_velocity;
         if (!(body->flags & PHY_FIXED_FLAG)) {
             body->force += state->gravity * body->mass;
         }
@@ -1225,12 +1215,16 @@ integrate_positions(phy_state_t* state, f32 dt) {
     for (int i = 0; i < state->bodies.count; ++i) {
         phy_body_t* body = state->bodies.at(i);
 
+        v2 avg_velocity = (body->velocity + state->previous_velocities[i]) * 0.5f;
+        f32 avg_angular_velocity =
+            (body->angular_velocity + state->previous_angular_velocities[i]) * 0.5f;
+
         f32 velocity_threshold = 0.01f;
-        if (abs(length_squared(body->velocity)) > velocity_threshold) {
-            body->position = body->position + body->velocity * dt;
+        if (abs(length_squared(avg_velocity)) > velocity_threshold) {
+            body->position = body->position + avg_velocity * dt;
         }
-        if (abs(body->angular_velocity) > velocity_threshold) {
-            body->orientation = body->orientation + body->angular_velocity * dt;
+        if (abs(avg_angular_velocity) > velocity_threshold) {
+            body->orientation = body->orientation + avg_angular_velocity * dt;
         }
 
     }
@@ -1238,6 +1232,7 @@ integrate_positions(phy_state_t* state, f32 dt) {
 
 void
 _phy_update(phy_memory_t memory, f32 dt) {
+    TIMED_FUNC();
     // phy_hull_t hull;
     // hull.type = HULL_FILLET_RECT;
     // hull.width = 2.0f;

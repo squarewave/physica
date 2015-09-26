@@ -421,24 +421,129 @@ void draw_rectangle(video_buffer_description_t buffer,
 
     v2 center = v2 {(f32)center_x, (f32)center_y};
     u32* pixels = (u32*)buffer.memory;
+    u32 test = pixels[(buffer.width * buffer.height)];
 
     m3x3 transform = get_translation_matrix(center) *
             inverse_rotate *
             get_translation_matrix(-center);
 
     v3 rgb = to_rgb(value);
-    for (int y = start_y; y < end_y; ++y) {
-        for (int x = start_x; x < end_x; ++x) {
-            v2 p_original = transform * v2 { (f32)x, (f32)y };
-            f32 diff_x = fmax(min_x - p_original.x, p_original.x - max_x);
-            f32 diff_y = fmax(min_y - p_original.y, p_original.y - max_y);
 
-            diff_x = fclamp(diff_x + 0.5f, 0.0f, 1.0f);
-            diff_y = fclamp(diff_y + 0.5f, 0.0f, 1.0f);
-            f32 ratio = (1.0f - diff_x) * (1.0f - diff_y);
-            v3 existing = to_rgb(pixels[y * buffer.width + x]);
-            pixels[y * buffer.width + x] =
-                    from_rgb((1.0f - ratio) * existing + ratio * rgb);
-        }
+    __m128 transform_wide[9];
+
+    for (int i = 0; i < 9; ++i) {
+        transform_wide[i] = _mm_set1_ps(transform.vals[i]);
     }
+
+    __m128 min_x_wide = _mm_set1_ps(min_x);
+    __m128 max_x_wide = _mm_set1_ps(max_x);
+
+    __m128 min_y_wide = _mm_set1_ps(min_y);
+    __m128 max_y_wide = _mm_set1_ps(max_y);
+
+    __m128 wide_1 = _mm_set1_ps(1.0f);
+    __m128 wide_0p5 = _mm_set1_ps(0.5f);
+    __m128 wide_0 = _mm_set1_ps(0.0f);
+    __m128 wide_4 = _mm_set1_ps(4.0f);
+    __m128 wide_255 = _mm_set1_ps(255.0f);
+    __m128 wide_inv255 = _mm_set1_ps(1.0f / 255.0f);
+
+    __m128i a_mask = _mm_set1_epi32(0xff000000);
+    __m128i r_mask = _mm_set1_epi32(0x00ff0000);
+    __m128i g_mask = _mm_set1_epi32(0x0000ff00);
+    __m128i b_mask = _mm_set1_epi32(0x000000ff);
+
+    __m128 wide_r = _mm_mul_ps(_mm_set1_ps(rgb.r), wide_255);
+    __m128 wide_g = _mm_mul_ps(_mm_set1_ps(rgb.g), wide_255);;
+    __m128 wide_b = _mm_mul_ps(_mm_set1_ps(rgb.b), wide_255);;
+
+    __m128 xs;
+    {
+        TIMED_BLOCK(draw_rectangle_inner);
+
+        for (int y = start_y; y < end_y; ++y) {
+    
+            ((f32*)&xs)[0] = (f32)(start_x + 0);
+            ((f32*)&xs)[1] = (f32)(start_x + 1);
+            ((f32*)&xs)[2] = (f32)(start_x + 2);
+            ((f32*)&xs)[3] = (f32)(start_x + 3);
+    
+            __m128 ys = _mm_set1_ps((f32)y);
+            __m128 first_transformed_ys = 
+                _mm_add_ps(_mm_mul_ps(transform_wide[1], ys),
+                           transform_wide[2]);
+            __m128 second_transformed_ys = 
+                _mm_add_ps(_mm_mul_ps(transform_wide[4], ys),
+                           transform_wide[5]);
+    
+            i32 x;
+            for (x = start_x; x < end_x-4; x += 4) {
+    
+                __m128 p_original_xs =
+                    _mm_add_ps(_mm_mul_ps(transform_wide[0], xs), first_transformed_ys);
+                __m128 p_original_ys =
+                    _mm_add_ps(_mm_mul_ps(transform_wide[3], xs), second_transformed_ys);
+    
+                __m128 diff_xs = 
+                    wide_max(_mm_sub_ps(min_x_wide, p_original_xs),
+                             _mm_sub_ps(p_original_xs, max_x_wide));
+    
+                __m128 diff_ys = 
+                    wide_max(_mm_sub_ps(min_y_wide, p_original_ys),
+                             _mm_sub_ps(p_original_ys, max_y_wide));
+    
+                diff_xs = wide_clamp(_mm_add_ps(diff_xs, wide_0p5), wide_0, wide_1);
+                diff_ys = wide_clamp(_mm_add_ps(diff_ys, wide_0p5), wide_0, wide_1);
+    
+                __m128 ratios = _mm_mul_ps(_mm_sub_ps(wide_1, diff_xs),
+                                          _mm_sub_ps(wide_1, diff_ys));
+    
+                __m128 one_minus_ratios = _mm_sub_ps(wide_1, ratios);
+    
+                __m128i* pixel_loc = (__m128i*)(pixels + (y * buffer.width + x));
+    
+                __m128i existing_i = _mm_loadu_si128((__m128i*)pixel_loc);
+                __m128i existing_r = _mm_srli_epi32(_mm_and_si128(existing_i, r_mask), 16);
+                __m128i existing_g = _mm_srli_epi32(_mm_and_si128(existing_i, g_mask), 8);
+                __m128i existing_b = _mm_and_si128(existing_i, b_mask);
+    
+                __m128 fexisting_r = _mm_cvtepi32_ps(existing_r);
+                __m128 fexisting_g = _mm_cvtepi32_ps(existing_g);
+                __m128 fexisting_b = _mm_cvtepi32_ps(existing_b);
+    
+                __m128 new_r = _mm_mul_ps(one_minus_ratios, fexisting_r);
+                __m128 new_g = _mm_mul_ps(one_minus_ratios, fexisting_g);
+                __m128 new_b = _mm_mul_ps(one_minus_ratios, fexisting_b);
+                new_r = _mm_add_ps(new_r, _mm_mul_ps(ratios, wide_r));
+                new_g = _mm_add_ps(new_g, _mm_mul_ps(ratios, wide_g));
+                new_b = _mm_add_ps(new_b, _mm_mul_ps(ratios, wide_b));
+    
+                existing_r = _mm_slli_epi32(_mm_cvtps_epi32(new_r), 16);
+                existing_g = _mm_slli_epi32(_mm_cvtps_epi32(new_g), 8);
+                existing_b = _mm_cvtps_epi32(new_b);
+    
+                __m128i pixel_vals =
+                    _mm_or_si128(a_mask,
+                                 _mm_or_si128(existing_r, _mm_or_si128(existing_g, existing_b)));
+                _mm_storeu_si128(pixel_loc, pixel_vals);            
+    
+                xs = _mm_add_ps(wide_4, xs);
+            }
+    
+            for (; x < end_x; ++x) {
+                v2 p_original = transform * v2 { (f32)x, (f32)y };
+                f32 diff_x = fmax(min_x - p_original.x, p_original.x - max_x);
+                f32 diff_y = fmax(min_y - p_original.y, p_original.y - max_y);
+    
+                diff_x = fclamp(diff_x + 0.5f, 0.0f, 1.0f);
+                diff_y = fclamp(diff_y + 0.5f, 0.0f, 1.0f);
+    
+                f32 ratio = (1.0f - diff_x) * (1.0f - diff_y);
+    
+                v3 existing = to_rgb(pixels[y * buffer.width + x]);
+                pixels[y * buffer.width + x] =
+                        from_rgb((1.0f - ratio) * existing + ratio * rgb);
+    
+            }
+        }}
 }

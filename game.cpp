@@ -204,7 +204,7 @@ game_update_and_render(game_state_t* game_state, f64 dt,
 
         add_blocks(game_state);
 
-        phy_set_gravity(game_state->physics_arena, v2 {0, -52.8});
+        phy_set_gravity(game_state->physics_arena, v2 {0, -92.8});
     }
 
     draw_rectangle(buffer_description, from_rgb(v3 {0.3f, 0.35f, 0.3f}),
@@ -224,7 +224,7 @@ game_update_and_render(game_state_t* game_state, f64 dt,
 
             const f32 player_move_factor = 80.0f;
             const f32 direction_deadzone = 0.1f;
-            const f32 max_vel = 8.0f;
+            const f32 max_vel = 14.0f;
             if (game_input.joystick_l.position.x > direction_deadzone) {
                 if (entity->body->velocity.x < 0.0f) {
                     entity->body->velocity.x = 0.0f;
@@ -245,12 +245,14 @@ game_update_and_render(game_state_t* game_state, f64 dt,
                 entity->body->velocity.x = 0.0f;
             }
 
-            if (game_input.button_a.ended_down) {
+
+            // jump
+            if (game_input.button_a.ended_down && entity->body->velocity.y < 0.5f) {
                 ray_body_intersect_t r =
-                    ray_cast_from_body(game_state->physics_arena, entity->body, 0.55f, v2 {0,-1});
+                    ray_cast_from_body(game_state->physics_arena, entity->body, 0.50f, v2 {0,-1});
 
                 if (r.body && r.depth < 0.4f) {
-                    entity->body->velocity.y = 23.0f;
+                    entity->body->velocity.y = 29.0f;
                 }
             }
 

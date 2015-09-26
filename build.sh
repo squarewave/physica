@@ -1,1 +1,1 @@
-g++ main.cpp -o build/physica -O3 `sdl2-config --cflags --libs` -std=c++11
+g++ main.cpp -o build/physica -g `sdl2-config --cflags --libs` -std=c++11

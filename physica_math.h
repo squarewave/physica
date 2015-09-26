@@ -4,6 +4,8 @@
 
 #ifndef PHYSICA_PHYSICA_MATH_H
 #define PHYSICA_PHYSICA_MATH_H
+#include "emmintrin.h"
+#include <math.h>
 const f32 fPI = 3.14159265358979323846264338327950288f;
 
 union v2 {
@@ -36,7 +38,12 @@ struct row3_t {
 };
 
 struct m3x3 {
-    row3_t r1, r2, r3;
+    union {
+        struct {
+            row3_t r1, r2, r3;
+        };
+        f32 vals[9];
+    };
 };
 
 struct v6 {
@@ -269,11 +276,14 @@ inline m3x3 operator* (m3x3 lhs, m3x3 rhs) {
 }
 
 inline v3 operator* (m3x3 lhs, v3 rhs) {
-    v3 result;
-    result.x = lhs.r1.c1 * rhs.x + lhs.r1.c2 * rhs.y + lhs.r1.c3 * rhs.z;
-    result.y = lhs.r2.c1 * rhs.x + lhs.r2.c2 * rhs.y + lhs.r2.c3 * rhs.z;
-    result.z = lhs.r3.c1 * rhs.x + lhs.r3.c2 * rhs.y + lhs.r3.c3 * rhs.z;
-    return result;
+    __m128 x = _mm_set1_ps(rhs.x);
+    __m128 y = _mm_set1_ps(rhs.y);
+    __m128 z = _mm_set1_ps(rhs.z);
+    __m128 c1 = _mm_set_ps(lhs.r1.c1,lhs.r2.c1,lhs.r3.c1,0.0f);
+    __m128 c2 = _mm_set_ps(lhs.r1.c2,lhs.r2.c2,lhs.r3.c2,0.0f);
+    __m128 c3 = _mm_set_ps(lhs.r1.c3,lhs.r2.c3,lhs.r3.c3,0.0f);
+    __m128 r = _mm_add_ps(_mm_mul_ps(c1, x), _mm_add_ps(_mm_mul_ps(c2, y), _mm_mul_ps(c3,z)));
+    return *((v3*)&r);
 }
 
 inline v2 perp(v2 val) {
@@ -318,20 +328,17 @@ inline m3x3 get_translation_matrix(v2 val) {
 }
 
 inline m3x3 get_rotation_matrix_3x3(f32 theta) {
-    return m3x3 {
-            {cos(theta), -sin(theta), 0.0f},
-            {sin(theta), cos(theta), 0.0f},
-            {0.0f, 0.0f, 1.0f}
-    };
+    m3x3 result;
+    result.r1 = {cos(theta), -sin(theta), 0.0f};
+    result.r2 = {sin(theta), cos(theta), 0.0f};
+    result.r3 = {0.0f, 0.0f, 1.0f};
 }
 
 inline v2 operator* (m3x3 lhs, v2 rhs) {
-    v3 rhs3 = to_v3(rhs);
-    v3 result;
-    result.x = lhs.r1.c1 * rhs3.x + lhs.r1.c2 * rhs3.y + lhs.r1.c3 * rhs3.z;
-    result.y = lhs.r2.c1 * rhs3.x + lhs.r2.c2 * rhs3.y + lhs.r2.c3 * rhs3.z;
-    result.z = lhs.r3.c1 * rhs3.x + lhs.r3.c2 * rhs3.y + lhs.r3.c3 * rhs3.z;
-    return to_v2(result);
+    v2 result;
+    result.x = lhs.r1.c1 * rhs.x + lhs.r1.c2 * rhs.y + lhs.r1.c3;
+    result.y = lhs.r2.c1 * rhs.x + lhs.r2.c2 * rhs.y + lhs.r2.c3;
+    return result;
 }
 
 inline m3x3 identity_3x3(){
@@ -376,13 +383,12 @@ inline v6 operator*(f32 lhs, v6 rhs) {
 }
 
 inline f32 dot(v6 lhs, v6 rhs) {
-    return
-        lhs.vals[0] * rhs.vals[0] +
-        lhs.vals[1] * rhs.vals[1] +
-        lhs.vals[2] * rhs.vals[2] +
-        lhs.vals[3] * rhs.vals[3] +
-        lhs.vals[4] * rhs.vals[4] +
-        lhs.vals[5] * rhs.vals[5];
+    __m128 l0 = _mm_loadu_ps((const float*)&lhs.vals);
+    __m128 r0 = _mm_loadu_ps((const float*)&rhs.vals);
+    __m128 l1 = _mm_set_ps(lhs.vals[4], lhs.vals[5], 0.0f, 0.0f);
+    __m128 r1 = _mm_set_ps(rhs.vals[4], rhs.vals[5], 0.0f, 0.0f);
+    __m128 result =_mm_add_ps(_mm_mul_ps(l0, r0), _mm_mul_ps(l1, r1));
+    return result[0] + result[1] + result[2] + result[3];
 }
 
 inline v3 to_rgb(u32 color) {
@@ -398,6 +404,20 @@ inline u32 from_rgb(v3 color) {
              ((uround(color.r * 255.0f) << 16) & 0x00ff0000) |
              ((uround(color.g * 255.0f) << 8) & 0x0000ff00) |
              ((uround(color.b * 255.0f) << 0) & 0x000000ff));
+}
+
+inline __m128 wide_max(__m128 lhs, __m128 rhs) {
+    __m128 cmp = _mm_cmpgt_ps(lhs, rhs);
+    return _mm_add_ps(_mm_and_ps(cmp, lhs),_mm_andnot_ps(cmp, rhs));
+}
+
+inline __m128 wide_min(__m128 lhs, __m128 rhs) {
+    __m128 cmp = _mm_cmplt_ps(lhs, rhs);
+    return _mm_add_ps(_mm_and_ps(cmp, lhs),_mm_andnot_ps(cmp, rhs));
+}
+
+inline __m128 wide_clamp(__m128 val, __m128 min, __m128 max) {
+    return wide_max(wide_min(val, max), min);
 }
 
 #endif //PHYSICA_PHYSICA_MATH_H

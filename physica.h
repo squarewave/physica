@@ -117,6 +117,8 @@ struct phy_state_t {
     vec<phy_body_t> bodies;
     vec<phy_hull_t> hulls;
     vec<v2> points;
+    array<v2> previous_velocities;
+    array<f32> previous_angular_velocities;
     vec<phy_potential_collision_t> potential_collisions;
     vec<phy_collision_t> collisions;
     hashmap<phy_manifold_t> manifold_cache;

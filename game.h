@@ -12,7 +12,7 @@
 #include "sim_entity.h"
 #include "hashmap.h"
 
-const u32 FRAME_RATE = 30;
+const u32 FRAME_RATE = 60;
 const u32 START_WIDTH = 960;
 const u32 START_HEIGHT = 540;
 const u32 LEFT_OFFSET = 0;

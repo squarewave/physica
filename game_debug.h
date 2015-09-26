@@ -51,7 +51,7 @@ struct timed_block_t {
 };
 
 void print_debug_log() {
-    printf("debug log: %'ld\n", time_spent_logging);
+    printf("\ndebug log: %'ld\n", time_spent_logging);
     for (int i = 0; i < debug_block_count; ++i) {
         printf("%-32s %'14ld cy,    %'5d calls\n",
                debug_blocks[i].id,

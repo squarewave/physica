@@ -8,6 +8,10 @@
 #include <math.h>
 const f32 fPI = 3.14159265358979323846264338327950288f;
 
+struct rect_i {
+    i32 min_x, min_y, max_x, max_y;
+};
+
 union v2 {
     struct {
         f32 x, y;
@@ -279,9 +283,9 @@ inline v3 operator* (m3x3 lhs, v3 rhs) {
     __m128 x = _mm_set1_ps(rhs.x);
     __m128 y = _mm_set1_ps(rhs.y);
     __m128 z = _mm_set1_ps(rhs.z);
-    __m128 c1 = _mm_set_ps(lhs.r1.c1,lhs.r2.c1,lhs.r3.c1,0.0f);
-    __m128 c2 = _mm_set_ps(lhs.r1.c2,lhs.r2.c2,lhs.r3.c2,0.0f);
-    __m128 c3 = _mm_set_ps(lhs.r1.c3,lhs.r2.c3,lhs.r3.c3,0.0f);
+    __m128 c1 = _mm_setr_ps(lhs.r1.c1,lhs.r2.c1,lhs.r3.c1,0.0f);
+    __m128 c2 = _mm_setr_ps(lhs.r1.c2,lhs.r2.c2,lhs.r3.c2,0.0f);
+    __m128 c3 = _mm_setr_ps(lhs.r1.c3,lhs.r2.c3,lhs.r3.c3,0.0f);
     __m128 r = _mm_add_ps(_mm_mul_ps(c1, x), _mm_add_ps(_mm_mul_ps(c2, y), _mm_mul_ps(c3,z)));
     return *((v3*)&r);
 }

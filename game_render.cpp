@@ -17,9 +17,9 @@ tex2 load_bmp(char* filename) {
         bitmap_header_t* header = (bitmap_header_t*)file.contents;
 
         assert(header->compression == 3);
-
         assert(header->width > 0);
         assert(header->height > 0);
+
         result.width = (u32) header->width;
         result.height = (u32) header->height;
         result.pixels = (u32*)(file.contents + header->bitmap_offset);
@@ -54,6 +54,86 @@ tex2 load_bmp(char* filename) {
     }
 
     return result;
+}
+
+void push_rect(render_group_t* render_group,
+               color_t color, v2 center, v2 diagonal, f32 orientation) {
+    i32 i = render_group->objects.push_unassigned();
+    render_object_t* obj = render_group->objects.at(i);
+    obj->type = RENDER_TYPE_RECT;
+    obj->render_rect.color = color;
+    obj->render_rect.center = center;
+    obj->render_rect.diagonal = diagonal;
+    obj->render_rect.orientation = orientation;
+}
+
+void run_render_task(task_queue_t* queue, void* data) {
+    render_task_t* task = (render_task_t*)data;
+
+    m3x3 flip_y = identity_3x3();
+    flip_y.r2.c2 = -1;
+    flip_y.r2.c3 = task->camera.to_top_left.y * 2;
+    m3x3 scale = get_scaling_matrix(task->camera.scaling) *
+            get_scaling_matrix(30.0f);
+
+    m3x3 camera_space_transform =
+            flip_y *
+            get_translation_matrix(task->camera.to_top_left) *
+            get_translation_matrix(-task->camera.center) *
+            scale;
+
+    for (int i = 0; i < task->render_group->objects.count; ++i) {
+        render_object_t* obj = task->render_group->objects.at(i);
+        switch (obj->type) {
+            case RENDER_TYPE_RECT: {
+                v2 center = camera_space_transform * obj->render_rect.center;
+                v2 diagonal = scale * obj->render_rect.diagonal;
+                draw_rectangle(task->buffer,
+                               task->clip_rect,
+                               obj->render_rect.color,
+                               (i32)center.x,
+                               (i32)center.y,
+                               (u32)diagonal.x,
+                               (u32)diagonal.y,
+                               obj->render_rect.orientation);
+            } break;
+        }
+    }
+}
+
+void draw_render_group(platform_services_t platform,
+                       video_buffer_description_t buffer,
+                       camera_t camera,
+                       render_group_t* render_group) {
+    TIMED_FUNC();
+
+    i32 clip_width = buffer.width / 4;
+    i32 clip_height = buffer.height / 2;
+
+    render_task_t tasks[8] = {0};
+
+    render_task_t* task = tasks;
+    for (i32 i = 0; i < 2; ++i) {
+        for (i32 j = 0; j < 4; ++j) {
+            task->clip_rect = {
+                j*clip_width, i*clip_height,
+                (j+1)*clip_width, (i+1) * clip_height
+            };
+            if (j == 3) {
+                task->clip_rect.max_x = buffer.width;
+            }
+            task->buffer = buffer;
+            task->camera = camera;
+            task->render_group = render_group;
+
+            platform.start_task(platform.render_queue, &run_render_task, task);
+            task++;
+        }
+    }
+
+    platform.wait_on_queue(platform.render_queue);
+
+    render_group->objects.count = 0;
 }
 
 void draw_bmp(tex2 dest,
@@ -335,7 +415,7 @@ void draw_debug_points(video_buffer_description_t buffer, camera_t camera) {
 
     for (int i = 0; i < debug_point_count; ++i) {
         v2 p = camera_space_transform * debug_points[i];
-        draw_rectangle(buffer, debug_colors[i], p.x, p.y, 2, 2, 0.0f);
+        // draw_rectangle(buffer, debug_colors[i], p.x, p.y, 2, 2, 0.0f);
     }
 
     for (int i = 0; i < (debug_rect_count / 2); ++i) {
@@ -344,19 +424,26 @@ void draw_debug_points(video_buffer_description_t buffer, camera_t camera) {
         v2 p = camera_space_transform * ((top_right + bottom_left) * 0.5f);
         v2 size = scale * (top_right - bottom_left);
 
-        draw_rectangle(buffer, debug_rect_colors[i], p.x, p.y, size.x, size.y, 0.0f);
+        // draw_rectangle(buffer, debug_rect_colors[i], p.x, p.y, size.x, size.y, 0.0f);
     }
 
     debug_point_count = 0;
     debug_rect_count = 0;
 }
 
+void draw_rectangle(video_buffer_description_t buffer,
+                    color_t color, i32 center_x, i32 center_y, u32 width, u32 height,
+                    f32 orientation) {
+    rect_i clip = {0,0,(i32)buffer.width, (i32)buffer.height};
+    draw_rectangle(buffer, clip, color,
+                   center_x, center_y, width, height, orientation);
+}
+
 // NOTE(doug): orientation is counter-clockwise radians from the x axis
 void draw_rectangle(video_buffer_description_t buffer,
-                    u32 value, i32 center_x, i32 center_y, u32 width, u32 height,
+                    rect_i clip_rect,
+                    color_t color, i32 center_x, i32 center_y, u32 width, u32 height,
                     f32 orientation) {
-
-    TIMED_BLOCK(draw_rectangle);
 
     f32 half_width = ((f32)width) / 2.0f;
     f32 half_height = ((f32)height) / 2.0f;
@@ -414,10 +501,10 @@ void draw_rectangle(video_buffer_description_t buffer,
         }
     }
 
-    start_x = (i32) fmax(0, start_x - 1);
-    start_y = (i32) fmax(0, start_y - 1);
-    end_x = (i32) fmin(buffer.width, end_x + 1);
-    end_y = (i32) fmin(buffer.height, end_y + 1);
+    start_x = (i32) fmax(clip_rect.min_x, start_x - 1);
+    start_y = (i32) fmax(clip_rect.min_y, start_y - 1);
+    end_x = (i32) fmin(clip_rect.max_x, end_x + 1);
+    end_y = (i32) fmin(clip_rect.max_y, end_y + 1);
 
     v2 center = v2 {(f32)center_x, (f32)center_y};
     u32* pixels = (u32*)buffer.memory;
@@ -426,8 +513,6 @@ void draw_rectangle(video_buffer_description_t buffer,
     m3x3 transform = get_translation_matrix(center) *
             inverse_rotate *
             get_translation_matrix(-center);
-
-    v3 rgb = to_rgb(value);
 
     __m128 transform_wide[9];
 
@@ -453,14 +538,12 @@ void draw_rectangle(video_buffer_description_t buffer,
     __m128i g_mask = _mm_set1_epi32(0x0000ff00);
     __m128i b_mask = _mm_set1_epi32(0x000000ff);
 
-    __m128 wide_r = _mm_mul_ps(_mm_set1_ps(rgb.r), wide_255);
-    __m128 wide_g = _mm_mul_ps(_mm_set1_ps(rgb.g), wide_255);;
-    __m128 wide_b = _mm_mul_ps(_mm_set1_ps(rgb.b), wide_255);;
+    __m128 wide_r = _mm_mul_ps(_mm_set1_ps(color.r), wide_255);
+    __m128 wide_g = _mm_mul_ps(_mm_set1_ps(color.g), wide_255);;
+    __m128 wide_b = _mm_mul_ps(_mm_set1_ps(color.b), wide_255);;
 
     __m128 xs;
     {
-        TIMED_BLOCK(draw_rectangle_inner);
-
         for (int y = start_y; y < end_y; ++y) {
     
             ((f32*)&xs)[0] = (f32)(start_x + 0);
@@ -478,7 +561,7 @@ void draw_rectangle(video_buffer_description_t buffer,
     
             i32 x;
             for (x = start_x; x < end_x-4; x += 4) {
-    
+
                 __m128 p_original_xs =
                     _mm_add_ps(_mm_mul_ps(transform_wide[0], xs), first_transformed_ys);
                 __m128 p_original_ys =
@@ -542,8 +625,9 @@ void draw_rectangle(video_buffer_description_t buffer,
     
                 v3 existing = to_rgb(pixels[y * buffer.width + x]);
                 pixels[y * buffer.width + x] =
-                        from_rgb((1.0f - ratio) * existing + ratio * rgb);
+                        from_rgb((1.0f - ratio) * existing + ratio * color);
     
             }
-        }}
+        }
+    }
 }

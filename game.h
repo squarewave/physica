@@ -45,16 +45,10 @@ void _zero_size(void* memory, size_t size) {
 #define PUSH_STRUCT(arena, type) (type *)_push_size(arena, sizeof(type))
 #define PUSH_ARRAY(arena, count, type) (type *)_push_size(arena, count * sizeof(type))
 #define ZERO_STRUCT(instance) _zero_size(&(instance), sizeof(instance))
-;
 
 struct platform_read_entire_file_result_t {
     u8* contents;
     u32 content_size;
-};
-
-struct camera_t {
-    v2 center, to_top_left;
-    f32 scaling;
 };
 
 struct spatial_partition_t {
@@ -79,9 +73,11 @@ struct game_state_t {
     u32 spatial_partition_count;
 
     camera_t camera;
+    render_group_t main_render_group;
 
     memory_arena_t world_arena;
     phy_memory_t physics_arena;
+    memory_arena_t render_arena;
 
     tex2 main_panel;
 };
@@ -132,7 +128,10 @@ struct bitmap_header_t {
 };
 #pragma pack(pop)
 
-void game_update_and_render(game_state_t* game_state, f64 dt,
+struct platform_services_t;  
+
+void game_update_and_render(platform_services_t platform,
+                            game_state_t* game_state, f64 dt,
                             video_buffer_description_t buffer_description,
                             game_input_t game_input);
 

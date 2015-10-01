@@ -16,6 +16,59 @@
 #include "game.h"
 #include "sdl_platform.h"
 
+
+void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* data) {
+    i32 next_write_index = (queue->write_index + 1) % TASK_QUEUE_MAX_ENTRIES;
+    assert(next_write_index != queue->read_index);
+
+    task_t* task = queue->tasks + queue->write_index;
+    task->callback = callback;
+    task->data = data;
+    queue->write_index = next_write_index;
+    __atomic_add_fetch(&queue->remaining, 1, __ATOMIC_SEQ_CST);
+    SDL_SemPost(queue->semaphore);
+}
+
+b32 platform_execute_next_task(task_queue_t* queue) {
+    b32 sleep = false;
+
+    i32 original = queue->read_index;
+    i32 read_index = (original + 1) % TASK_QUEUE_MAX_ENTRIES;
+    if (original != queue->write_index) {
+        if (__atomic_compare_exchange_n(&queue->read_index,
+                                        &original, read_index,
+                                        false,
+                                        __ATOMIC_SEQ_CST,
+                                        __ATOMIC_SEQ_CST)) {
+            task_t* task = queue->tasks + original;
+            task->callback(queue, task->data);
+            __atomic_sub_fetch(&queue->remaining, 1, __ATOMIC_SEQ_CST);
+        }
+    } else {
+        sleep = true;
+    }
+
+    return sleep;
+}
+
+void platform_wait_on_queue(task_queue_t* queue) {
+    while (queue->remaining) {
+        platform_execute_next_task(queue);
+    }
+}
+
+int thread_func(void* ptr) {
+    task_queue_t* queue = (task_queue_t*)ptr;
+
+    while (true) {
+        if (platform_execute_next_task(queue)) {
+            SDL_SemWait(queue->semaphore);
+        }
+    }
+
+    return 0;
+}
+
 void platform_free_file_memory(void* memory) {
     free(memory);
 }
@@ -58,7 +111,8 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
         case SDL_WINDOWEVENT: {
             switch (event->window.event) {
                 case SDL_WINDOWEVENT_RESIZED: {
-                    printf("SDL_WINDOWEVENT_RESIZED (%d, %d)\n", event->window.data1, event->window.data2);
+                    printf("SDL_WINDOWEVENT_RESIZED (%d, %d)\n", event->window.data1,
+                           event->window.data2);
                 } break;
                 case SDL_WINDOWEVENT_EXPOSED: {
                     printf("SDL_WINDOWEVENT_EXPOSED\n");
@@ -136,7 +190,7 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
         context->next_input->joystick_l.position.y = ((f32)stick_y) / 32768.0f;        
     }
 
-  return should_quit;
+    return should_quit;
 }
 
 SDL_Joystick* find_controller_handle() {
@@ -168,17 +222,42 @@ void segv_handler(int sig) {
   exit(1);
 }
 
+void printer_task(task_queue_t* queue, void* data) {
+    char* as_str = (char*)data;
+    printf("%s\n", as_str);
+}
+
+const char* to_print = "hello, world";
+
 int main(int argc, char const *argv[]) {
     signal(SIGSEGV, segv_handler);
     setlocale(LC_NUMERIC, "");
 
-    printf("%ld\n", sysconf(_SC_CLK_TCK));
-
-    platform_context_t context = {};
+    platform_context_t context = {0};
 
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
         printf("Unable to init SDL: %s\n", SDL_GetError());
         return 1;
+    }
+
+    task_queue_t primary_queue = {0};
+    primary_queue.semaphore = SDL_CreateSemaphore(0);
+    task_queue_t secondary_queue = {0};
+    secondary_queue.semaphore = SDL_CreateSemaphore(0);
+    task_queue_t render_queue = {0};
+    render_queue.semaphore = SDL_CreateSemaphore(0);
+
+    platform_services_t platform = {0};
+    platform.primary_queue = &primary_queue;
+    platform.secondary_queue = &secondary_queue;
+    platform.render_queue = &render_queue;
+    platform.start_task = &platform_start_task;
+    platform.wait_on_queue = &platform_wait_on_queue;
+
+    for (int i = 0; i < 8; ++i) {
+        char buffer[10];
+        sprintf(buffer, "thread%d", i);
+        SDL_CreateThread(thread_func, buffer, (void*)&render_queue);
     }
 
     context.window = SDL_CreateWindow("hello",
@@ -236,7 +315,6 @@ int main(int argc, char const *argv[]) {
             u32 sleep_time = ((target_seconds_per_frame - elapsed) * 1000) - 1;
             SDL_Delay(sleep_time);
             elapsed = get_seconds_elapsed(last_counter, SDL_GetPerformanceCounter());
-            assert(elapsed < target_seconds_per_frame);
             while (get_seconds_elapsed(last_counter, SDL_GetPerformanceCounter()) <
                    target_seconds_per_frame) { }
         }
@@ -297,10 +375,9 @@ int main(int argc, char const *argv[]) {
         game_buffer.bytes_per_pixel = 4;
 
         static u64 last_rdtsc = rdtsc();
-        printf("\n%'ld\n", rdtsc() - last_rdtsc);
         last_rdtsc = rdtsc();
 
-        game_update_and_render((game_state_t*)game_memory, dt, game_buffer, next_input);
+        game_update_and_render(platform, (game_state_t*)game_memory, dt, game_buffer, next_input);
 
         prev_input = next_input;
 

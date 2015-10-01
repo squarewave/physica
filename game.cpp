@@ -9,24 +9,18 @@
 
 void
 initialize_game_state(game_state_t* game_state) {
-    i64 world_memory_size = 1024 * 1024 * 64; // 64 megs
-    i64 physics_memory_size = 1024 * 1024 * 64;
-    i64 memory_layout[32] = {
-        sizeof(game_state_t),
-        world_memory_size,
-        physics_memory_size
-    };
     i64 memory_index = 0;
-    u8* memory_location = (u8*)game_state;
+    u8* memory_location = (u8*)game_state + sizeof(game_state_t);
 
-    #define __MAKE_ARENA(arena) do {\
-        arena.size = memory_layout[memory_index++];\
-        memory_location += arena.size;\
+    #define __MAKE_ARENA(arena, count) do {\
+        arena.size = (count);\
         arena.base = memory_location;\
+        memory_location += (count);\
     } while (0)
 
-    __MAKE_ARENA(game_state->world_arena);
-    __MAKE_ARENA(game_state->physics_arena);
+    __MAKE_ARENA(game_state->world_arena, 1024L * 1024L * 64L);
+    __MAKE_ARENA(game_state->physics_arena, 1024L * 1024L * 64L);
+    __MAKE_ARENA(game_state->render_arena, 1024L * 1024L * 64L);
 
     game_state->entity_capacity = 4000;
 
@@ -154,6 +148,7 @@ void add_blocks(game_state_t *game_state) {
             if (tile_map_data[y * tile_map_width + x]) {
                 f32 tile_size = 1.0f;
                 sim_entity_t* tile = make_block(game_state, tile_size, tile_size, 100.0f);
+                tile->color = 0xffffffff;
                 tile->body->position.x = (tile_size / 2) + (x * tile_size);
                 tile->body->position.y = (tile_size / 2) + (-(y + 1) * tile_size);
                 tile->body->flags = PHY_FIXED_FLAG;
@@ -175,6 +170,12 @@ void add_blocks(game_state_t *game_state) {
     block->color = 0xffaaaaaa;
     block->type = TILE;
     block->body->inv_moment = 0.0f;
+
+    const i32 max_render_objects = 1024 * 1024;
+    game_state->main_render_group.objects.count = 0;
+    game_state->main_render_group.objects.capacity = max_render_objects;
+    game_state->main_render_group.objects.values =
+        PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_t);
 }
 
 i32
@@ -183,9 +184,10 @@ meters_to_pixels(f32 meters) {
 }
 
 void
-game_update_and_render(game_state_t* game_state, f64 dt,
-                            video_buffer_description_t buffer_description,
-                            game_input_t game_input) {
+game_update_and_render(platform_services_t platform,
+                       game_state_t* game_state, f64 dt,
+                       video_buffer_description_t buffer_description,
+                       game_input_t game_input) {
 
     TIMED_FUNC();
 
@@ -207,9 +209,6 @@ game_update_and_render(game_state_t* game_state, f64 dt,
         phy_set_gravity(game_state->physics_arena, v2 {0, -92.8});
     }
 
-    draw_rectangle(buffer_description, from_rgb(v3 {0.3f, 0.35f, 0.3f}),
-                   buffer_description.width / 2, buffer_description.height / 2,
-                   buffer_description.width, buffer_description.height, 0.0f);
 
     phy_update(game_state->physics_arena, dt);
 
@@ -259,33 +258,22 @@ game_update_and_render(game_state_t* game_state, f64 dt,
         }
     }
 
-    m3x3 flip_y = identity_3x3();
-    flip_y.r2.c2 = -1;
-    flip_y.r2.c3 = camera.to_top_left.y * 2;
 
-    m3x3 camera_space_transform =
-            flip_y *
-            get_translation_matrix(camera.to_top_left) *
-            get_translation_matrix(-camera.center) *
-            scale;
+    push_rect(&game_state->main_render_group,
+              v3 {0.3f, 0.35f, 0.3f},
+              v2{0,0},
+              v2 {(f32)buffer_description.width, (f32)buffer_description.height},
+              0.0f);
 
-    game_state->entities[0].body->force = v2 {0,0};
-    game_state->entities[0].body->torque = 0.0f;
     for (int i = 0; i < game_state->entity_count; ++i) {
         sim_entity_t* entity = &game_state->entities[i];
-        v2 camera_p = camera_space_transform *
-                entity->body->position;
 
-        v2 entity_box = scale * v2 {entity->width, entity->height};
-
-        draw_rectangle(buffer_description, entity->color,
-                       camera_p.x,
-                       camera_p.y,
-                       entity_box.x,
-                       entity_box.y,
-                       entity->body->orientation);
+        push_rect(&game_state->main_render_group,
+                  to_rgb(entity->color),
+                  entity->body->position,
+                  v2 {entity->width, entity->height},
+                  entity->body->orientation);
     }
 
-    draw_debug_points(buffer_description, camera);
-
+    draw_render_group(platform, buffer_description, camera, &game_state->main_render_group);
 }

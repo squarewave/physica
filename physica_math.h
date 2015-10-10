@@ -12,11 +12,25 @@ struct rect_i {
     i32 min_x, min_y, max_x, max_y;
 };
 
+union v2i {
+    struct {
+        i32 x, y;
+    };
+    i32 e[2];
+};
+
 union v2 {
     struct {
         f32 x, y;
     };
     f32 e[2];
+};
+
+union v3i {
+    struct {
+        i32 x,y,z;
+    };
+    i32 e[3];
 };
 
 union v3 {
@@ -27,6 +41,20 @@ union v3 {
         f32 r,g,b;
     };
     f32 e[3];
+};
+
+union v4 {
+    struct {
+        f32 x,y,z,w;
+    };
+    struct {
+        f32 r,g,b,a;
+    };
+    struct {
+        v3 rgb;
+        f32 __extra;
+    };
+    f32 e[4];
 };
 
 struct row2_t {
@@ -60,6 +88,14 @@ inline f32 are_opposite_signs(f32 lhs, f32 rhs) {
 
 inline i32 sfloor(f32 val) {
     return (val < 0.0f) ? ((i32)val - 1) : (i32)val;
+}
+
+inline i32 sround(f32 val) {
+    return val > 0 ? (i32)(val + 0.5f) : (i32)(val - 0.5f);
+}
+
+inline i32 sceil(f32 val) {
+    return (val < 0.0f) ? ((i32)val) : ((i32)val + 1);
 }
 
 inline f32 smod(f32 numer, f32 denom) {
@@ -128,6 +164,17 @@ inline v3 operator*(f32 lhs, v3 rhs) {
     return result;
 }
 
+inline v4 operator*(f32 lhs, v4 rhs) {
+    v4 result;
+
+    result.x = lhs*rhs.x;
+    result.y = lhs*rhs.y;
+    result.z = lhs*rhs.z;
+    result.a = lhs*rhs.a;
+
+    return result;
+}
+
 inline v2 operator/(v2 lhs, f32 rhs) {
     v2 result;
 
@@ -177,7 +224,27 @@ inline v3 operator+(v3 lhs, v3 rhs) {
     return result;
 }
 
+inline v4 operator+(v4 lhs, v4 rhs) {
+    v4 result;
+    for (int i = 0; i < 4; ++i) {
+        result.e[i] = lhs.e[i] + rhs.e[i];
+    }
+    return result;
+}
+
 inline v2 & operator+=(v2 &lhs, v2 rhs) {
+    lhs = lhs + rhs;
+
+    return(lhs);
+}
+
+inline v3 & operator+=(v3 &lhs, v3 rhs) {
+    lhs = lhs + rhs;
+
+    return(lhs);
+}
+
+inline v4 & operator+=(v4 &lhs, v4 rhs) {
     lhs = lhs + rhs;
 
     return(lhs);
@@ -189,6 +256,22 @@ inline v2 operator-(v2 lhs, v2 rhs) {
     result.x = lhs.x - rhs.x;
     result.y = lhs.y - rhs.y;
 
+    return result;
+}
+
+inline v3 operator-(v3 lhs, v3 rhs) {
+    v3 result;
+    for (int i = 0; i < 3; ++i) {
+        result.e[i] = lhs.e[i] - rhs.e[i];
+    }
+    return result;
+}
+
+inline v4 operator-(v4 lhs, v4 rhs) {
+    v4 result;
+    for (int i = 0; i < 4; ++i) {
+        result.e[i] = lhs.e[i] - rhs.e[i];
+    }
     return result;
 }
 
@@ -336,6 +419,7 @@ inline m3x3 get_rotation_matrix_3x3(f32 theta) {
     result.r1 = {cos(theta), -sin(theta), 0.0f};
     result.r2 = {sin(theta), cos(theta), 0.0f};
     result.r3 = {0.0f, 0.0f, 1.0f};
+    return result;
 }
 
 inline v2 operator* (m3x3 lhs, v2 rhs) {
@@ -408,6 +492,51 @@ inline u32 from_rgb(v3 color) {
              ((uround(color.r * 255.0f) << 16) & 0x00ff0000) |
              ((uround(color.g * 255.0f) << 8) & 0x0000ff00) |
              ((uround(color.b * 255.0f) << 0) & 0x000000ff));
+}
+
+inline v4 to_rgba(u32 color) {
+    v4 result;
+    result.r = (f32)((color & 0x00ff0000) >> 16) / 255.0f;
+    result.g = (f32)((color & 0x0000ff00) >> 8) / 255.0f;
+    result.b = (f32)((color & 0x000000ff)) / 255.0f;
+    result.a = (f32)((color & 0xff000000) >> 24) / 255.0f;
+    return result;
+}
+
+inline u32 from_rgba(v4 color) {
+    return  (((uround(color.a * 255.0f) << 24) & 0xff000000) |
+             ((uround(color.r * 255.0f) << 16) & 0x00ff0000) |
+             ((uround(color.g * 255.0f) << 8) & 0x0000ff00) |
+             ((uround(color.b * 255.0f) << 0) & 0x000000ff));
+}
+
+inline v4 multiply_alpha(v4 color) {
+    v4 result;
+    result.r = color.a * color.r;
+    result.g = color.a * color.g;
+    result.b = color.a * color.b;
+    result.a = color.a;
+    return result;
+}
+
+inline v4 mix_adjacent(v4 lhs, v4 rhs, f32 ratio) {
+    v4 result;
+    f32 inv_ratio = 1.0f - ratio;
+    result.a = (ratio * lhs.a + inv_ratio * rhs.a);
+    f32 inv_a = fequals(result.a, 0.0f) ? 0.0f : 1.0f / result.a;
+    result.r = inv_a * (ratio * lhs.a * lhs.r + inv_ratio * rhs.a * rhs.r);
+    result.g = inv_a * (ratio * lhs.a * lhs.g + inv_ratio * rhs.a * rhs.g);
+    result.b = inv_a * (ratio * lhs.a * lhs.b + inv_ratio * rhs.a * rhs.b);
+    return result;
+}
+
+inline v4 overlay(v4 lhs, v4 rhs) {
+    v4 result;
+    result.a = 1.0f - ((1.0f - lhs.a) * (1.0f - rhs.a));
+    result.r = lhs.r + ((rhs.r - lhs.r) * rhs.a);
+    result.g = lhs.g + ((rhs.g - lhs.g) * rhs.a);
+    result.b = lhs.b + ((rhs.b - lhs.b) * rhs.a);
+    return result;
 }
 
 inline __m128 wide_max(__m128 lhs, __m128 rhs) {

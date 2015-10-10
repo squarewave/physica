@@ -2,13 +2,12 @@
 #define PHYSICA_GAME_DEBUG_H
 
 __inline__ u64 rdtsc() {
-    u32 low, high;
-    __asm__ __volatile__ (
-        "xorl %%eax,%%eax \n    cpuid"
-        ::: "%rax", "%rbx", "%rcx", "%rdx" );
-    __asm__ __volatile__ (
-                          "rdtsc" : "=a" (low), "=d" (high));
-    return (u64)high << 32 | low;
+    u32 a;
+    u32 d;
+    asm volatile
+        (".byte 0x0f, 0x31 #rdtsc\n" // edx:eax
+         :"=a"(a), "=d"(d)::);
+    return (((u64) d) << 32) | (u64) a;
 }
 
 #define TIMED_BLOCK(ID) timed_block_t timed_block##ID((char*)#ID)
@@ -51,6 +50,7 @@ struct timed_block_t {
 };
 
 void print_debug_log() {
+    return;
     printf("\ndebug log: %'ld\n", time_spent_logging);
     for (int i = 0; i < debug_block_count; ++i) {
         printf("%-32s %'14ld cy,    %'5d calls\n",

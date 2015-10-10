@@ -6,6 +6,8 @@
 #include "game.h"
 #include "game_render.h"
 #include "physica.h"
+#include "animation.h"
+#include "wiz_animation.h"
 
 void
 initialize_game_state(game_state_t* game_state) {
@@ -37,8 +39,6 @@ make_block(game_state_t *game_state, f32 width, f32 height, f32 mass) {
     sim_entity_t* result = game_state->entities + game_state->entity_count;
     game_state->entity_count++;
 
-    result->width = width;
-    result->height = height;
     result->body = phy_add_body(game_state->physics_arena);
 
     phy_body_t* body = result->body;
@@ -60,10 +60,10 @@ make_block(game_state_t *game_state, f32 width, f32 height, f32 mass) {
     hull->type = HULL_MESH;
     hull->points = phy_add_points(game_state->physics_arena, 4);
 
-    hull->points.values[0] = {result->width / 2.0f, result->height / 2.0f};
-    hull->points.values[1] = {-result->width / 2.0f, result->height / 2.0f};
-    hull->points.values[2] = {-result->width / 2.0f, -result->height / 2.0f};
-    hull->points.values[3] = {result->width / 2.0f, -result->height / 2.0f};
+    hull->points.values[0] = {width / 2.0f, height / 2.0f};
+    hull->points.values[1] = {-width / 2.0f, height / 2.0f};
+    hull->points.values[2] = {-width / 2.0f, -height / 2.0f};
+    hull->points.values[3] = {width / 2.0f, -height / 2.0f};
     return result;
 }
 
@@ -73,8 +73,6 @@ make_fillet_block(game_state_t *game_state, f32 width, f32 height, f32 fillet, f
     sim_entity_t* result = game_state->entities + game_state->entity_count;
     game_state->entity_count++;
 
-    result->width = width;
-    result->height = height;
     result->body = phy_add_body(game_state->physics_arena);
 
     phy_body_t* body = result->body;
@@ -102,80 +100,73 @@ make_fillet_block(game_state_t *game_state, f32 width, f32 height, f32 fillet, f
 
 void add_blocks(game_state_t *game_state) {
 
-    const u32 tile_map_width = 36;
-    const u32 tile_map_height = 36;
-    u32 tile_map_data[tile_map_width * tile_map_height] = {
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-        1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-        1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-        1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1,
-        1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
-        1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-        1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    };
+    const char* tile_map =
+    "-------------------------------------------------"
+    "#################################################"
+    "#         #####################           #######" 
+    "#         ########   #                    #######" 
+    "#         ########   #                    #######" 
+    "#     x                                    ######" 
+    "#######                        #########  #######" 
+    "####################   #################  #######" 
+    "####################   ##################  ######" 
+    "#########################################  ######" 
+    "################################   #####  #######" 
+    "################################      ##    #####" 
+    "#########################               #   #####" 
+    "################################           ######" 
+    "###################################        ######" 
+    "######################################    #######" 
+    "#######################################   #######" 
+    "#######################################   #######" 
+    "#################################################" 
+    "#################################################" 
+    "#################################################" 
+    "#################################################" 
+    "#################################################";
+
+    i32 tile_map_width = i32(strchr(tile_map, '#') - tile_map);
+    i32 tile_map_height = strlen(tile_map) / tile_map_width - 1;
+
+
+    tile_map = tile_map + tile_map_width;
 
     for (int y = 0; y < tile_map_height; ++y) {
         for (int x = 0; x < tile_map_width; ++x) {
-            if (tile_map_data[y * tile_map_width + x]) {
-                f32 tile_size = 1.0f;
+            f32 tile_size = 1.0f;
+            v2 position = v2 {
+                (tile_size / 2) + (x * tile_size),
+                (tile_size / 2) + (-(y + 1) * tile_size)
+            };
+
+            if (tile_map[y * tile_map_width + x] == '#') {
                 sim_entity_t* tile = make_block(game_state, tile_size, tile_size, 100.0f);
-                tile->color = 0xffffffff;
-                tile->body->position.x = (tile_size / 2) + (x * tile_size);
-                tile->body->position.y = (tile_size / 2) + (-(y + 1) * tile_size);
+
+
+                tile->render_object = push_rect(&game_state->main_render_group,
+                                                color_t {1.0f,1.0f,1.0f},
+                                                position,
+                                                v2 {tile_size, tile_size},
+                                                0.0f);
+
+                tile->body->position = position;
                 tile->body->flags = PHY_FIXED_FLAG;
                 tile->body->inv_moment = 0.0f;
                 tile->body->inv_mass = 0.0f;
                 tile->type = TILE;
+            } else if (tile_map[y * tile_map_width + x] == 'x') {
+                sim_entity_t* player = make_fillet_block(game_state, 0.6f, 0.6f, 0.15f, 10.0f);
+                player->render_object = push_rect(&game_state->main_render_group,
+                                                  color_t {1.0f,1.0f,1.0f},
+                                                  v2 {10.0f, -4.0f},
+                                                  v2 {0.6f, 0.6f},
+                                                  0.0f);
+                player->body->position = position;
+                player->type = PLAYER;
+                player->body->inv_moment = 0.0f;           
             }
         }
     }
-
-    sim_entity_t* player = make_fillet_block(game_state, 0.6f, 0.6f, 0.15f, 10.0f);
-    player->body->position = v2 {10.0f, -4.0f};
-    player->color = 0xffffffff;
-    player->type = PLAYER;
-    player->body->inv_moment = 0.0f;
-
-    sim_entity_t* block = make_fillet_block(game_state, 5.0f, 5.0f, 0.0001f, 5.0f);
-    block->body->position = v2 {8.0f, 10.0f};
-    block->color = 0xffaaaaaa;
-    block->type = TILE;
-    block->body->inv_moment = 0.0f;
-
-    const i32 max_render_objects = 1024 * 1024;
-    game_state->main_render_group.objects.count = 0;
-    game_state->main_render_group.objects.capacity = max_render_objects;
-    game_state->main_render_group.objects.values =
-        PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_t);
 }
 
 i32
@@ -191,24 +182,53 @@ game_update_and_render(platform_services_t platform,
 
     TIMED_FUNC();
 
-//    dt /= 20.0f;
+
     if (!game_state->initialized) {
         initialize_game_state(game_state);
 
         game_state->camera.center = v2 {0.0f, 0.0f};
         game_state->camera.to_top_left = v2 {
                 START_WIDTH / 2, START_HEIGHT / 2};
-        game_state->camera.scaling = 1.0f;
+        game_state->camera.scaling = 2.0f;
 
         phy_init(game_state->physics_arena);
 
         game_state->entities = (sim_entity_t*)game_state->world_arena.base;
 
+        const i32 max_render_objects = 1024 * 1024;
+        game_state->main_render_group.objects.count = 0;
+        game_state->main_render_group.objects.capacity = max_render_objects;
+        game_state->main_render_group.objects.values =
+            PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_t);
+
+        const i32 max_animations = 1024 * 6;
+        game_state->animations.count = 0;
+        game_state->animations.capacity = max_animations;
+        game_state->animations.values =
+            PUSH_ARRAY(&game_state->render_arena, max_animations, animation_t);
+
+        const i32 max_animation_frames = 1024 * 6 * 6;
+        game_state->animation_frames.count = 0;
+        game_state->animation_frames.capacity = max_animation_frames;
+        game_state->animation_frames.values =
+            PUSH_ARRAY(&game_state->render_arena, max_animation_frames, animation_frame_t);
+
+        push_rect(&game_state->main_render_group,
+                  v3 {0.3f, 0.35f, 0.3f},
+                  v2{0,0},
+                  v2 {(f32)buffer_description.width, (f32)buffer_description.height},
+                  0.0f);
+
+
+
         add_blocks(game_state);
 
-        phy_set_gravity(game_state->physics_arena, v2 {0, -92.8});
-    }
+        phy_set_gravity(game_state->physics_arena, v2 {0, -73.8});
 
+        static tex2 bmp = load_wiz_bmp();
+        push_texture(&game_state->main_render_group,
+                  v2 {12, -6}, v2{0,0}, 3.0f, wiz_walking_0(bmp), 0.0f);
+    }
 
     phy_update(game_state->physics_arena, dt);
 
@@ -246,34 +266,27 @@ game_update_and_render(platform_services_t platform,
 
 
             // jump
-            if (game_input.button_a.ended_down && entity->body->velocity.y < 0.5f) {
-                ray_body_intersect_t r =
-                    ray_cast_from_body(game_state->physics_arena, entity->body, 0.50f, v2 {0,-1});
+            if (game_input.button_a.ended_down) {
+                if (entity->body->velocity.y < 0.5f) {
+                    ray_body_intersect_t r =
+                        ray_cast_from_body(game_state->physics_arena, entity->body, 0.50f, v2 {0,-1});
 
-                if (r.body && r.depth < 0.4f) {
-                    entity->body->velocity.y = 29.0f;
+                    if (r.body && r.depth < 0.4f) {
+                        game_state->input_memo.flags |= INPUT_FLAG_JUMP_STARTED;
+                        entity->body->velocity.y = 20.0f;
+                    }
+                }
+            } else {
+                if (entity->body->velocity.y > 7.0f &&
+                    game_input.button_a.transition_count > 0) {
+                    entity->body->velocity.y -= 7.0f;
                 }
             }
 
+            entity->render_object->render_rect.center = entity->body->position;
         }
     }
 
-
-    push_rect(&game_state->main_render_group,
-              v3 {0.3f, 0.35f, 0.3f},
-              v2{0,0},
-              v2 {(f32)buffer_description.width, (f32)buffer_description.height},
-              0.0f);
-
-    for (int i = 0; i < game_state->entity_count; ++i) {
-        sim_entity_t* entity = &game_state->entities[i];
-
-        push_rect(&game_state->main_render_group,
-                  to_rgb(entity->color),
-                  entity->body->position,
-                  v2 {entity->width, entity->height},
-                  entity->body->orientation);
-    }
 
     draw_render_group(platform, buffer_description, camera, &game_state->main_render_group);
 }

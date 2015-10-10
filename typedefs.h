@@ -5,7 +5,7 @@
 #ifndef PHYSICA_TYPEDEFS_H
 #define PHYSICA_TYPEDEFS_H
 
-#include <stdint-gcc.h>
+#include <stdint.h>
 
 
 typedef uint64_t u64;

@@ -33,9 +33,7 @@ struct aabb_t {
 struct sim_entity_t {
     u64 id;
     phy_body_t* body;
-    f32 width;
-    f32 height;
-    u32 color;
+    render_object_t* render_object;
     entity_type type;
 };
 

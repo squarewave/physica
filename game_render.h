@@ -9,7 +9,7 @@
 #include "physica_math.h"
 
 struct tex2 {
-    u32 width, height;
+    i32 width, height, pitch;
     u32* pixels;
 };
 
@@ -24,8 +24,10 @@ struct camera_t {
 };
 
 typedef v3 color_t;
+typedef v4 rgba_t;
 
 const u32 RENDER_TYPE_RECT = 1;
+const u32 RENDER_TYPE_TEXTURE = 2;
 
 struct render_rect_t {
   u32 type;
@@ -35,10 +37,20 @@ struct render_rect_t {
   color_t color;
 };
 
+struct render_texture_t {
+  u32 type;
+  tex2 texture;
+  v2 center;
+  v2 hotspot;
+  f32 pixel_size;
+  f32 orientation;
+};
+
 struct render_object_t {
   union {
     u32 type;
     render_rect_t render_rect;
+    render_texture_t render_texture;
   };
 };
 
@@ -53,11 +65,29 @@ struct render_task_t {
   rect_i clip_rect;
 };
 
-void push_rect(render_group_t render_group, color_t color, v2 center, v2 diagonal, f32 orientation);
+void push_rect(render_group_t render_group,
+               color_t color,
+               v2 center,
+               v2 diagonal,
+               f32 orientation);
+
+void push_texture(render_group_t render_group,
+                  v2 center,
+                  tex2 texture,
+                  f32 orientation);
 
 void draw_render_group(video_buffer_description_t buffer,
                        camera_t camera,
                        render_group_t render_group);
+
+
+void draw_bmp(video_buffer_description_t buffer,
+              rect_i clip_rect,
+              tex2 bitmap,
+              v2 center,
+              f32 source_pixel_size,
+              v2 hotspot,
+              f32 orientation);
 
 void draw_bmp(tex2 dest,
               tex2 source,

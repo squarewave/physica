@@ -143,6 +143,7 @@ do_support(phy_hull_t* hull, v2 direction) {
         case HULL_FILLET_RECT: {
             return do_support_rect_fillet(hull, direction);
         } break;
+        default: assert(false);
     }
 }
 

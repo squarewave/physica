@@ -1,7 +1,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "UnusedImportStatement"
 
-#define assert(condition) (condition) || (*((i32*)0) = 1)
+#include "assert.h"
 
 // trying this out:
 // http://buffered.io/posts/the-magic-of-unity-builds/

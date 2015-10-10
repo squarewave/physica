@@ -273,7 +273,7 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    context.renderer = SDL_CreateRenderer(context.window, -1, 0);
+    context.renderer = SDL_CreateRenderer(context.window, -1, SDL_RENDERER_PRESENTVSYNC);
 
     if (!context.renderer) {
         printf("Unable to create renderer: %s\n", SDL_GetError());
@@ -291,7 +291,9 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    void* pixels = malloc(START_WIDTH * START_HEIGHT * 4);
+    size_t pixel_bytes = START_WIDTH * START_HEIGHT * 4;
+    void* pixels = malloc(pixel_bytes);
+    // void* pixels = aligned_alloc(64, pixel_bytes + (pixel_bytes % 64));
 
     const u64 one_gig = 1024LL * 1024LL * 1024LL;
     void* game_memory = calloc(one_gig, sizeof(u8));
@@ -373,9 +375,6 @@ int main(int argc, char const *argv[]) {
         game_buffer.height = START_HEIGHT;
         game_buffer.pitch = START_WIDTH * 4;
         game_buffer.bytes_per_pixel = 4;
-
-        static u64 last_rdtsc = rdtsc();
-        last_rdtsc = rdtsc();
 
         game_update_and_render(platform, (game_state_t*)game_memory, dt, game_buffer, next_input);
 

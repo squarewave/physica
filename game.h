@@ -59,6 +59,14 @@ struct spatial_partition_t {
     u32 secondary_entity_count;
 };
 
+const u32 INPUT_FLAG_JUMP_STARTED = 1;
+
+struct input_memo_t {
+    u32 flags;
+
+    f32 jump_elapsed;
+};
+
 struct game_state_t {
     u32 initialized;
 
@@ -80,6 +88,8 @@ struct game_state_t {
     memory_arena_t render_arena;
 
     tex2 main_panel;
+
+    input_memo_t input_memo;
 };
 
 struct button_input_t {

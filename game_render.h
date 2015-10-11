@@ -71,8 +71,10 @@ void push_rect(render_group_t render_group,
                v2 diagonal,
                f32 orientation);
 
-void push_texture(render_group_t render_group,
+render_object_t* push_texture(render_group_t* render_group,
                   v2 center,
+                  v2 hotspot,
+                  f32 pixel_size,
                   tex2 texture,
                   f32 orientation);
 

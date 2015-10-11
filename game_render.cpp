@@ -79,7 +79,11 @@ render_object_t* push_rect(render_group_t* render_group,
 }
 
 render_object_t* push_texture(render_group_t* render_group,
-                  v2 center, v2 hotspot, f32 pixel_size, tex2 texture, f32 orientation) {
+                  v2 center,
+                  v2 hotspot,
+                  f32 pixel_size,
+                  tex2 texture,
+                  f32 orientation) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_TEXTURE;
@@ -140,8 +144,8 @@ void draw_render_group(platform_services_t platform,
                        render_group_t* render_group) {
     TIMED_FUNC();
 
-    i32 clip_width = 256;
-    i32 clip_height = 256;
+    i32 clip_width = 2560;
+    i32 clip_height = 2560;
 
     render_task_t tasks[256] = {0};
 
@@ -261,10 +265,10 @@ void draw_bmp(video_buffer_description_t buffer,
     }
 
 
-    i32 start_x = fmax(clip_rect.min_x, (i32)start_x_f);
-    i32 start_y = fmax(clip_rect.min_y, (i32)(2.0f * center.y - end_y_f));
-    i32 end_x = fmin(clip_rect.max_x, (i32)end_x_f);
-    i32 end_y = fmin(clip_rect.max_y, (i32)(2.0f * center.y - start_y_f));
+    i32 start_x = fmax(clip_rect.min_x, uround(start_x_f));
+    i32 start_y = fmax(clip_rect.min_y, uround(2.0f * center.y - end_y_f));
+    i32 end_x = fmin(clip_rect.max_x, uround(end_x_f));
+    i32 end_y = fmin(clip_rect.max_y, uround(2.0f * center.y - start_y_f));
 
     u32* pixels = (u32*)buffer.memory;
 
@@ -323,16 +327,14 @@ void draw_bmp(video_buffer_description_t buffer,
     __m128 wide_inv255 = _mm_set1_ps(1.0f / 255.0f);
     __m128 wide_inv_supersampling_count = _mm_set1_ps(1.0f / (f32)supersampling_vector_count);
 
-    __m128 wide_0i = _mm_set1_epi32(0);
-
     __m128i a_mask = _mm_set1_epi32(0xff000000);
     __m128i r_mask = _mm_set1_epi32(0x00ff0000);
     __m128i g_mask = _mm_set1_epi32(0x0000ff00);
     __m128i b_mask = _mm_set1_epi32(0x000000ff);
 
     for (int y = start_y; y < end_y; ++y) {
-        __m128i ys = _mm_set1_ps((f32)y);
-        __m128i xs = _mm_setr_ps((f32)start_x,
+        __m128 ys = _mm_set1_ps((f32)y);
+        __m128 xs = _mm_setr_ps((f32)start_x,
                                  (f32)start_x+1.0f,
                                  (f32)start_x+2.0f,
                                  (f32)start_x+3.0f);
@@ -360,8 +362,8 @@ void draw_bmp(video_buffer_description_t buffer,
                 __m128 pxs = _mm_add_ps(xs_trans, supersampling_xs[i]);
                 __m128 pys = _mm_add_ps(ys_trans, supersampling_ys[i]);
 
-                __m128i wide_xsi = _mm_cvtps_epi32(_mm_add_ps(pxs, wide_half));
-                __m128i wide_ysi = _mm_cvtps_epi32(_mm_add_ps(pys, wide_half));
+                __m128i wide_xsi = _mm_cvttps_epi32(pxs);
+				__m128i wide_ysi = _mm_cvttps_epi32(pys);
                 i32* xsi = (i32*)&wide_xsi;
                 i32* ysi = (i32*)&wide_ysi;
 
@@ -384,14 +386,14 @@ void draw_bmp(video_buffer_description_t buffer,
                 composite_r = _mm_add_ps(composite_r,
                                          _mm_mul_ps(inv_a_255,
                                          _mm_cvtepi32_ps(
-                                         _mm_srli_epi32(_mm_and_ps(wide_pixs, r_mask), 16))));
+                                         _mm_srli_epi32(_mm_and_si128(wide_pixs, r_mask), 16))));
                 composite_g = _mm_add_ps(composite_g,
                                          _mm_mul_ps(inv_a_255,
                                          _mm_cvtepi32_ps(
-                                         _mm_srli_epi32(_mm_and_ps(wide_pixs, g_mask), 8))));
+                                         _mm_srli_epi32(_mm_and_si128(wide_pixs, g_mask), 8))));
                 composite_b = _mm_add_ps(composite_b,
                                          _mm_mul_ps(inv_a_255,
-                                         _mm_cvtepi32_ps(_mm_and_ps(wide_pixs, b_mask))));
+                                         _mm_cvtepi32_ps(_mm_and_si128(wide_pixs, b_mask))));
             }
 
             __m128 inv_a = _mm_div_ps(wide_1, composite_a);
@@ -429,10 +431,10 @@ void draw_bmp(video_buffer_description_t buffer,
                 _mm_add_ps(fexisting_b,
                            _mm_mul_ps(_mm_sub_ps(composite_b, fexisting_b), composite_a));
 
-            __m128 pix_a = _mm_slli_epi32(_mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_a)), 24);
-            __m128 pix_r = _mm_slli_epi32(_mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_r)), 16);
-            __m128 pix_g = _mm_slli_epi32(_mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_g)), 8);
-            __m128 pix_b = _mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_b));
+            __m128i pix_a = _mm_slli_epi32(_mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_a)), 24);
+            __m128i pix_r = _mm_slli_epi32(_mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_r)), 16);
+            __m128i pix_g = _mm_slli_epi32(_mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_g)), 8);
+            __m128i pix_b = _mm_cvtps_epi32(_mm_mul_ps(wide_255, overlay_b));
 
             __m128i pixel_vals =
                 _mm_or_si128(pix_a,

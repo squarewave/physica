@@ -34,6 +34,11 @@ struct vec {
     this->values[result] = val;
     return result;
   }
+  T pop() {
+    assert(this->count);
+    T result = this->values[--this->count];
+    return result;
+  }
   i32 push_unassigned() {
     i32 result = this->count++;
     assert(this->count <= this->capacity);

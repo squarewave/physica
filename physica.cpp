@@ -16,12 +16,12 @@ phy_init(phy_memory_t memory) {
 
     u8* previous_loc = memory.base + sizeof(phy_state_t);
     i32 previous_size = 0;
-#define __PUSH_STATE_INIT(o, cnt, prop) ({\
+#define __PUSH_STATE_INIT(o, cnt, prop) do {\
     previous_loc = previous_loc + previous_size;\
     previous_size = sizeof(*o.values) * (cnt);\
     *((u8**)&o.values) = previous_loc;\
     o.prop = (cnt);\
-})
+} while(0)
 
 #define __PUSH_STATE_INIT_VEC(a,b) __PUSH_STATE_INIT(a,b,capacity);
 #define __PUSH_STATE_INIT_ARRAY(a,b) __PUSH_STATE_INIT(a,b,count);
@@ -145,6 +145,7 @@ do_support(phy_hull_t* hull, v2 direction) {
         } break;
         default: assert(false);
     }
+    return {0};
 }
 
 phy_support_result_t
@@ -690,6 +691,7 @@ do_gjk(phy_hull_t* a, phy_hull_t* b, phy_support_result_t* simplex) {
         }
     }
     assert(false);
+    return false;
 }
 
 phy_edge_t
@@ -773,6 +775,7 @@ do_epa(phy_hull_t* a,
         }
     }
     assert(false);
+    return false;
 }
 
 inline bool

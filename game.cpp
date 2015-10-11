@@ -6,7 +6,6 @@
 #include "game.h"
 #include "game_render.h"
 #include "physica.h"
-#include "animation.h"
 #include "wiz_animation.h"
 
 void
@@ -27,6 +26,35 @@ initialize_game_state(game_state_t* game_state) {
     game_state->entity_capacity = 4000;
 
     game_state->initialized = true;
+}
+
+void initialize_render_arena(game_state_t* game_state) {
+    const i32 max_render_objects = 1024 * 1024;
+    game_state->main_render_group.objects.count = 0;
+    game_state->main_render_group.objects.capacity = max_render_objects;
+    game_state->main_render_group.objects.values =
+        PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_t);
+
+    const i32 max_animations = 1024 * 6;
+    game_state->main_animation_group.animations.count = 0;
+    game_state->main_animation_group.animations.capacity = max_animations;
+    game_state->main_animation_group.animations.values =
+        PUSH_ARRAY(&game_state->render_arena, max_animations, animation_t);
+
+    game_state->main_animation_group.free_list.count = 0;
+    game_state->main_animation_group.free_list.capacity = max_animations;
+    game_state->main_animation_group.free_list.values =
+        PUSH_ARRAY(&game_state->render_arena, max_animations, i32);
+
+    const i32 max_animation_frames = 1024 * 36;
+    game_state->animation_frames.count = 0;
+    game_state->animation_frames.capacity = max_animation_frames;
+    game_state->animation_frames.values =
+        PUSH_ARRAY(&game_state->render_arena, max_animation_frames, animation_frame_t);
+
+    game_state->wiz_bmp = load_wiz_bmp();
+    game_state->wiz_walking_right = wiz_walking_right(&game_state->animation_frames,
+                                                      game_state->wiz_bmp);
 }
 
 struct physics_state_t {
@@ -156,11 +184,14 @@ void add_blocks(game_state_t *game_state) {
                 tile->type = TILE;
             } else if (tile_map[y * tile_map_width + x] == 'x') {
                 sim_entity_t* player = make_fillet_block(game_state, 0.6f, 0.6f, 0.15f, 10.0f);
-                player->render_object = push_rect(&game_state->main_render_group,
-                                                  color_t {1.0f,1.0f,1.0f},
-                                                  v2 {10.0f, -4.0f},
-                                                  v2 {0.6f, 0.6f},
-                                                  0.0f);
+
+                i32 index =
+                    add_animation(&game_state->main_render_group,
+                                  &game_state->main_animation_group,
+                                  &game_state->wiz_walking_right);
+
+                player->render_object = game_state->main_animation_group
+                                        .animations.at(index)->render_object;
                 player->body->position = position;
                 player->type = PLAYER;
                 player->body->inv_moment = 0.0f;           
@@ -185,6 +216,7 @@ game_update_and_render(platform_services_t platform,
 
     if (!game_state->initialized) {
         initialize_game_state(game_state);
+        initialize_render_arena(game_state);
 
         game_state->camera.center = v2 {0.0f, 0.0f};
         game_state->camera.to_top_left = v2 {
@@ -194,24 +226,6 @@ game_update_and_render(platform_services_t platform,
         phy_init(game_state->physics_arena);
 
         game_state->entities = (sim_entity_t*)game_state->world_arena.base;
-
-        const i32 max_render_objects = 1024 * 1024;
-        game_state->main_render_group.objects.count = 0;
-        game_state->main_render_group.objects.capacity = max_render_objects;
-        game_state->main_render_group.objects.values =
-            PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_t);
-
-        const i32 max_animations = 1024 * 6;
-        game_state->animations.count = 0;
-        game_state->animations.capacity = max_animations;
-        game_state->animations.values =
-            PUSH_ARRAY(&game_state->render_arena, max_animations, animation_t);
-
-        const i32 max_animation_frames = 1024 * 6 * 6;
-        game_state->animation_frames.count = 0;
-        game_state->animation_frames.capacity = max_animation_frames;
-        game_state->animation_frames.values =
-            PUSH_ARRAY(&game_state->render_arena, max_animation_frames, animation_frame_t);
 
         push_rect(&game_state->main_render_group,
                   v3 {0.3f, 0.35f, 0.3f},
@@ -223,11 +237,7 @@ game_update_and_render(platform_services_t platform,
 
         add_blocks(game_state);
 
-        phy_set_gravity(game_state->physics_arena, v2 {0, -73.8});
-
-        static tex2 bmp = load_wiz_bmp();
-        push_texture(&game_state->main_render_group,
-                  v2 {12, -6}, v2{0,0}, 3.0f, wiz_walking_0(bmp), 0.0f);
+        phy_set_gravity(game_state->physics_arena, v2 {0, -73.8f});
     }
 
     phy_update(game_state->physics_arena, dt);
@@ -283,10 +293,11 @@ game_update_and_render(platform_services_t platform,
                 }
             }
 
-            entity->render_object->render_rect.center = entity->body->position;
+            entity->render_object->render_texture.center = entity->body->position;
         }
     }
 
+    update_animations(&game_state->main_animation_group, dt);
 
     draw_render_group(platform, buffer_description, camera, &game_state->main_render_group);
 }

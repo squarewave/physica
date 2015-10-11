@@ -11,6 +11,7 @@
 #include "physica_math.h"
 #include "sim_entity.h"
 #include "hashmap.h"
+#include "animation.h"
 
 const u32 FRAME_RATE = 60;
 const u32 START_WIDTH = 960;
@@ -90,6 +91,18 @@ struct game_state_t {
     tex2 main_panel;
 
     input_memo_t input_memo;
+
+    vec<animation_frame_t> animation_frames;
+    animation_group_t main_animation_group;
+
+    tex2 wiz_bmp;
+
+    animation_spec_t wiz_walking_right;
+    animation_spec_t wiz_walking_left;
+    animation_spec_t wiz_standing_right;
+    animation_spec_t wiz_standing_left;
+
+    animation_spec_t wiz_buzz;
 };
 
 struct button_input_t {

@@ -476,7 +476,8 @@ inline f32 dot(v6 lhs, v6 rhs) {
     __m128 l1 = _mm_set_ps(lhs.vals[4], lhs.vals[5], 0.0f, 0.0f);
     __m128 r1 = _mm_set_ps(rhs.vals[4], rhs.vals[5], 0.0f, 0.0f);
     __m128 result =_mm_add_ps(_mm_mul_ps(l0, r0), _mm_mul_ps(l1, r1));
-    return result[0] + result[1] + result[2] + result[3];
+    f32* r = (f32*)&result;
+    return r[0] + r[1] + r[2] + r[3];
 }
 
 inline v3 to_rgb(u32 color) {

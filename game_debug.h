@@ -1,13 +1,16 @@
 #ifndef PHYSICA_GAME_DEBUG_H
 #define PHYSICA_GAME_DEBUG_H
+#include <intrin.h>
+#include <string.h>
 
 __inline__ u64 rdtsc() {
-    u32 a;
-    u32 d;
-    asm volatile
-        (".byte 0x0f, 0x31 #rdtsc\n" // edx:eax
-         :"=a"(a), "=d"(d)::);
-    return (((u64) d) << 32) | (u64) a;
+    return __rdtsc();
+    // u32 a;
+    // u32 d;
+    // asm volatile
+    //     (".byte 0x0f, 0x31 #rdtsc\n" // edx:eax
+    //      :"=a"(a), "=d"(d)::);
+    // return (((u64) d) << 32) | (u64) a;
 }
 
 #define TIMED_BLOCK(ID) timed_block_t timed_block##ID((char*)#ID)
@@ -50,14 +53,16 @@ struct timed_block_t {
 };
 
 void print_debug_log() {
-    return;
-    printf("\ndebug log: %'ld\n", time_spent_logging);
+    char buffer[256];
+    sprintf(buffer, "\ndebug log: %lld\n", time_spent_logging);
+    OutputDebugStringA(buffer);
     for (int i = 0; i < debug_block_count; ++i) {
-        printf("%-32s %'14ld cy,    %'5d calls\n",
+        sprintf(buffer, "%-32s %14lld cy,    %5d calls\n",
                debug_blocks[i].id,
                debug_blocks[i].total_cycles,
                debug_blocks[i].call_count);
-    }
+		OutputDebugStringA(buffer);
+	}
 
     debug_block_count = 0;
     time_spent_logging = 0;

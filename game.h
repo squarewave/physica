@@ -71,10 +71,7 @@ struct input_memo_t {
 struct game_state_t {
     u32 initialized;
 
-    sim_entity_t* entities;
-    u32 entity_capacity;
-    u32 entity_count;
-    u64 latest_id;
+    vec<sim_entity_t> entities;
 
     f32 spatial_partition_width;
     u32 spatial_partition_grid_width;

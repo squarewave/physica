@@ -154,6 +154,19 @@ void phy_set_gravity(phy_memory_t memory, v2 gravity);
 
 void phy_init(phy_memory_t memory);
 
+phy_body_t* phy_add_block(phy_memory_t memory,
+                          v2 center,
+                          v2 diagonal,
+                          f32 mass,
+                          f32 orientation);
+
+phy_body_t* phy_add_fillet_block(phy_memory_t memory,
+                                 v2 center,
+                                 v2 diagonal,
+                                 f32 fillet, 
+                                 f32 mass,
+                                 f32 orientation);
+
 phy_body_t * phy_add_body(phy_memory_t memory);
 
 array<phy_hull_t> phy_add_hulls(phy_memory_t memory, i32 count);

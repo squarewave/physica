@@ -33,8 +33,8 @@ struct aabb_t {
 struct sim_entity_t {
     u64 id;
     phy_body_t* body;
-    render_object_t* render_object;
     entity_type type;
+    void* custom_state;
 };
 
 struct sim_region_t {

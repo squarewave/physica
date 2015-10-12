@@ -10,4 +10,6 @@
 #include "hashmap.cpp"
 #include "physica.cpp"
 #include "game.cpp"
+#include "player.cpp"
+#include "tile.cpp"
 // #pragma clang diagnostic pop

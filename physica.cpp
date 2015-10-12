@@ -548,6 +548,80 @@ find_broad_phase_collisions(phy_state_t* state) {
     }
 }
 
+phy_body_t* phy_add_block(phy_memory_t memory,
+                          v2 center,
+                          v2 diagonal,
+                          f32 mass,
+                          f32 orientation) {
+
+    phy_body_t* body = phy_add_body(memory);
+
+    f32 width = diagonal.x;
+    f32 height = diagonal.y;
+
+    body->mass = mass;
+    body->inv_mass = 1.0f / body->mass;
+    body->moment = 1.0f/12.0f * body->mass * (width * width + height * height);
+    body->inv_moment = 1.0f / body->moment;
+    body->hulls = phy_add_hulls(memory, 1);
+    body->aabb_node_index = -1;
+    body->position = center;
+    body->orientation = orientation;
+
+    phy_hull_t * hull = body->hulls.values;
+    hull->mass = mass;
+    hull->inv_mass = 1.0f / hull->mass;
+    hull->moment = 1.0f;
+    hull->inv_moment = 1.0f/12.0f *
+            hull->mass *
+            (width * width + height * height);
+
+    hull->type = HULL_MESH;
+    hull->points = phy_add_points(memory, 4);
+
+    hull->points.values[0] = {width / 2.0f, height / 2.0f};
+    hull->points.values[1] = {-width / 2.0f, height / 2.0f};
+    hull->points.values[2] = {-width / 2.0f, -height / 2.0f};
+    hull->points.values[3] = {width / 2.0f, -height / 2.0f};
+
+    return body;
+}
+
+phy_body_t* phy_add_fillet_block(phy_memory_t memory,
+                                 v2 center,
+                                 v2 diagonal,
+                                 f32 fillet, 
+                                 f32 mass,
+                                 f32 orientation) {
+    phy_body_t* body = phy_add_body(memory);
+
+    f32 width = diagonal.x;
+    f32 height = diagonal.y;
+    
+    body->mass = mass;
+    body->inv_mass = 1.0f / body->mass;
+    body->moment = 1.0f/12.0f * body->mass * (width * width + height * height);
+    body->inv_moment = 1.0f / body->moment;
+    body->hulls = phy_add_hulls(memory, 1);
+    body->aabb_node_index = -1;
+    body->position = center;
+    body->orientation = orientation;
+
+    phy_hull_t * hull = body->hulls.values;
+    hull->mass = mass;
+    hull->inv_mass = 1.0f / hull->mass;
+    hull->moment = 1.0f;
+    hull->inv_moment = 1.0f/12.0f *
+            hull->mass *
+            (width * width + height * height);
+    hull->type = HULL_FILLET_RECT;
+    hull->width = width;
+    hull->height = height;
+    hull->fillet = fillet;
+
+    return body;
+}
+
 phy_body_t*
 phy_add_body(phy_memory_t memory) {
     phy_state_t* state = (phy_state_t*)memory.base;

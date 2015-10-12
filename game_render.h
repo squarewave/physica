@@ -20,6 +20,7 @@ struct video_buffer_description_t {
 
 struct camera_t {
     v2 center, to_top_left;
+    f32 pixels_per_meter;
     f32 scaling;
 };
 

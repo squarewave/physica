@@ -12,7 +12,7 @@ void
 phy_init(phy_memory_t memory) {
     phy_state_t* state = (phy_state_t*)memory.base;
 
-    state->time_step = 0.005f;
+    state->time_step = 1.0f / 240.0f;
 
     u8* previous_loc = memory.base + sizeof(phy_state_t);
     i32 previous_size = 0;
@@ -65,16 +65,49 @@ ray_hull_intersect(v2 p, v2 d, phy_hull_t* hull) {
     if (hull->type == HULL_FILLET_RECT) {
         return result;
     }
+    v2 hp = hull->position;
     m2x2 rotation = get_rotation_matrix(hull->orientation);
-    for (int i = 0; i < hull->points.count; ++i) {
+    switch (hull->type) {
+        case HULL_MESH: {
+            array<v2> ps = hull->points;
+            for (int i = 0; i < ps.count; ++i) {
+                v2 a = hp + rotation * ps[(i == 0 ? ps.count : i) - 1];
+                v2 b = hp + rotation * ps[i];
+                ray_intersect_t r = ray_segment_intersect(p,d,a,b);
 
-        v2 a = hull->position + rotation * hull->points[(i == 0 ? hull->points.count : i) - 1];
-        v2 b = hull->position + rotation * hull->points[i];
-        ray_intersect_t r = ray_segment_intersect(p,d,a,b);
+                if (!r.intersecting || (result.intersecting && result.depth < r.depth)) {
+                    continue;
+                }
 
-        if (!r.intersecting || (result.intersecting && result.depth < r.depth)) { continue; }
+                result = r;
+            }
+        } break;
+        case HULL_RECT: {
+            f32 width = hull->width;
+            f32 height = hull->height;
+            v2 ps[4] = {
+                v2 {width/2.0f, height/2.0f},
+                v2 {-width/2.0f, height/2.0f},
+                v2 {width/2.0f, -height/2.0f},
+                v2 {-width/2.0f, -height/2.0f},
+            };
 
-        result = r;
+            for (int i = 0; i < 4; ++i) {
+                v2 a = p + rotation * ps[(i == 0 ? 4 : i) - 1];
+                v2 b = p + rotation * ps[i];
+                ray_intersect_t r = ray_segment_intersect(p,d,a,b);
+
+                if (!r.intersecting || (result.intersecting && result.depth < r.depth)) {
+                    continue;
+                }
+
+                result = r;
+            }
+
+        } break;
+        case HULL_FILLET_RECT: {
+            assert(false); // don't need this yet
+        } break;
     }
     return result;
 }
@@ -427,7 +460,9 @@ ray_cast_from_body(phy_memory_t memory, phy_body_t* self, f32 width, v2 d) {
                 if (body == self) { continue; }
                 r = ray_body_intersect(p, d, body);
 
-                if (!r.intersecting || (result.body && result.depth < r.depth)) { continue; }
+                if (!r.intersecting || (result.body && result.depth < r.depth)) {
+                    continue;
+                }
 
                 result.body = body;
                 result.depth = r.depth;
@@ -442,13 +477,75 @@ ray_cast_from_body(phy_memory_t memory, phy_body_t* self, f32 width, v2 d) {
 }
 
 void
+find_broad_phase_collisions(phy_state_t* state,
+                            phy_aabb_tree_node_t* a,
+                            phy_aabb_tree_node_t* b,
+                            i32 min_index) {
+    phy_aabb_tree_t* tree = &state->aabb_tree;
+
+    if (a->type == LEAF_NODE) {
+        if (a->body_index < min_index) {
+            return;
+        }
+        phy_body_t a_body = state->bodies[a->body_index];
+        phy_body_t b_body = state->bodies[b->body_index];
+        if (!(a_body.flags & PHY_FIXED_FLAG) || !(b_body.flags & PHY_FIXED_FLAG)) {
+
+            phy_aabb_t aabb_a = a_body.aabb;
+            phy_aabb_t aabb_b = b_body.aabb;
+
+            if (aabb_are_intersecting(aabb_a, aabb_b)) {
+                phy_potential_collision_t collision;
+                if (a->body_index < b->body_index) {
+                    collision.a_index = a->body_index;
+                    collision.b_index = b->body_index;
+                } else {
+                    collision.a_index = b->body_index;
+                    collision.b_index = a->body_index;
+                }
+                state->potential_collisions.push(collision);
+            }
+        }
+    } else {
+        if (aabb_are_intersecting(a->fat_aabb, b->fat_aabb)) {
+            find_broad_phase_collisions(state,
+                                        tree->nodes.at(a->left),
+                                        b,
+                                        min_index);
+
+            find_broad_phase_collisions(state,
+                                        tree->nodes.at(a->right),
+                                        b,
+                                        min_index);
+        }
+    }
+}
+
+void
+find_broad_phase_collisions(phy_state_t* state,
+                            phy_aabb_tree_node_t *b,
+                            i32 min_index) {
+    phy_aabb_tree_t* tree = &state->aabb_tree;
+    if (tree->nodes.count == 0) {
+        return;
+    }
+
+    phy_aabb_tree_node_t* root = tree->nodes.at(tree->root);
+    if (root->type == LEAF_NODE) {
+        return;
+    }
+
+    find_broad_phase_collisions(state, root, b, min_index);
+}
+
+void
 find_broad_phase_collisions(phy_state_t* state) {
     TIMED_BLOCK(find_broad_phase_collisions);
 
     phy_aabb_tree_t* tree = &state->aabb_tree;
     state->potential_collisions.count = 0;
     if (tree->nodes.count == 0) {
-        return;;
+        return;
     }
     phy_aabb_tree_node_t* root = tree->nodes.at(tree->root);
     if (root->type == LEAF_NODE) {
@@ -826,7 +923,7 @@ do_epa(phy_hull_t* a,
 
     reorder_simplex(polytope);
     u32 vertex_count = 3;
-    const f32 threshold = 0.0001f;
+    const f32 threshold = 0.01f;
 
     for (int i = 0; i < 20; i++) {
         phy_edge_t edge = find_closest_edge_to_origin(polytope,
@@ -930,7 +1027,7 @@ solve_velocity_constraint(phy_body_t *a,
     v6 delta_state = lagrangian * j2;
 
     a->velocity += v2 {delta_state.vals[0], delta_state.vals[1]};
-    a->angular_velocity += delta_state.vals[2];   
+    a->angular_velocity += delta_state.vals[2];
 
     b->velocity += v2 {delta_state.vals[3], delta_state.vals[4]};
     b->angular_velocity += delta_state.vals[5];   
@@ -1147,7 +1244,7 @@ warm_start(phy_state_t* state, phy_manifold_t* manifold) {
 }
 
 void
-find_narrow_phase_collisions(phy_state_t* state) {
+find_narrow_phase_collisions(phy_state_t* state, hashmap<entity_ties_t>* collision_map) {
     TIMED_FUNC();
 
     for (int i = 0; i < state->potential_collisions.count; ++i) {
@@ -1168,6 +1265,8 @@ find_narrow_phase_collisions(phy_state_t* state) {
             continue;
         }
         phy_add_collision(state, collision);
+        set_hash_item(collision_map, a->entity.id, b->entity);
+        set_hash_item(collision_map, b->entity.id, a->entity);
     }
 }
 
@@ -1309,7 +1408,7 @@ integrate_positions(phy_state_t* state, f32 dt) {
 }
 
 void
-_phy_update(phy_memory_t memory, f32 dt) {
+_phy_update(phy_memory_t memory, hashmap<entity_ties_t>* collision_map, f32 dt) {
     TIMED_FUNC();
     // phy_hull_t hull;
     // hull.type = HULL_FILLET_RECT;
@@ -1329,10 +1428,17 @@ _phy_update(phy_memory_t memory, f32 dt) {
     // add_debug_point(v2{0.0f,0.0f}, 0xffffffff);
 
     phy_state_t* state = (phy_state_t*)memory.base;
+    state->potential_collisions.count = 0;
 
     find_broad_phase_collisions(state);
+    // for (int i = 0; i < state->bodies.count; ++i) {
+    //     phy_body_t* body = state->bodies.at(i);
+    //     find_broad_phase_collisions(state,
+    //                                 state->aabb_tree.nodes.at(body->aabb_node_index),
+    //                                 i+1);
+    // }
 
-    find_narrow_phase_collisions(state);
+    find_narrow_phase_collisions(state, collision_map);
 
     integrate_velocities(state, dt);
 
@@ -1381,16 +1487,20 @@ _phy_update(phy_memory_t memory, f32 dt) {
 // }
 
 void
-phy_update(phy_memory_t memory, f32 dt) {
+phy_update(phy_memory_t memory, hashmap<entity_ties_t>* collision_map, f32 dt) {
     TIMED_BLOCK(phy_update);
 
     phy_state_t* state = (phy_state_t*)memory.base;
 
-    f32 target_time = state->current_time + dt;
+	const i32 max_iterations = 12;
+    f32 current_time = 0;
+    f32 target_time =  dt;
     assert(state->time_step > 0);
-    while (state->current_time + state->time_step < target_time) {
-        state->current_time += state->time_step;
-        _phy_update(memory, state->time_step);
+	for (int i = 0;
+		 i < max_iterations && current_time + state->time_step < target_time;
+		++i) {
+        current_time += state->time_step;
+        _phy_update(memory, collision_map, state->time_step);
     }
 
     // check_aabbs(state, state->aabb_tree.nodes.at(state->aabb_tree.root));

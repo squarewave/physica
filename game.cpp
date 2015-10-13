@@ -38,6 +38,16 @@ initialize_render_arena(game_state_t* game_state) {
     game_state->wiz_bmp = load_wiz_bmp();
     game_state->wiz_walking_right = wiz_walking_right(&game_state->animation_frames,
                                                       game_state->wiz_bmp);
+    game_state->wiz_walking_left = wiz_walking_left(&game_state->animation_frames,
+                                                      game_state->wiz_bmp);
+    game_state->wiz_standing_right = wiz_standing_right(&game_state->animation_frames,
+                                                      game_state->wiz_bmp);
+    game_state->wiz_standing_left = wiz_standing_left(&game_state->animation_frames,
+                                                      game_state->wiz_bmp);
+    game_state->wiz_jumping_right = wiz_jumping_right(&game_state->animation_frames,
+                                                      game_state->wiz_bmp);
+    game_state->wiz_jumping_left = wiz_jumping_left(&game_state->animation_frames,
+                                                      game_state->wiz_bmp);
 }
 
 void
@@ -46,23 +56,23 @@ setup_world(game_state_t *game_state) {
     const char* tile_map =
     "-------------------------------------------------"
     "#################################################"
-    "#         #####################           #######" 
-    "#         ########   #                    #######" 
-    "#         ########   #                    #######" 
-    "#     x                                    ######" 
-    "#######                        #########  #######" 
-    "####################   #################  #######" 
-    "####################   ##################  ######" 
-    "#########################################  ######" 
-    "################################   #####  #######" 
-    "################################      ##    #####" 
-    "#########################               #   #####" 
-    "################################           ######" 
-    "###################################        ######" 
-    "######################################    #######" 
-    "#######################################   #######" 
-    "#######################################   #######" 
-    "#################################################" 
+    "#         #######################################" 
+    "#         ########   ############################" 
+    "#         ########   ############################" 
+    "#     s              ####################       #" 
+    "#######                        #########  ##### #" 
+    "############################      ######  ##### #" 
+    "##############                    #######  #### #" 
+    "##############  #########################  #### #" 
+    "##############                     #####  ##### #" 
+    "##############                              ### #" 
+    "####################################### #   ### #" 
+    "##############                             #### #" 
+    "##############         ######################## #" 
+    "##############                            ##### #" 
+    "#######################################   ##### #" 
+    "####################      #############         #" 
+    "#################### x #                    #####" 
     "#################################################" 
     "#################################################" 
     "#################################################" 
@@ -70,7 +80,6 @@ setup_world(game_state_t *game_state) {
 
     i32 tile_map_width = i32(strchr(tile_map, '#') - tile_map);
     i32 tile_map_height = strlen(tile_map) / tile_map_width - 1;
-
 
     tile_map = tile_map + tile_map_width;
 
@@ -86,7 +95,7 @@ setup_world(game_state_t *game_state) {
                 case '#': {
                     create_tile(game_state, position);
                 } break;
-                case 'x': {
+                case 's': {
                     create_player(game_state, position);
                 } break;
             }
@@ -124,6 +133,13 @@ initialize_game_state(game_state_t* game_state, video_buffer_description_t buffe
                                              entity_capacity,
                                              sim_entity_t);
     game_state->entities.capacity = entity_capacity;
+    game_state->next_entity_id = 1L;
+
+    const i32 collision_capacity = 2000;
+    game_state->collision_map.pairs.values = PUSH_ARRAY(&game_state->world_arena,
+                                                 collision_capacity,
+                                                 hashpair<entity_ties_t>);
+    game_state->collision_map.pairs.count = collision_capacity;
 
     push_rect(&game_state->main_render_group,
               v3 {0.3f, 0.35f, 0.3f},
@@ -150,15 +166,20 @@ game_update_and_render(platform_services_t platform,
         initialize_game_state(game_state, buffer);
     }
 
-    phy_update(game_state->physics_arena, dt);
+    { TIMED_BLOCK(clear_collision_map); clear_hashmap(&game_state->collision_map); }
+
+    phy_update(game_state->physics_arena, &game_state->collision_map, dt);
 
     for (int i = 0; i < game_state->entities.count; ++i) {
         sim_entity_t* entity = game_state->entities.at(i);
 
+        #define __UPDATE_CASE(type) case type: {\
+            update_##type(game_state, game_input, entity, dt);\
+        } break
+
         switch (entity->type) {
-            case PLAYER: {
-                update_player(game_state, game_input, entity, dt);
-            } break;
+            __UPDATE_CASE(PLAYER);
+            __UPDATE_CASE(TILE);
         }
     }
 

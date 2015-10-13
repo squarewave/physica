@@ -8,9 +8,6 @@ struct player_state_t {
 
 sim_entity_t* create_player(game_state_t* game_state, v2 position);
 
-void update_player(game_state_t* game_state,
-                   game_input_t game_input,
-                   sim_entity_t* entity,
-                   f32 dt);
+UPDATE_FUNC(PLAYER);
 
 #endif /* end of include guard: PLAYER_H__ */

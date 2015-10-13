@@ -15,6 +15,11 @@ enum entity_type {
     WIZ_BUZZ
 };
 
+#define UPDATE_FUNC(type) void update_##type(game_state_t* game_state,\
+                                             game_input_t game_input,\
+                                             sim_entity_t* entity,\
+                                             f32 dt)
+
 const u32 NO_FLAGS = 0;
 const u32 REMOVED_FLAG = 1;
 const u32 COLLIDES_FLAG = 2;
@@ -31,7 +36,7 @@ struct aabb_t {
 };
 
 struct sim_entity_t {
-    u64 id;
+    i64 id;
     phy_body_t* body;
     entity_type type;
     void* custom_state;

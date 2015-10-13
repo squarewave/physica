@@ -7,6 +7,10 @@
 
 #include <stdint.h>
 
+#ifdef assert
+#undef assert
+#endif
+#define assert(exp) exp || (*((i32*)0) = 0)
 
 typedef uint64_t u64;
 typedef uint32_t u32;

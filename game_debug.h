@@ -53,6 +53,7 @@ struct timed_block_t {
 };
 
 void print_debug_log() {
+    return;
     char buffer[256];
     sprintf(buffer, "\ndebug log: %lld\n", time_spent_logging);
     OutputDebugStringA(buffer);

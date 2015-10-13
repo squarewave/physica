@@ -79,7 +79,12 @@ inline u32 _find_slot(hashmap<T>* hm, u64 k) {
 template<class T>
 inline T* get_hash_item(hashmap<T>* hm, u64 k) {
     u32 i = _find_slot(hm, k);
-    return &hm->pairs.at(i)->val;
+    hashpair<T>* pair = hm->pairs.at(i);
+    if (pair->key) {
+        return &pair->val;
+    } else {
+        return (T*)0;
+    }
 }
 
 inline void set_hash_item(hashmap_t* hm, u64 k, void* val) {
@@ -156,6 +161,11 @@ inline void remove_hash_item(hashmap<T>* hm, u64 k) {
         i = j;
     }
     hm->count--;
+}
+
+template <class T>
+inline void clear_hashmap(hashmap<T>* hm) {
+    _zero_size(hm->pairs.values, hm->pairs.count * sizeof(T));
 }
 
 #endif //PHYSICA_HASHMAP_H

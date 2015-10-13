@@ -144,8 +144,8 @@ void draw_render_group(platform_services_t platform,
                        render_group_t* render_group) {
     TIMED_FUNC();
 
-    i32 clip_width = 2560;
-    i32 clip_height = 2560;
+    i32 clip_width = 256;
+    i32 clip_height = 256;
 
     render_task_t tasks[256] = {0};
 
@@ -265,10 +265,10 @@ void draw_bmp(video_buffer_description_t buffer,
     }
 
 
-    i32 start_x = fmax(clip_rect.min_x, uround(start_x_f));
-    i32 start_y = fmax(clip_rect.min_y, uround(2.0f * center.y - end_y_f));
-    i32 end_x = fmin(clip_rect.max_x, uround(end_x_f));
-    i32 end_y = fmin(clip_rect.max_y, uround(2.0f * center.y - start_y_f));
+    i32 start_x = fmax(clip_rect.min_x, sround(start_x_f));
+    i32 start_y = fmax(clip_rect.min_y, sround(2.0f * center.y - end_y_f));
+    i32 end_x = fmin(clip_rect.max_x, sround(end_x_f));
+    i32 end_y = fmin(clip_rect.max_y, sround(2.0f * center.y - start_y_f));
 
     u32* pixels = (u32*)buffer.memory;
 
@@ -451,8 +451,8 @@ void draw_bmp(video_buffer_description_t buffer,
             rgba_t composite = {0};
             for (int i = 0; i < supersampling_vector_count; ++i) {
                 v2 p = p_s + supersampling_vectors[i];
-                i32 xi = sround(p.x);
-                i32 yi = sround(p.y);
+                i32 xi = (i32)(p.x);
+                i32 yi = (i32)(p.y);
                 rgba_t pix = is_in_rect(xi, yi, bmp_rect) ?
                     to_rgba(bitmap.pixels[yi * bitmap.pitch + xi]) : transparent;
                 composite.a += pix.a;

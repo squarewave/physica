@@ -100,9 +100,14 @@ struct phy_potential_collision_t {
     i32 b_index;
 };
 
+struct entity_ties_t {
+    i64 id;
+    i32 type;
+};
+
 struct phy_body_t {
-    i64 id; // intended for use outside the physics engine
-    u32 flags; // see above
+    entity_ties_t entity;
+    u32 flags;
     f32 mass, inv_mass, moment, inv_moment;
     v2 position, velocity;
     f32 orientation, angular_velocity;
@@ -177,7 +182,7 @@ phy_collision_t* phy_add_collision(phy_memory_t memory);
 
 phy_collision_t* phy_add_collision(phy_memory_t memory, phy_collision_t collision);
 
-void phy_update(phy_memory_t memory, f32 dt);
+void phy_update(phy_memory_t memory, hashmap<entity_ties_t>* collision_map, f32 dt);
 
 void phy_add_aabb_for_body(phy_memory_t memory, i32 body_index);
 

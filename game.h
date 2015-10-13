@@ -71,7 +71,9 @@ struct input_memo_t {
 struct game_state_t {
     u32 initialized;
 
+    i64 next_entity_id;
     vec<sim_entity_t> entities;
+    hashmap<entity_ties_t> collision_map;
 
     f32 spatial_partition_width;
     u32 spatial_partition_grid_width;
@@ -98,6 +100,8 @@ struct game_state_t {
     animation_spec_t wiz_walking_left;
     animation_spec_t wiz_standing_right;
     animation_spec_t wiz_standing_left;
+    animation_spec_t wiz_jumping_right;
+    animation_spec_t wiz_jumping_left;
 
     animation_spec_t wiz_buzz;
 };

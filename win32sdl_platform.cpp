@@ -310,7 +310,16 @@ int CALLBACK WinMain(
             while (get_seconds_elapsed(last_counter, SDL_GetPerformanceCounter()) <
                    target_seconds_per_frame) { }
         }
+
+        TIMED_BLOCK(main_run_loop);
+
         f32 dt = get_seconds_elapsed(last_counter, SDL_GetPerformanceCounter());
+        // {
+        //     char char_buffer[256];
+        //     sprintf(char_buffer, "\nfps: %d\n", (i32)(1.0f / dt));
+        //     OutputDebugStringA(char_buffer);
+        // }
+
         last_counter = SDL_GetPerformanceCounter();
 
         ZERO_STRUCT(next_input);
@@ -366,7 +375,11 @@ int CALLBACK WinMain(
         game_buffer.pitch = START_WIDTH * 4;
         game_buffer.bytes_per_pixel = 4;
 
-        game_update_and_render(platform, (game_state_t*)game_memory, dt, game_buffer, next_input);
+        game_update_and_render(platform,
+                               (game_state_t*)game_memory,
+                               target_seconds_per_frame,
+                               game_buffer,
+                               next_input);
 
         prev_input = next_input;
 

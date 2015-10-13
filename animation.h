@@ -17,6 +17,7 @@ struct animation_t {
 	b32 freed;
     f32 frame_progress;
     i32 frame_index;
+    f32 speed;
     render_object_t* render_object;
     animation_spec_t* spec;
 };
@@ -42,6 +43,7 @@ add_animation(render_group_t* render_group,
 	animation->frame_progress = 0.0f;
 	animation->frame_index = 0;
 	animation->spec = spec;
+	animation->speed = 1.0f;
 
 	animation_frame_t first_frame = spec->frames[0];
 	render_object_t* render_obj = push_texture(render_group,
@@ -71,19 +73,20 @@ void
 update_animations(animation_group_t* animation_group, f32 dt) {
 	for (int i = 0; i < animation_group->animations.count; ++i) {
 		animation_t* animation = animation_group->animations.at(i);
-		animation->frame_progress += dt;
+		animation->frame_progress += animation->speed * dt;
+		animation->frame_index %= animation->spec->frames.count;
 		f32 current_frame_duration = animation->spec->frames[animation->frame_index].duration;
 		if (animation->frame_progress > current_frame_duration) {
 			animation->frame_progress -= current_frame_duration;
 			animation->frame_index++;
 			animation->frame_index %= animation->spec->frames.count;
-
-			animation_frame_t frame = animation->spec->frames[animation->frame_index];
-			animation->render_object->render_texture.texture = frame.texture;
-			animation->render_object->render_texture.hotspot = frame.hotspot;
-			animation->render_object->render_texture.orientation = frame.orientation;
-			animation->render_object->render_texture.pixel_size = frame.pixel_size;
 		}
+
+		animation_frame_t frame = animation->spec->frames[animation->frame_index];
+		animation->render_object->render_texture.texture = frame.texture;
+		animation->render_object->render_texture.hotspot = frame.hotspot;
+		animation->render_object->render_texture.orientation = frame.orientation;
+		animation->render_object->render_texture.pixel_size = frame.pixel_size;
 	}
 }
 

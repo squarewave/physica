@@ -31,6 +31,8 @@ const u32 SIMULATED_FLAG = 64;
 const u32 FIXED_FLAG = 128;
 const u32 ROTATES_FLAG = 256;
 
+struct game_state_t;
+
 struct aabb_t {
     v2 top_right, bottom_left;
 };
@@ -51,5 +53,27 @@ struct sim_region_t {
 struct entity_low_t {
     sim_entity_t sim_entity;
 };
+
+sim_entity_t*
+create_block_entity(game_state_t* game_state,
+                    entity_type type,
+                    v2 position,
+                    v2 diagonal,
+                    f32 mass,
+                    f32 orientation,
+                    u32 flags);
+
+sim_entity_t*
+create_fillet_block_entity(game_state_t* game_state,
+                    entity_type type,
+                    v2 position,
+                    v2 diagonal,
+                    f32 fillet,
+                    f32 mass,
+                    f32 orientation,
+                    u32 flags);
+
+void
+remove_entity(game_state_t* game_state, sim_entity_t* entity);
 
 #endif //PHYSICA_SIM_ENTITY_H

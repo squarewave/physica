@@ -12,4 +12,5 @@
 #include "game.cpp"
 #include "player.cpp"
 #include "tile.cpp"
+#include "sim_entity.cpp"
 // #pragma clang diagnostic pop

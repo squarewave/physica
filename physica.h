@@ -119,9 +119,9 @@ struct phy_body_t {
 };
 
 struct phy_state_t {
-    vec<phy_body_t> bodies;
-    vec<phy_hull_t> hulls;
-    vec<v2> points;
+    iterable_pool<phy_body_t> bodies;
+    pool<phy_hull_t> hulls;
+    pool<v2> points;
     array<v2> previous_velocities;
     array<f32> previous_angular_velocities;
     vec<phy_potential_collision_t> potential_collisions;
@@ -145,9 +145,9 @@ struct ray_body_intersect_t {
 };
 
 phy_aabb_tree_node_t* aabb_insert_node(phy_aabb_tree_t* tree,
-                                  i32 parent_index,
-                                  phy_aabb_t fat_aabb,
-                                  i32 body_index);
+                                       i32 parent_index,
+                                       phy_aabb_t fat_aabb,
+                                       i32 body_index);
 
 void aabb_remove_node(phy_aabb_tree_t *tree, i32 index);
 
@@ -173,6 +173,8 @@ phy_body_t* phy_add_fillet_block(phy_memory_t memory,
                                  f32 orientation);
 
 phy_body_t * phy_add_body(phy_memory_t memory);
+
+void phy_remove_body(phy_memory_t memory);
 
 array<phy_hull_t> phy_add_hulls(phy_memory_t memory, i32 count);
 

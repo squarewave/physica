@@ -4,28 +4,25 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
 	const f32 player_block_fillet = 0.2f;
 	const f32 player_mass = 10.0f;
 	const f32 player_initial_orientation = 0.0f;
+    const f32 player_z_index = 2.0f;
+    const u32 player_flags = 0;
 
-	i32 i = game_state->entities.push_unassigned();
-    sim_entity_t* player = game_state->entities.at(i);
+    sim_entity_t* player = create_fillet_block_entity(game_state,
+                                                      PLAYER,
+                                                      position,
+                                                      player_diagonal,
+                                                      player_block_fillet,
+                                                      player_mass,
+                                                      player_initial_orientation,
+                                                      player_flags);
 
-	phy_body_t* body =  phy_add_fillet_block(game_state->physics_arena,
-	                                         position,
-	                                         player_diagonal,
-	                                         player_block_fillet, 
-	                                         player_mass,
-	                                         player_initial_orientation);
-
-    player->body = body;
-
-    i32 animation_index =
-        add_animation(&game_state->main_render_group,
-                      &game_state->main_animation_group,
-                      &game_state->wiz_walking_right);
-
-    player->body->position = position;
-    player->body->entity.id = player->id = game_state->next_entity_id++;
-    player->body->entity.type = player->type = PLAYER;
     player->body->inv_moment = 0.0f;
+    
+    i32 animation_index =
+        add_animation(&game_state->main_animation_group,
+                      &game_state->wiz_walking_right,
+                      player_z_index);
+
     player_state_t* player_state = PUSH_STRUCT(&game_state->world_arena,
                                                player_state_t);
     player_state->animation_index = animation_index;
@@ -46,7 +43,7 @@ UPDATE_FUNC(PLAYER) {
     const f32 jump_falloff = 7.0f;
     const f32 jump_velocity_threshold = 0.5f;
     const f32 jump_min_distance = 0.4f;
-    const f32 jump_raycast_threshold = 0.5f;
+    const f32 jump_raycast_threshold = 0.55f;
     const v2 down = v2 {0,-1};
     const f32 camera_move_factor = 0.4f;
 
@@ -100,25 +97,19 @@ UPDATE_FUNC(PLAYER) {
 
     // jump
     if (game_input.button_a.ended_down) {
-        if (entity->body->velocity.y < jump_velocity_threshold) {
-
-            if (is_supported) {
-                entity->body->velocity.y = jump_speed;
-            }
+        if (is_supported && entity->body->velocity.y < jump_velocity_threshold) {
+            entity->body->velocity.y = jump_speed;
         }
-    } else {
-        if (entity->body->velocity.y > jump_falloff &&
-            game_input.button_a.transition_count > 0) {
-
-            entity->body->velocity.y -= jump_falloff;
-        }
+    } else if (entity->body->velocity.y > jump_falloff && 
+               game_input.button_a.transition_count > 0) {
+        entity->body->velocity.y -= jump_falloff;
     }
 
     // update texture
     animation_t* animation = game_state->main_animation_group.animations
     	.at(player->animation_index);
 
-    animation->render_object->render_texture.center = entity->body->position;
+    animation->position = entity->body->position;
 
 	if (player->facing_right) {
 		animation->speed = 1.0f;

@@ -7,6 +7,7 @@
 #include "game_render.h"
 #include "intrinsics.h"
 #include "game.h"
+#include "common_functions.h"
 
 tex2 load_bmp(char* filename, i32 scaling) {
     tex2 result = {};
@@ -66,8 +67,27 @@ tex2 load_bmp(char* filename, i32 scaling) {
     return result;
 }
 
+render_object_t* push_circle_outline(render_group_t* render_group,
+                                     color_t color,
+                                     v2 center,
+                                     f32 radius,
+                                     f32 z) {
+    i32 i = render_group->objects.push_unassigned();
+    render_object_t* obj = render_group->objects.at(i);
+    obj->type = RENDER_TYPE_CIRC_OUTLINE;
+    obj->render_circle.color = color;
+    obj->render_circle.center = center;
+    obj->render_circle.radius = radius;
+    obj->z = z;
+    return obj;
+}
+
 render_object_t* push_rect(render_group_t* render_group,
-               color_t color, v2 center, v2 diagonal, f32 orientation) {
+                           color_t color,
+                           v2 center,
+                           v2 diagonal,
+                           f32 orientation,
+                           f32 z) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_RECT;
@@ -75,7 +95,19 @@ render_object_t* push_rect(render_group_t* render_group,
     obj->render_rect.center = center;
     obj->render_rect.diagonal = diagonal;
     obj->render_rect.orientation = orientation;
+    obj->z = z;
     return obj;
+}
+
+render_object_t* push_background(render_group_t* render_group,
+                                 color_t color,
+                                 video_buffer_description_t buffer) {
+    return push_rect(render_group,
+                     color,
+                     v2{0,0},
+                     v2 {(f32)buffer.width, (f32)buffer.height},
+                     0.0f,
+                     0.0f);
 }
 
 render_object_t* push_texture(render_group_t* render_group,
@@ -83,7 +115,8 @@ render_object_t* push_texture(render_group_t* render_group,
                   v2 hotspot,
                   f32 pixel_size,
                   tex2 texture,
-                  f32 orientation) {
+                  f32 orientation,
+                  f32 z) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_TEXTURE;
@@ -92,7 +125,52 @@ render_object_t* push_texture(render_group_t* render_group,
     obj->render_texture.center = center;
     obj->render_texture.hotspot = hotspot;
     obj->render_texture.orientation = orientation;
+    obj->z = z;
     return obj;
+}
+
+void swap_render_objs(render_object_t* a, render_object_t* b) {
+    render_object_t tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+void sort_render_objects(vec<render_object_t> objs) {
+    // sort our render objects by z
+    const i32 quicksort_max_stack_size = 1024;
+    i32 si = 0;
+    tuple2<i32,i32> stack[quicksort_max_stack_size];
+    stack[si++] = {0, objs.count};
+
+    while (si) {
+        tuple2<i32,i32> current = stack[--si];
+
+        if (current.second - current.first <= 1) {
+            continue;
+        }
+
+        i32 pivot = current.first;
+        i32 left = current.first;
+        i32 right = current.second - 1;
+        render_object_t pivot_val = objs[pivot];
+        f32 pivot_z = pivot_val.z;
+
+        while (left < right) {
+            while (left < current.second && (objs[left]).z <= pivot_z) { ++left; }
+            while ((objs[right]).z > pivot_z) { --right; }
+            if (left < right && left < current.second) {
+                swap_render_objs(objs.at(left), objs.at(right));
+            }
+        }
+
+        objs[current.first] = objs[right];
+        objs[right] = pivot_val;
+
+        pivot = right;
+
+        stack[si++] = {current.first, pivot};
+        stack[si++] = {pivot + 1, current.second};
+    }
 }
 
 void run_render_task(task_queue_t* queue, void* data) {
@@ -102,7 +180,7 @@ void run_render_task(task_queue_t* queue, void* data) {
     flip_y.r2.c2 = -1;
     flip_y.r2.c3 = task->camera.to_top_left.y * 2;
     m3x3 scale = get_scaling_matrix(task->camera.scaling) *
-            get_scaling_matrix(30.0f);
+            get_scaling_matrix(task->camera.pixels_per_meter);
 
     m3x3 camera_space_transform =
             flip_y *
@@ -134,6 +212,15 @@ void run_render_task(task_queue_t* queue, void* data) {
                          obj->render_texture.hotspot,
                          obj->render_texture.orientation);
             } break;
+            case RENDER_TYPE_CIRC_OUTLINE: {
+                v2 center = camera_space_transform * obj->render_rect.center;
+                f32 radius = task->camera.scaling * task->camera.pixels_per_meter;
+                draw_circ_outline(task->buffer,
+                                  task->clip_rect,
+                                  obj->render_circle.color,
+                                  center,
+                                  radius);
+            }
         }
     }
 }
@@ -151,6 +238,8 @@ void draw_render_group(platform_services_t platform,
 
     i32 width_in_chunks = buffer.width / clip_width + 1;
     i32 height_in_chunks = buffer.height / clip_height + 1;
+
+    sort_render_objects(render_group->objects);
 
     render_task_t* task = tasks;
     for (i32 i = 0; i < height_in_chunks; ++i) {
@@ -173,6 +262,10 @@ void draw_render_group(platform_services_t platform,
     platform.wait_on_queue(platform.render_queue);
 }
 
+void clear_render_group(render_group_t* render_group) {
+    render_group->objects.count = 0;
+}
+
 inline b32 is_in_rect(v2 p, rect_i clip) {
     return p.x >= clip.min_x && p.y >= clip.min_y && p.x < clip.max_x && p.y < clip.max_y;
 }
@@ -188,7 +281,7 @@ void draw_bmp(video_buffer_description_t buffer,
               f32 source_pixel_size,
               v2 hotspot,
               f32 orientation) {
-    // TIMED_FUNC();
+    TIMED_FUNC();
 
     f32 min_x = 0;
     f32 min_y = 0;
@@ -267,7 +360,7 @@ void draw_bmp(video_buffer_description_t buffer,
 
     i32 start_x = fmax(clip_rect.min_x, sround(start_x_f));
     i32 start_y = fmax(clip_rect.min_y, sround(2.0f * center.y - end_y_f));
-    i32 end_x = fmin(clip_rect.max_x, sround(end_x_f));
+    i32 end_x = fmin(clip_rect.max_x, fmax(0, sround(end_x_f)));
     i32 end_y = fmin(clip_rect.max_y, sround(2.0f * center.y - start_y_f));
 
     u32* pixels = (u32*)buffer.memory;
@@ -474,13 +567,20 @@ void draw_bmp(video_buffer_description_t buffer,
     }    
 }
 
+void draw_circ_outline(video_buffer_description_t buffer,
+                       rect_i clip_rect,
+                       color_t color,
+                       v2 center,
+                       f32 radius) {
+
+}
+
 // NOTE(doug): orientation is counter-clockwise radians from the x axis
 void draw_rectangle(video_buffer_description_t buffer,
                     rect_i clip_rect,
                     color_t color, i32 center_x, i32 center_y, u32 width, u32 height,
                     f32 orientation) {
 
-    // TIMED_FUNC();
 
     f32 half_width = ((f32)width) / 2.0f;
     f32 half_height = ((f32)height) / 2.0f;
@@ -540,7 +640,7 @@ void draw_rectangle(video_buffer_description_t buffer,
 
     start_x = (i32) fmax(clip_rect.min_x, start_x - 1);
     start_y = (i32) fmax(clip_rect.min_y, start_y - 1);
-    end_x = (i32) fmin(clip_rect.max_x, end_x + 1);
+    end_x = (i32) fmin(clip_rect.max_x, fmax(0, end_x + 1));
     end_y = (i32) fmin(clip_rect.max_y, end_y + 1);
 
     v2 center = v2 {(f32)center_x, (f32)center_y};
@@ -581,7 +681,8 @@ void draw_rectangle(video_buffer_description_t buffer,
 
     __m128 xs;
     {
-        for (int y = start_y; y < end_y; ++y) {
+		TIMED_FUNC();
+		for (int y = start_y; y < end_y; ++y) {
     
             ((f32*)&xs)[0] = (f32)(start_x + 0);
             ((f32*)&xs)[1] = (f32)(start_x + 1);

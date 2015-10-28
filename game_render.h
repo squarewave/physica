@@ -29,6 +29,7 @@ typedef v4 rgba_t;
 
 const u32 RENDER_TYPE_RECT = 1;
 const u32 RENDER_TYPE_TEXTURE = 2;
+const u32 RENDER_TYPE_CIRC_OUTLINE = 3;
 
 struct render_rect_t {
   u32 type;
@@ -47,11 +48,20 @@ struct render_texture_t {
   f32 orientation;
 };
 
+struct render_circle_t {
+  u32 type;
+  v2 center;
+  f32 radius;
+  color_t color;
+};
+
 struct render_object_t {
+  f32 z;
   union {
     u32 type;
     render_rect_t render_rect;
     render_texture_t render_texture;
+    render_circle_t render_circle;
   };
 };
 
@@ -66,23 +76,33 @@ struct render_task_t {
   rect_i clip_rect;
 };
 
-void push_rect(render_group_t render_group,
-               color_t color,
-               v2 center,
-               v2 diagonal,
-               f32 orientation);
+render_object_t* push_rect(render_group_t* render_group,
+                           color_t color,
+                           v2 center,
+                           v2 diagonal,
+                           f32 orientation,
+                           f32 z);
+
+render_object_t* push_background(render_group_t* render_group,
+                                 color_t color,
+                                 video_buffer_description_t buffer);
 
 render_object_t* push_texture(render_group_t* render_group,
-                  v2 center,
-                  v2 hotspot,
-                  f32 pixel_size,
-                  tex2 texture,
-                  f32 orientation);
+                              v2 center,
+                              v2 hotspot,
+                              f32 pixel_size,
+                              tex2 texture,
+                              f32 orientation,
+                              f32 z);
 
-void draw_render_group(video_buffer_description_t buffer,
+struct platform_services_t;
+
+void draw_render_group(platform_services_t platform,
+                       video_buffer_description_t buffer,
                        camera_t camera,
-                       render_group_t render_group);
+                       render_group_t* render_group);
 
+void clear_render_group(render_group_t render_group);
 
 void draw_bmp(video_buffer_description_t buffer,
               rect_i clip_rect,
@@ -107,6 +127,12 @@ void draw_bmp(video_buffer_description_t buffer,
               u32 source_left, u32 source_top,
               u32 source_width, u32 source_height,
               f32 source_hotspot_x, f32 source_hotspot_y, f32 orientation);
+
+void draw_circ_outline(video_buffer_description_t buffer,
+                       rect_i clip_rect,
+                       color_t color,
+                       v2 center,
+                       f32 radius);
 
 void draw_rectangle(video_buffer_description_t buffer,
                     rect_i clip_rect,

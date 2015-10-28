@@ -18,22 +18,23 @@ struct animation_t {
     f32 frame_progress;
     i32 frame_index;
     f32 speed;
-    render_object_t* render_object;
+    f32 z;
+    v2 position;
     animation_spec_t* spec;
 };
 
 struct animation_group_t {
 	vec<animation_t> animations;
-	vec<i32> free_list;
+	vec<i32> freed;
 };
 
 inline i32
-add_animation(render_group_t* render_group,
-              animation_group_t* animation_group,
-              animation_spec_t* spec) {
+add_animation(animation_group_t* animation_group,
+              animation_spec_t* spec,
+              f32 z) {
 	i32 index;
-	if (animation_group->free_list.count) {
-		index = animation_group->free_list.pop();
+	if (animation_group->freed.count) {
+		index = animation_group->freed.pop();
 	} else {
 		index = animation_group->animations.push_unassigned();
 	}
@@ -44,16 +45,7 @@ add_animation(render_group_t* render_group,
 	animation->frame_index = 0;
 	animation->spec = spec;
 	animation->speed = 1.0f;
-
-	animation_frame_t first_frame = spec->frames[0];
-	render_object_t* render_obj = push_texture(render_group,
-	             v2{0,0},
-	             first_frame.hotspot,
-	             first_frame.pixel_size,
-	             first_frame.texture,
-	             first_frame.orientation);
-
-	animation->render_object = render_obj;
+	animation->z = z;
 
 	return index;
 }
@@ -64,13 +56,15 @@ remove_animation(animation_group_t* animation_group, i32 index) {
 	animation_t* animation = animation_group->animations.at(index);
 	assert(!animation->freed);
 	animation->freed = true;
-	animation_group->free_list.push(index);
+	animation_group->freed.push(index);
 
 	assert(false); //TODO(doug): ensure that the render object is removed from the group
 }
 
 void
-update_animations(animation_group_t* animation_group, f32 dt) {
+update_animations(animation_group_t* animation_group,
+                  render_group_t* render_group,
+                  f32 dt) {
 	for (int i = 0; i < animation_group->animations.count; ++i) {
 		animation_t* animation = animation_group->animations.at(i);
 		animation->frame_progress += animation->speed * dt;
@@ -83,10 +77,14 @@ update_animations(animation_group_t* animation_group, f32 dt) {
 		}
 
 		animation_frame_t frame = animation->spec->frames[animation->frame_index];
-		animation->render_object->render_texture.texture = frame.texture;
-		animation->render_object->render_texture.hotspot = frame.hotspot;
-		animation->render_object->render_texture.orientation = frame.orientation;
-		animation->render_object->render_texture.pixel_size = frame.pixel_size;
+
+		push_texture(render_group,
+		             animation->position,
+		             frame.hotspot,
+		             frame.pixel_size,
+		             frame.texture,
+		             frame.orientation,
+		             animation->z);
 	}
 }
 

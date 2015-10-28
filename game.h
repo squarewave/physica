@@ -13,7 +13,7 @@
 #include "hashmap.h"
 #include "animation.h"
 
-const u32 FRAME_RATE = 60;
+const u32 FRAME_RATE = 30;
 const u32 START_WIDTH = 960;
 const u32 START_HEIGHT = 540;
 const u32 LEFT_OFFSET = 0;
@@ -23,29 +23,6 @@ const u32 SOUND_BUFFER_SIZE = PERIOD_SIZE * 8;
 const u32 VIDEO_STATE_SIZE = 1024LL * 1024LL;
 const u32 PIXEL_SIZE = 2;
 const f32 PIXELS_PER_METER = 30.0f;
-
-struct memory_arena_t {
-    u32 size, used;
-    u8* base;
-};
-
-void* _push_size(memory_arena_t* arena, u32 size) {
-    assert(arena->used + size <= arena->size);
-    u8* result = arena->base + arena->used;
-    arena->used += size;
-    return result;
-};
-
-void _zero_size(void* memory, size_t size) {
-    for (int i = 0; i < size; ++i) {
-        ((u8*)memory)[i] = 0;
-    }
-}
-
-#define ARRAY_SIZE(array) ((sizeof(array)) / sizeof(array[0]))
-#define PUSH_STRUCT(arena, type) (type *)_push_size(arena, sizeof(type))
-#define PUSH_ARRAY(arena, count, type) (type *)_push_size(arena, count * sizeof(type))
-#define ZERO_STRUCT(instance) _zero_size(&(instance), sizeof(instance))
 
 struct platform_read_entire_file_result_t {
     u8* contents;
@@ -72,7 +49,7 @@ struct game_state_t {
     u32 initialized;
 
     i64 next_entity_id;
-    vec<sim_entity_t> entities;
+    iterable_pool<sim_entity_t> entities;
     hashmap<entity_ties_t> collision_map;
 
     f32 spatial_partition_width;

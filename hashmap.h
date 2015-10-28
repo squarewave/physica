@@ -165,7 +165,7 @@ inline void remove_hash_item(hashmap<T>* hm, u64 k) {
 
 template <class T>
 inline void clear_hashmap(hashmap<T>* hm) {
-    _zero_size(hm->pairs.values, hm->pairs.count * sizeof(T));
+    ZERO_ARRAY(hm->pairs.values, hm->pairs.count);
 }
 
 #endif //PHYSICA_HASHMAP_H

@@ -12,7 +12,7 @@
 
 void
 initialize_render_arena(game_state_t* game_state) {
-    const i32 max_render_objects = 1024 * 1024;
+    const i32 max_render_objects = 1024 * 20;
     game_state->main_render_group.objects.count = 0;
     game_state->main_render_group.objects.capacity = max_render_objects;
     game_state->main_render_group.objects.values =
@@ -24,9 +24,9 @@ initialize_render_arena(game_state_t* game_state) {
     game_state->main_animation_group.animations.values =
         PUSH_ARRAY(&game_state->render_arena, max_animations, animation_t);
 
-    game_state->main_animation_group.free_list.count = 0;
-    game_state->main_animation_group.free_list.capacity = max_animations;
-    game_state->main_animation_group.free_list.values =
+    game_state->main_animation_group.freed.count = 0;
+    game_state->main_animation_group.freed.capacity = max_animations;
+    game_state->main_animation_group.freed.values =
         PUSH_ARRAY(&game_state->render_arena, max_animations, i32);
 
     const i32 max_animation_frames = 1024 * 36;
@@ -39,15 +39,15 @@ initialize_render_arena(game_state_t* game_state) {
     game_state->wiz_walking_right = wiz_walking_right(&game_state->animation_frames,
                                                       game_state->wiz_bmp);
     game_state->wiz_walking_left = wiz_walking_left(&game_state->animation_frames,
-                                                      game_state->wiz_bmp);
+                                                    game_state->wiz_bmp);
     game_state->wiz_standing_right = wiz_standing_right(&game_state->animation_frames,
-                                                      game_state->wiz_bmp);
+                                                        game_state->wiz_bmp);
     game_state->wiz_standing_left = wiz_standing_left(&game_state->animation_frames,
                                                       game_state->wiz_bmp);
     game_state->wiz_jumping_right = wiz_jumping_right(&game_state->animation_frames,
                                                       game_state->wiz_bmp);
     game_state->wiz_jumping_left = wiz_jumping_left(&game_state->animation_frames,
-                                                      game_state->wiz_bmp);
+                                                    game_state->wiz_bmp);
 }
 
 void
@@ -57,8 +57,8 @@ setup_world(game_state_t *game_state) {
     "-------------------------------------------------"
     "#################################################"
     "#         #######################################" 
-    "#         ########   ############################" 
-    "#         ########   ############################" 
+    "#   p     ########   ############################" 
+    "#   p     ########   ############################" 
     "#     s              ####################       #" 
     "#######                        #########  ##### #" 
     "############################      ######  ##### #" 
@@ -98,6 +98,26 @@ setup_world(game_state_t *game_state) {
                 case 's': {
                     create_player(game_state, position);
                 } break;
+                case 'p': {
+                    const v2 tile_diagonal = v2 {1.0f, 1.0f};
+                    const f32 tile_mass = 10.0f;
+
+                    sim_entity_t* tile = create_fillet_block_entity(game_state,
+                                               TILE,
+                                               position,
+                                               tile_diagonal,
+                                               0.15f,
+                                               tile_mass,
+                                               0.3f,
+                                               0);
+
+                    push_rect(&game_state->main_render_group,
+                              color_t {1.0f,1.0f,1.0f},
+                              position,
+                              tile_diagonal,
+                              0.3f,
+                              1.0f);
+                } break;
             }
         }
     }
@@ -129,10 +149,7 @@ initialize_game_state(game_state_t* game_state, video_buffer_description_t buffe
     phy_init(game_state->physics_arena);
 
     const i32 entity_capacity = 4000;
-    game_state->entities.values = PUSH_ARRAY(&game_state->world_arena,
-                                             entity_capacity,
-                                             sim_entity_t);
-    game_state->entities.capacity = entity_capacity;
+    game_state->entities.allocate(&game_state->world_arena, entity_capacity);
     game_state->next_entity_id = 1L;
 
     const i32 collision_capacity = 2000;
@@ -140,12 +157,6 @@ initialize_game_state(game_state_t* game_state, video_buffer_description_t buffe
                                                  collision_capacity,
                                                  hashpair<entity_ties_t>);
     game_state->collision_map.pairs.count = collision_capacity;
-
-    push_rect(&game_state->main_render_group,
-              v3 {0.3f, 0.35f, 0.3f},
-              v2{0,0},
-              v2 {(f32)buffer.width, (f32)buffer.height},
-              0.0f);
 
     setup_world(game_state);
 
@@ -166,12 +177,29 @@ game_update_and_render(platform_services_t platform,
         initialize_game_state(game_state, buffer);
     }
 
-    { TIMED_BLOCK(clear_collision_map); clear_hashmap(&game_state->collision_map); }
+    push_background(&game_state->main_render_group,
+                    color_t {0.0f, 0.0f, 1.0f},
+                    buffer);
+
+    sim_entity_t* entity_created =  create_fillet_block_entity(game_state,
+                                                               TILE,
+                                                               v2 {2.0f,-2.0f},
+                                                               v2 {1.0f,1.0f},
+                                                               0.15f,
+                                                               10.0f,
+                                                               0.3f,
+                                                               0);
+
+    clear_hashmap(&game_state->collision_map);
 
     phy_update(game_state->physics_arena, &game_state->collision_map, dt);
 
-    for (int i = 0; i < game_state->entities.count; ++i) {
-        sim_entity_t* entity = game_state->entities.at(i);
+    for (int i = 0; i < game_state->entities.size; ++i) {
+        sim_entity_t* entity = game_state->entities.try_get(i);
+
+        if (!entity) {
+            continue;
+        }
 
         #define __UPDATE_CASE(type) case type: {\
             update_##type(game_state, game_input, entity, dt);\
@@ -183,10 +211,16 @@ game_update_and_render(platform_services_t platform,
         }
     }
 
-    update_animations(&game_state->main_animation_group, dt);
+    update_animations(&game_state->main_animation_group,
+                      &game_state->main_render_group,
+                      dt);
 
     draw_render_group(platform,
                       buffer,
                       game_state->camera,
                       &game_state->main_render_group);
+
+    clear_render_group(&game_state->main_render_group);
+
+    remove_entity(game_state, entity_created);
 }

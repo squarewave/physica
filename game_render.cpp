@@ -7,7 +7,6 @@
 #include "game_render.h"
 #include "intrinsics.h"
 #include "game.h"
-#include "common_functions.h"
 
 tex2 load_bmp(char* filename, i32 scaling) {
     tex2 result = {};
@@ -111,12 +110,12 @@ render_object_t* push_background(render_group_t* render_group,
 }
 
 render_object_t* push_texture(render_group_t* render_group,
-                  v2 center,
-                  v2 hotspot,
-                  f32 pixel_size,
-                  tex2 texture,
-                  f32 orientation,
-                  f32 z) {
+                              v2 center,
+                              v2 hotspot,
+                              f32 pixel_size,
+                              tex2 texture,
+                              f32 orientation,
+                              f32 z) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_TEXTURE;
@@ -176,17 +175,19 @@ void sort_render_objects(vec<render_object_t> objs) {
 void run_render_task(task_queue_t* queue, void* data) {
     render_task_t* task = (render_task_t*)data;
 
+    const f32 max_distance_from_cam_sq = 400.0f;
+
     m3x3 flip_y = identity_3x3();
     flip_y.r2.c2 = -1;
     flip_y.r2.c3 = task->camera.to_top_left.y * 2;
-    m3x3 scale = get_scaling_matrix(task->camera.scaling) *
-            get_scaling_matrix(task->camera.pixels_per_meter);
+    m3x3 scale = get_scaling_matrix(task->camera.scaling *
+                                    task->camera.pixels_per_meter);
 
     m3x3 camera_space_transform =
             flip_y *
             get_translation_matrix(task->camera.to_top_left) *
-            get_translation_matrix(-task->camera.center) *
-            scale;
+            scale *
+            get_translation_matrix(-task->camera.center);
 
     for (int i = 0; i < task->render_group->objects.count; ++i) {
         render_object_t* obj = task->render_group->objects.at(i);
@@ -213,7 +214,7 @@ void run_render_task(task_queue_t* queue, void* data) {
                          obj->render_texture.orientation);
             } break;
             case RENDER_TYPE_CIRC_OUTLINE: {
-                v2 center = camera_space_transform * obj->render_rect.center;
+                v2 center = camera_space_transform * obj->render_circle.center;
                 f32 radius = task->camera.scaling * task->camera.pixels_per_meter;
                 draw_circ_outline(task->buffer,
                                   task->clip_rect,
@@ -770,18 +771,18 @@ void draw_rectangle(video_buffer_description_t buffer,
     }
 }
 
-static i32 debug_point_count = 0;
-static v2 debug_points[200];
-static i32 debug_colors[200];
+global i32 debug_point_count = 0;
+global v2 debug_points[200];
+global i32 debug_colors[200];
 
 void add_debug_point(v2 point, i32 color) {
     debug_points[debug_point_count] = point;
     debug_colors[debug_point_count++] = color;
 }
 
-static i32 debug_rect_count = 0;
-static v2 debug_rects[20000];
-static i32 debug_rect_colors[10000];
+global i32 debug_rect_count = 0;
+global v2 debug_rects[20000];
+global i32 debug_rect_colors[10000];
 
 void add_debug_rect(v2 top_right, v2 bottom_left, i32 color) {
     debug_rects[debug_rect_count] = top_right;

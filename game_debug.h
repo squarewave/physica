@@ -13,6 +13,7 @@ __inline__ u64 rdtsc() {
     // return (((u64) d) << 32) | (u64) a;
 }
 
+
 #define TIMED_BLOCK(ID) timed_block_t timed_block##ID((char*)#ID, __COUNTER__)
 #define TIMED_FUNC() timed_block_t timed_func((char*)__FUNCTION__, __COUNTER__)
 
@@ -23,7 +24,7 @@ struct debug_block_t {
 };
 
 const i32 max_debug_blocks = 200;
-static debug_block_t debug_blocks[max_debug_blocks] = {0};
+global debug_block_t debug_blocks[max_debug_blocks] = {0};
 
 struct timed_block_t {
     i32 block_index;

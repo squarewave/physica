@@ -24,6 +24,9 @@ typedef uint32_t b32;
 typedef float f32;
 typedef double f64;
 
+#define global static
+#define persist static
+
 struct memory_arena_t {
     u32 size, used;
     u8* base;

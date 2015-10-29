@@ -1051,8 +1051,6 @@ is_stale(phy_state_t* state, phy_collision_t* c) {
     v2 new_world_a = transform_a * c->local_contact_a;
     v2 new_world_b = transform_b * c->local_contact_b;
 
-    static i32 depth_c = 0;
-
     f32 depth = dot(new_world_b - new_world_a, c->normal);
     if (depth > 0.0f) {
         return true;
@@ -1060,8 +1058,6 @@ is_stale(phy_state_t* state, phy_collision_t* c) {
     c->depth = depth;
 
     const f32 threshold_sq = 0.002f;
-
-    static i32 length_c = 0;
 
     if (length_squared(new_world_a - c->world_contact_a) > threshold_sq) {
         return true;

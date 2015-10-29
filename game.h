@@ -12,6 +12,7 @@
 #include "sim_entity.h"
 #include "hashmap.h"
 #include "animation.h"
+#include "background.h"
 
 const u32 FRAME_RATE = 30;
 const u32 START_WIDTH = 960;
@@ -58,7 +59,9 @@ struct game_state_t {
     u32 spatial_partition_count;
 
     camera_t camera;
+    camera_t background_camera;
     render_group_t main_render_group;
+    render_group_t background_render_group;
 
     memory_arena_t world_arena;
     phy_memory_t physics_arena;
@@ -81,6 +84,8 @@ struct game_state_t {
     animation_spec_t wiz_jumping_left;
 
     animation_spec_t wiz_buzz;
+
+    background_t background;
 };
 
 struct button_input_t {

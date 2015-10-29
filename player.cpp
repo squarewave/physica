@@ -47,12 +47,14 @@ UPDATE_FUNC(PLAYER) {
     const v2 down = v2 {0,-1};
     const f32 camera_move_factor = 0.4f;
 
-    v2 camera_target = game_state->camera.scaling *
-        game_state->camera.pixels_per_meter *
-        entity->body->position;
-    v2 d_camera = camera_target - game_state->camera.center;
-    game_state->camera.center = game_state->camera.center +
-        (camera_move_factor * d_camera);
+    // v2 camera_target = game_state->camera.scaling *
+    //     game_state->camera.pixels_per_meter *
+    //     entity->body->position;
+    // v2 d_camera = camera_target - game_state->camera.center;
+    // game_state->camera.center = game_state->camera.center +
+    //     (camera_move_factor * d_camera);
+
+    game_state->camera.center = entity->body->position;
 
     b32 direction_changed = false;
     b32 moving = false;

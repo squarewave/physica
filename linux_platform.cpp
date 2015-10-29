@@ -524,11 +524,6 @@ int main(int argc, char const *argv[]) {
         // f32 dt = (f32)(((f64)delta_tn) / (f64)(1000LL * 1000LL * 1000LL));
         f32 dt = (f32)(((f64)target_delta_tn) / (f64)(1000LL * 1000LL * 1000LL));
 
-        static int counter = 0;
-        if (++counter == 30) {
-            counter = 0;
-        }
-
         game_update_and_render((game_state_t*)game_memory, dt, game_buffer, next_input);
         prev_input = next_input;
 

@@ -9,6 +9,7 @@
 #include "player.h"
 #include "tile.h"
 #include "wiz_animation.h"
+#include "background.h"
 
 void
 initialize_render_arena(game_state_t* game_state) {
@@ -154,13 +155,25 @@ initialize_game_state(game_state_t* game_state, video_buffer_description_t buffe
 
     const i32 collision_capacity = 2000;
     game_state->collision_map.pairs.values = PUSH_ARRAY(&game_state->world_arena,
-                                                 collision_capacity,
-                                                 hashpair<entity_ties_t>);
+                                                        collision_capacity,
+                                                        hashpair<entity_ties_t>);
     game_state->collision_map.pairs.count = collision_capacity;
 
     setup_world(game_state);
 
     phy_set_gravity(game_state->physics_arena, v2 {0, -73.8f});
+
+    game_state->background.background_color = to_rgb(0xffc8dfec);
+    game_state->background.texture = load_empty_bmp(1000,
+                                                    1000,
+                                                    game_state->background.background_color);
+
+    i32 mote_count = 10000;
+    game_state->background.motes.count = mote_count;
+    game_state->background.motes.values = PUSH_ARRAY(&game_state->render_arena,
+                                                     mote_count,
+                                                     mote_t);
+    create_motes(&game_state->background);
 
     game_state->initialized = true;
 }
@@ -177,9 +190,19 @@ game_update_and_render(platform_services_t platform,
         initialize_game_state(game_state, buffer);
     }
 
-    push_background(&game_state->main_render_group,
-                    color_t {0.0f, 0.0f, 1.0f},
-                    buffer);
+    // push_background(&game_state->main_render_group,
+    //                 color_t {0.0f, 0.0f, 1.0f},
+    //                 buffer);
+
+    update_motes(&game_state->background, &game_state->main_render_group, dt);
+
+    push_texture(&game_state->main_render_group,
+                 v2 {0.0f, -30.0f},
+                 v2 {0.0f, 0.0f},
+                 3.0f,
+                 game_state->background.texture,
+                 0.0f,
+                 0.5f);
 
     sim_entity_t* entity_created =  create_fillet_block_entity(game_state,
                                                                TILE,

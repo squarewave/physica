@@ -5,6 +5,9 @@
 #ifndef PHYSICA_SDL_PLATFORM_H
 #define PHYSICA_SDL_PLATFORM_H
 
+#include "gl/glew.h"
+#include "gl/glu.h"
+
 enum gamepad_buttons {
     BUTTON_A = 0,
     BUTTON_B = 1,
@@ -35,10 +38,25 @@ struct offscreen_buffer_t
     int bytes_per_pixel;
 };
 
+struct rect_program_t {
+    GLuint id, vbo, ibo;
+    GLint transform_loc, color_loc, vertex_modelspace_loc;
+};
+
+struct texture_program_t {
+    GLuint id, vbo, uv_vbo, ibo;
+    GLint transform_loc;
+    GLint uv_transform_loc;
+    GLint vertex_modelspace_loc;
+    GLint vertex_uv_loc;
+    GLint texture_sampler_loc;
+};
+
 struct platform_context_t {
     SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_Texture* texture;
+    SDL_GLContext gl_context;
 
     game_input_t* next_input;
     game_input_t* prev_input;
@@ -75,6 +93,8 @@ struct platform_services_t {
     task_queue_t* render_queue;
     start_task_func* start_task;
     wait_on_queue_func* wait_on_queue;
+    rect_program_t rect_program;
+    texture_program_t texture_program;
 };
 
 #endif //PHYSICA_SDL_PLATFORM_H

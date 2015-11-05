@@ -4,7 +4,7 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
 	const f32 player_block_fillet = 0.2f;
 	const f32 player_mass = 10.0f;
 	const f32 player_initial_orientation = 0.0f;
-    const f32 player_z_index = 2.0f;
+    const f32 player_z_index = 0.2f;
     const u32 player_flags = 0;
 
     sim_entity_t* player = create_fillet_block_entity(game_state,

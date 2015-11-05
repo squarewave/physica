@@ -13,7 +13,7 @@
 
 void
 initialize_render_arena(game_state_t* game_state) {
-    const i32 max_render_objects = 1024 * 20;
+    const i32 max_render_objects = 200000;
     game_state->main_render_group.objects.count = 0;
     game_state->main_render_group.objects.capacity = max_render_objects;
     game_state->main_render_group.objects.values =
@@ -141,9 +141,13 @@ initialize_game_state(game_state_t* game_state, video_buffer_description_t buffe
 
     initialize_render_arena(game_state);
 
+    const f32 camera_height_meters = 5.0f;
     game_state->camera.center = v2 {0.0f, 0.0f};
+    f32 aspect_ratio = (f32)buffer.width / (f32)buffer.height;
     game_state->camera.to_top_left = v2 {
-            START_WIDTH / 2, START_HEIGHT / 2};
+      camera_height_meters * aspect_ratio,
+      camera_height_meters
+    };
     game_state->camera.scaling = 2.0f;
     game_state->camera.pixels_per_meter = 30.0f;
 
@@ -162,18 +166,8 @@ initialize_game_state(game_state_t* game_state, video_buffer_description_t buffe
     setup_world(game_state);
 
     phy_set_gravity(game_state->physics_arena, v2 {0, -73.8f});
-
-    game_state->background.background_color = to_rgb(0xffc8dfec);
-    game_state->background.texture = load_empty_bmp(1000,
-                                                    1000,
-                                                    game_state->background.background_color);
-
-    i32 mote_count = 10000;
-    game_state->background.motes.count = mote_count;
-    game_state->background.motes.values = PUSH_ARRAY(&game_state->render_arena,
-                                                     mote_count,
-                                                     mote_t);
-    create_motes(&game_state->background);
+    
+    create_background(game_state, &game_state->background);
 
     game_state->initialized = true;
 }
@@ -189,20 +183,6 @@ game_update_and_render(platform_services_t platform,
     if (!game_state->initialized) {
         initialize_game_state(game_state, buffer);
     }
-
-    // push_background(&game_state->main_render_group,
-    //                 color_t {0.0f, 0.0f, 1.0f},
-    //                 buffer);
-
-    update_motes(&game_state->background, &game_state->main_render_group, dt);
-
-    push_texture(&game_state->main_render_group,
-                 v2 {0.0f, -30.0f},
-                 v2 {0.0f, 0.0f},
-                 3.0f,
-                 game_state->background.texture,
-                 0.0f,
-                 0.5f);
 
     sim_entity_t* entity_created =  create_fillet_block_entity(game_state,
                                                                TILE,
@@ -233,6 +213,11 @@ game_update_and_render(platform_services_t platform,
             __UPDATE_CASE(TILE);
         }
     }
+
+    update_background(&game_state->background,
+                 &game_state->main_render_group,
+                 game_state->camera,
+                 dt);
 
     update_animations(&game_state->main_animation_group,
                       &game_state->main_render_group,

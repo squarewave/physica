@@ -14,9 +14,9 @@
 #include "animation.h"
 #include "background.h"
 
-const u32 FRAME_RATE = 30;
-const u32 START_WIDTH = 960;
-const u32 START_HEIGHT = 540;
+const u32 FRAME_RATE = 60;
+const u32 START_WIDTH = 1366;
+const u32 START_HEIGHT = 768;
 const u32 LEFT_OFFSET = 0;
 const u32 AUDIO_SAMPLE_RATE = 44100; // desired rate - CD quality
 const u32 PERIOD_SIZE = AUDIO_SAMPLE_RATE / FRAME_RATE;
@@ -109,30 +109,6 @@ struct game_input_t {
     joystick_input_t joystick_l, joystick_r;
     button_input_t up, down, right, left, lshift, rshift;
 };
-
-#pragma pack(push, 1)
-struct bitmap_header_t {
-    u16 file_type;
-    u32 file_size;
-    u16 reserved_1;
-    u16 reserved_2;
-    u32 bitmap_offset;
-    u32 size;
-    i32 width;
-    i32 height;
-    u16 planes;
-    u16 bits_per_pixel;
-    u32 compression;
-    u32 size_of_bitmap;
-    i32 horz_resolution;
-    i32 vert_resolution;
-    u32 colors_used;
-    u32 colors_important;
-    u32 red_mask;
-    u32 green_mask;
-    u32 blue_mask;
-};
-#pragma pack(pop)
 
 struct platform_services_t;  
 

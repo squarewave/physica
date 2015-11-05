@@ -7,20 +7,20 @@
 #include "game_render.h"
 #include "intrinsics.h"
 #include "game.h"
+#include "gl/gl.h"
 
 tex2 load_bmp(char* filename, i32 scaling) {
     tex2 result = {};
-    platform_read_entire_file_result_t file =
-        platform_read_entire_file(filename);
+    platform_read_entire_file_result_t file = platform_read_entire_file(filename);
 
-    assert(file.contents);
+    assert_(file.contents);
 
     if (file.contents) {
         bitmap_header_t* header = (bitmap_header_t*)file.contents;
 
-        assert(header->compression == 3);
-        assert(header->width > 0);
-        assert(header->height > 0);
+        assert_(header->compression == 3);
+        assert_(header->width > 0);
+        assert_(header->height > 0);
 
         result.width = (u32) header->width * scaling;
         result.pitch = result.width;
@@ -37,10 +37,10 @@ tex2 load_bmp(char* filename, i32 scaling) {
         u32 blue_shift = find_least_significant_set_bit(blue_mask);
         u32 alpha_shift = find_least_significant_set_bit(alpha_mask);
 
-        assert(red_shift >= 0);
-        assert(green_shift >= 0);
-        assert(blue_shift >= 0);
-        assert(alpha_shift >= 0) ;
+        assert_(red_shift >= 0);
+        assert_(green_shift >= 0);
+        assert_(blue_shift >= 0);
+        assert_(alpha_shift >= 0) ;
 
         u32* input = (u32*)(file.contents + header->bitmap_offset);
         u32* output = result.pixels;
@@ -49,10 +49,10 @@ tex2 load_bmp(char* filename, i32 scaling) {
         for (int i = 0; i < header->height; ++i) {
             for (int j = 0; j < header->width; ++j) {
                 u32 color = input[i*header->width + j];
-                color = (((color & alpha_mask) >> alpha_shift) << 24) |
-                        (((color & red_mask) >> red_shift) << 16) |
-                        (((color & green_mask) >> green_shift) << 8) |
-                        (((color & blue_mask) >> blue_shift) << 0);
+                color = (((color & alpha_mask) >> alpha_shift) << 0) |
+                        (((color & red_mask) >> red_shift) << 24) |
+                        (((color & green_mask) >> green_shift) << 16) |
+                        (((color & blue_mask) >> blue_shift) << 8);
 
                 for (int k = 0; k < scaling; ++k) {
                     for (int l = 0; l < scaling; ++l) {
@@ -61,6 +61,24 @@ tex2 load_bmp(char* filename, i32 scaling) {
                 }
             }
         }
+
+        glGenTextures(1, &result.texture_id);
+        glBindTexture(GL_TEXTURE_2D, result.texture_id);
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     result.width,
+                     result.height,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_INT_8_8_8_8,
+                     (void*)output);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
 
     return result;
@@ -114,12 +132,14 @@ render_object_t* push_texture(render_group_t* render_group,
                               v2 hotspot,
                               f32 pixel_size,
                               tex2 texture,
+                              rect_i source_rect,
                               f32 orientation,
                               f32 z) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_TEXTURE;
     obj->render_texture.texture = texture;
+    obj->render_texture.source_rect = source_rect;
     obj->render_texture.pixel_size = pixel_size;
     obj->render_texture.center = center;
     obj->render_texture.hotspot = hotspot;
@@ -155,8 +175,8 @@ void sort_render_objects(vec<render_object_t> objs) {
         f32 pivot_z = pivot_val.z;
 
         while (left < right) {
-            while (left < current.second && (objs[left]).z <= pivot_z) { ++left; }
-            while ((objs[right]).z > pivot_z) { --right; }
+            while (left < current.second && (objs[left]).z >= pivot_z) { ++left; }
+            while ((objs[right]).z < pivot_z) { --right; }
             if (left < right && left < current.second) {
                 swap_render_objs(objs.at(left), objs.at(right));
             }
@@ -226,12 +246,194 @@ void run_render_task(task_queue_t* queue, void* data) {
     }
 }
 
+void draw_gl_rect(platform_services_t platform,
+                  camera_t camera,
+                  render_rect_t rect,
+                  f32 z) {
+    // our base rect is simply a square at the origin with sides of length 1.0f,
+    // transform that square to get our draw rect
+
+    m4x4 rotate = get_rotation_matrix_4x4(rect.orientation);
+    m4x4 scale_and_translate = identity_4x4();
+    //scale
+    scale_and_translate.r1.c1 = rect.diagonal.x;
+    scale_and_translate.r2.c2 = rect.diagonal.y;
+    // translate
+    scale_and_translate.r1.c4 = rect.center.x;
+    scale_and_translate.r2.c4 = rect.center.y;
+    scale_and_translate.r3.c4 = z;
+
+    m4x4 model = scale_and_translate * rotate;
+
+    f32 camera_scale_x = 1.0f / camera.to_top_left.x;
+    f32 camera_scale_y = 1.0f / camera.to_top_left.y;
+    m4x4 view = identity_4x4();
+    //scale
+    view.r1.c1 = camera_scale_x;
+	view.r2.c2 = camera_scale_y;
+    //translate
+    view.r1.c4 = camera.center.x * -camera_scale_x;
+    view.r2.c4 = camera.center.y * -camera_scale_y;
+
+    m4x4 transform = view * model;
+
+    glUniformMatrix4fv(platform.rect_program.transform_loc,
+                       1,
+                       GL_TRUE,
+                       transform.vals);
+    glUniform4f(platform.rect_program.color_loc,
+                rect.color.r,
+                rect.color.g,
+                rect.color.b,
+                1.0f);
+    glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
+}
+
+void draw_gl_texture(platform_services_t platform,
+                     camera_t camera,
+                     render_texture_t texture,
+                     f32 z) {
+    f32 src_width = (f32)(texture.source_rect.max_x - texture.source_rect.min_x); 
+    f32 src_height = (f32)(texture.source_rect.max_y - texture.source_rect.min_y);
+
+    f32 width = src_width * texture.pixel_size;
+    f32 height = src_height * texture.pixel_size;
+
+    v2 hotspot_transform = -1.0f * (v2 {-width / 2.0f, -height / 2.0f} +
+                                    (texture.hotspot * texture.pixel_size));
+
+    // our base rect is simply a square at the origin with sides of length 1.0f,
+    // transform that square to get our draw rect
+
+    m4x4 rotate = get_rotation_matrix_4x4(texture.orientation);
+    m4x4 scale_and_translate = identity_4x4();
+    //scale
+    scale_and_translate.r1.c1 = width;
+    scale_and_translate.r2.c2 = height;
+    // translate
+    scale_and_translate.r1.c4 = texture.center.x + hotspot_transform.x;
+    scale_and_translate.r2.c4 = texture.center.y + hotspot_transform.y;
+    scale_and_translate.r3.c4 = z;
+
+    m4x4 model = scale_and_translate * rotate;
+
+    f32 camera_scale_x = 1.0f / camera.to_top_left.x;
+    f32 camera_scale_y = 1.0f / camera.to_top_left.y;
+    m4x4 view = identity_4x4();
+    //scale
+    view.r1.c1 = camera_scale_x;
+    view.r2.c2 = camera_scale_y;
+    //translate
+    view.r1.c4 = camera.center.x * -camera_scale_x;
+    view.r2.c4 = camera.center.y * -camera_scale_y;
+
+    m4x4 transform = view * model;
+
+    m3x3 uv_transform = identity_3x3();
+    uv_transform.r1.c1 = src_width / (f32)texture.texture.width;
+    uv_transform.r2.c2 = src_height / (f32)texture.texture.height;
+    uv_transform.r1.c3 = texture.source_rect.min_x / (f32)texture.texture.width;
+    uv_transform.r2.c3 = texture.source_rect.min_y / (f32)texture.texture.height;
+
+    glBindTexture(GL_TEXTURE_2D, texture.texture.texture_id);
+    glUniform1i(platform.texture_program.texture_sampler_loc, 0);
+
+    glUniformMatrix4fv(platform.texture_program.transform_loc,
+                       1,
+                       GL_TRUE,
+                       transform.vals);
+    glUniformMatrix3fv(platform.texture_program.uv_transform_loc,
+                       1,
+                       GL_TRUE,
+                       uv_transform.vals);
+    glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
+}
+
+void setup_gl_for_type(platform_services_t platform,
+                       u32 type) {
+    switch (type) {
+        case RENDER_TYPE_RECT: {
+            glUseProgram(platform.rect_program.id);
+            glEnableVertexAttribArray(platform.rect_program.vertex_modelspace_loc);
+
+            glBindBuffer(GL_ARRAY_BUFFER, platform.rect_program.vbo);
+            glVertexAttribPointer(platform.rect_program.vertex_modelspace_loc,
+                                  3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, platform.rect_program.ibo);
+        } break;
+        case RENDER_TYPE_TEXTURE: {
+            glUseProgram(platform.texture_program.id);
+
+            glActiveTexture(GL_TEXTURE0);
+            glEnableVertexAttribArray(platform.texture_program.vertex_modelspace_loc);
+            glEnableVertexAttribArray(platform.texture_program.vertex_uv_loc);
+
+            glBindBuffer(GL_ARRAY_BUFFER, platform.texture_program.vbo);
+            glVertexAttribPointer(platform.texture_program.vertex_modelspace_loc,
+                                  3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, platform.texture_program.uv_vbo);
+            glVertexAttribPointer(platform.texture_program.vertex_uv_loc,
+                                  2, GL_FLOAT, GL_FALSE, 0, 0);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, platform.texture_program.ibo);
+        } break;
+    }
+}
+
+void teardown_gl_for_type(platform_services_t platform,
+                          u32 type) {
+    switch (type) {
+        case RENDER_TYPE_RECT: {
+            glDisableVertexAttribArray(platform.rect_program.vertex_modelspace_loc);
+        } break;
+        case RENDER_TYPE_TEXTURE: {
+            glDisableVertexAttribArray(platform.texture_program.vertex_modelspace_loc);
+            glDisableVertexAttribArray(platform.texture_program.vertex_uv_loc);
+        } break;
+    }
+}
+
 void draw_render_group(platform_services_t platform,
                        video_buffer_description_t buffer,
                        camera_t camera,
                        render_group_t* render_group) {
     TIMED_FUNC();
 
+#if 1
+    sort_render_objects(render_group->objects);
+
+    u32 previous_type = -1;
+    for (int i = 0; i < render_group->objects.count; ++i) {
+        render_object_t* obj = render_group->objects.at(i);
+
+        if (obj->type != previous_type) {
+            if (previous_type != -1 ) {
+                teardown_gl_for_type(platform, previous_type);
+            }
+            setup_gl_for_type(platform, obj->type);
+        }
+
+        switch (obj->type) {
+            case RENDER_TYPE_RECT: {
+                draw_gl_rect(platform,
+                             camera,
+                             obj->render_rect,
+                             obj->z);
+            } break;
+            case RENDER_TYPE_TEXTURE: {
+                draw_gl_texture(platform,
+                                camera,
+                                obj->render_texture,
+                                obj->z);
+            } break;
+        }
+
+        previous_type = obj->type;
+    }
+
+#else
     i32 clip_width = 256;
     i32 clip_height = 256;
 
@@ -261,6 +463,7 @@ void draw_render_group(platform_services_t platform,
     }
 
     platform.wait_on_queue(platform.render_queue);
+#endif
 }
 
 void clear_render_group(render_group_t* render_group) {

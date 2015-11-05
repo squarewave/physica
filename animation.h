@@ -4,6 +4,7 @@
 struct animation_frame_t {
     f32 duration;
     tex2 texture;
+    rect_i source_rect;
     f32 pixel_size;
     f32 orientation;
     v2 hotspot;
@@ -52,13 +53,13 @@ add_animation(animation_group_t* animation_group,
 
 inline void
 remove_animation(animation_group_t* animation_group, i32 index) {
-	assert(index < animation_group->animations.count);
+	assert_(index < animation_group->animations.count);
 	animation_t* animation = animation_group->animations.at(index);
-	assert(!animation->freed);
+	assert_(!animation->freed);
 	animation->freed = true;
 	animation_group->freed.push(index);
 
-	assert(false); //TODO(doug): ensure that the render object is removed from the group
+	assert_(false); //TODO(doug): ensure that the render object is removed from the group
 }
 
 void
@@ -83,6 +84,7 @@ update_animations(animation_group_t* animation_group,
 		             frame.hotspot,
 		             frame.pixel_size,
 		             frame.texture,
+                     frame.source_rect,
 		             frame.orientation,
 		             animation->z);
 	}

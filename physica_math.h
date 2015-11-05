@@ -69,12 +69,25 @@ struct row3_t {
     f32 c1, c2, c3;
 };
 
+struct row4_t {
+    f32 c1, c2, c3, c4;
+};
+
 struct m3x3 {
     union {
         struct {
             row3_t r1, r2, r3;
         };
         f32 vals[9];
+    };
+};
+
+struct m4x4 {
+    union {
+        struct {
+            row4_t r1, r2, r3, r4;
+        };
+        f32 vals[12];
     };
 };
 
@@ -90,8 +103,21 @@ inline i32 sfloor(f32 val) {
     return (val < 0.0f) ? ((i32)val - 1) : (i32)val;
 }
 
+inline f32 wrap(f32 val, f32 min, f32 max) {
+	f32 offset = val - min;
+    f32 width = max - min;
+    f32 tquot = sfloor(offset / width);
+    f32 modded = offset - tquot * width;
+    return modded + min;
+}
+
 inline i32 sround(f32 val) {
     return val > 0 ? (i32)(val + 0.5f) : (i32)(val - 0.5f);
+}
+
+inline f32 snap_to(f32 val, f32 unit) {
+    f32 tquot = sround(val / unit);
+    return unit * tquot;
 }
 
 inline i32 sceil(f32 val) {
@@ -346,19 +372,45 @@ inline v3 v3_from_ints(i32 x, i32 y, i32 z = 1) {
     return result;
 }
 
+#define __ROW_MULT3(row,col) lhs.row.c1 * rhs.r1.col +\
+            lhs.row.c2 * rhs.r2.col + lhs.row.c3 * rhs.r3.col;
+
+#define __ROW_MULT4(row,col) lhs.row.c1 * rhs.r1.col +\
+            lhs.row.c2 * rhs.r2.col + lhs.row.c3 * rhs.r3.col + \
+            lhs.row.c4 * rhs.r4.col;
+
 inline m3x3 operator* (m3x3 lhs, m3x3 rhs) {
     m3x3 result;
-#define __ROW_MULT(row,col) lhs.row.c1 * rhs.r1.col +\
-            lhs.row.c2 * rhs.r2.col + lhs.row.c3 * rhs.r3.col;
-    result.r1.c1 = __ROW_MULT(r1,c1);
-    result.r1.c2 = __ROW_MULT(r1,c2);
-    result.r1.c3 = __ROW_MULT(r1,c3);
-    result.r2.c1 = __ROW_MULT(r2,c1);
-    result.r2.c2 = __ROW_MULT(r2,c2);
-    result.r2.c3 = __ROW_MULT(r2,c3);
-    result.r3.c1 = __ROW_MULT(r3,c1);
-    result.r3.c2 = __ROW_MULT(r3,c2);
-    result.r3.c3 = __ROW_MULT(r3,c3);
+    result.r1.c1 = __ROW_MULT3(r1,c1);
+    result.r1.c2 = __ROW_MULT3(r1,c2);
+    result.r1.c3 = __ROW_MULT3(r1,c3);
+    result.r2.c1 = __ROW_MULT3(r2,c1);
+    result.r2.c2 = __ROW_MULT3(r2,c2);
+    result.r2.c3 = __ROW_MULT3(r2,c3);
+    result.r3.c1 = __ROW_MULT3(r3,c1);
+    result.r3.c2 = __ROW_MULT3(r3,c2);
+    result.r3.c3 = __ROW_MULT3(r3,c3);
+    return result;
+}
+
+inline m4x4 operator* (m4x4 lhs, m4x4 rhs) {
+    m4x4 result;
+    result.r1.c1 = __ROW_MULT4(r1,c1);
+    result.r1.c2 = __ROW_MULT4(r1,c2);
+    result.r1.c3 = __ROW_MULT4(r1,c3);
+    result.r1.c4 = __ROW_MULT4(r1,c4);
+    result.r2.c1 = __ROW_MULT4(r2,c1);
+    result.r2.c2 = __ROW_MULT4(r2,c2);
+    result.r2.c3 = __ROW_MULT4(r2,c3);
+    result.r2.c4 = __ROW_MULT4(r2,c4);
+    result.r3.c1 = __ROW_MULT4(r3,c1);
+    result.r3.c2 = __ROW_MULT4(r3,c2);
+    result.r3.c3 = __ROW_MULT4(r3,c3);
+    result.r3.c4 = __ROW_MULT4(r3,c4);
+    result.r4.c1 = __ROW_MULT4(r4,c1);
+    result.r4.c2 = __ROW_MULT4(r4,c2);
+    result.r4.c3 = __ROW_MULT4(r4,c3);
+    result.r4.c4 = __ROW_MULT4(r4,c4);
     return result;
 }
 
@@ -371,6 +423,22 @@ inline v3 operator* (m3x3 lhs, v3 rhs) {
     __m128 c3 = _mm_setr_ps(lhs.r1.c3,lhs.r2.c3,lhs.r3.c3,0.0f);
     __m128 r = _mm_add_ps(_mm_mul_ps(c1, x), _mm_add_ps(_mm_mul_ps(c2, y), _mm_mul_ps(c3,z)));
     return *((v3*)&r);
+}
+
+inline v4 operator* (m4x4 lhs, v4 rhs) {
+    __m128 x = _mm_set1_ps(rhs.x);
+    __m128 y = _mm_set1_ps(rhs.y);
+    __m128 z = _mm_set1_ps(rhs.z);
+    __m128 w = _mm_set1_ps(rhs.w);
+    __m128 c1 = _mm_setr_ps(lhs.r1.c1,lhs.r2.c1,lhs.r3.c1,lhs.r4.c1);
+    __m128 c2 = _mm_setr_ps(lhs.r1.c2,lhs.r2.c2,lhs.r3.c2,lhs.r4.c2);
+    __m128 c3 = _mm_setr_ps(lhs.r1.c3,lhs.r2.c3,lhs.r3.c3,lhs.r4.c3);
+    __m128 c4 = _mm_setr_ps(lhs.r1.c4,lhs.r2.c4,lhs.r3.c4,lhs.r4.c4);
+    __m128 r = _mm_add_ps(_mm_mul_ps(c1, x),
+                          _mm_add_ps(_mm_mul_ps(c2, y),
+                                     _mm_add_ps(_mm_mul_ps(c3,z),
+                                                _mm_mul_ps(c4,w))));
+    return *((v4*)&r);
 }
 
 inline v2 perp(v2 val) {
@@ -422,6 +490,15 @@ inline m3x3 get_rotation_matrix_3x3(f32 theta) {
     return result;
 }
 
+inline m4x4 get_rotation_matrix_4x4(f32 theta) {
+    m4x4 result;
+    result.r1 = {cos(theta), -sin(theta), 0.0f, 0.0f};
+    result.r2 = {sin(theta), cos(theta), 0.0f, 0.0f};
+    result.r3 = {0.0f, 0.0f, 1.0f, 0.0f};
+    result.r4 = {0.0f, 0.0f, 0.0f, 1.0f};
+    return result;
+}
+
 inline v2 operator* (m3x3 lhs, v2 rhs) {
     v2 result;
     result.x = lhs.r1.c1 * rhs.x + lhs.r1.c2 * rhs.y + lhs.r1.c3;
@@ -434,6 +511,15 @@ inline m3x3 identity_3x3(){
     result.r1 = {1,0,0};
     result.r2 = {0,1,0};
     result.r3 = {0,0,1};
+    return result;
+}
+
+inline m4x4 identity_4x4(){
+    m4x4 result;
+    result.r1 = {1,0,0,0};
+    result.r2 = {0,1,0,0};
+    result.r3 = {0,0,1,0};
+    result.r4 = {0,0,0,1};
     return result;
 }
 

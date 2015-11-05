@@ -5005,11 +5005,17 @@ global u32 rng_array[10000] = {
 };
 
 global i32 random_seed = 0;
+global i32 random_seed_2 = 0;
 
 inline u32
 random_u32() {
-	return rng_array[random_seed++];
-	random_seed %= ARRAY_SIZE(rng_array);
+    random_seed++;
+    random_seed %= ARRAY_SIZE(rng_array);
+    if (!random_seed) {
+        random_seed_2++;
+        random_seed_2 %= ARRAY_SIZE(rng_array);
+    }
+	return rng_array[random_seed] ^ rng_array[random_seed_2];
 }
 
 inline u32 random_u32(u32 min, u32 max) {

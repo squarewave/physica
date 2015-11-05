@@ -8,18 +8,27 @@ struct mote_t {
 	f32 velocity;
 };
 
-struct background_t {
-	array<mote_t> motes;
-	color_t background_color;
-	tex2 texture;
+struct floaty_t {
+    tex2 texture;
+    rect_i source_rect;
+    v2 center;
+    f32 velocity;
 };
 
-tex2 load_empty_bmp(i32 width, i32 height, color_t initial_color);
+struct background_t {
+	array<mote_t> motes;
+    array<floaty_t> floaties;
+    array<tex2> textures;
+	color_t background_color;
+    f32 wind_x;
+};
 
-void create_motes(background_t* background);
+void create_background(game_state_t* game_state,
+                       background_t* background);
 
-void update_motes(background_t* background,
-                  render_group_t* render_group,
-                  f32 dt);
+void update_background(background_t* background,
+                       render_group_t* render_group,
+                       camera_t camera,
+                       f32 dt);
 
 #endif /* end of include guard: BACKGROUND_H__ */

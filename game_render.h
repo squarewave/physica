@@ -10,6 +10,7 @@
 
 struct tex2 {
     i32 width, height, pitch;
+    u32 texture_id;
     u32* pixels;
 };
 
@@ -44,6 +45,7 @@ struct render_texture_t {
   tex2 texture;
   v2 center;
   v2 hotspot;
+  rect_i source_rect;
   f32 pixel_size;
   f32 orientation;
 };
@@ -76,6 +78,30 @@ struct render_task_t {
   rect_i clip_rect;
 };
 
+#pragma pack(push, 1)
+struct bitmap_header_t {
+    u16 file_type;
+    u32 file_size;
+    u16 reserved_1;
+    u16 reserved_2;
+    u32 bitmap_offset;
+    u32 size;
+    i32 width;
+    i32 height;
+    u16 planes;
+    u16 bits_per_pixel;
+    u32 compression;
+    u32 size_of_bitmap;
+    i32 horz_resolution;
+    i32 vert_resolution;
+    u32 colors_used;
+    u32 colors_important;
+    u32 red_mask;
+    u32 green_mask;
+    u32 blue_mask;
+};
+#pragma pack(pop)
+
 render_object_t* push_rect(render_group_t* render_group,
                            color_t color,
                            v2 center,
@@ -92,6 +118,7 @@ render_object_t* push_texture(render_group_t* render_group,
                               v2 hotspot,
                               f32 pixel_size,
                               tex2 texture,
+                              rect_i source_rect,
                               f32 orientation,
                               f32 z);
 

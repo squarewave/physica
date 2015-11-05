@@ -92,12 +92,12 @@ inline void set_hash_item(hashmap_t* hm, u64 k, void* val) {
     hm->pairs[i].key = k;
     hm->pairs[i].val = val;
     hm->count++;
-    assert(hm->count < (hm->capacity / 2));
+    assert_(hm->count < (hm->capacity / 2));
 }
 
 template<class T>
 inline T* set_hash_item(hashmap<T>* hm, u64 k, T val) {
-    assert(k);
+    assert_(k);
     u32 i = _find_slot(hm, k);
     u64 old_k =hm->pairs.at(i)->key;
     hm->pairs.at(i)->key = k;

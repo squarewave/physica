@@ -43,7 +43,7 @@ phy_init(phy_memory_t memory) {
 
     void* free_memory = (void*)(previous_loc + previous_size);
     const i32 free_memory_size = 2 * 1024 * 1024; //2MB
-    assert(((i64)free_memory - (i64)(memory.base)) + free_memory_size < memory.size);
+    assert_(((i64)free_memory - (i64)(memory.base)) + free_memory_size < memory.size);
 
     state->free_memory = free_memory;
     state->free_memory_size = free_memory_size;
@@ -195,7 +195,7 @@ do_support(phy_hull_t* hull, v2 direction) {
         case HULL_FILLET_RECT: {
             return do_support_rect_fillet(hull, direction);
         } break;
-        default: assert(false);
+        default: assert_(false);
     }
     return {0};
 }
@@ -304,7 +304,7 @@ aabb_insert_node(phy_aabb_tree_t* tree,
 void aabb_remove_node(phy_aabb_tree_t *tree, i32 index) {
     i32 parent_index = tree->nodes[index].parent;
     if (parent_index == -1) {
-        assert(tree->nodes.count == 1);
+        assert_(tree->nodes.count == 1);
         tree->nodes.count = 0;
         tree->dead_nodes.count = 0;
     } else {
@@ -520,7 +520,7 @@ find_broad_phase_collisions(phy_state_t* state) {
     stack[++stack_index] = root->right;
 
     while (stack_index >= 0) {
-        assert(stack_index % 2 == 1);
+        assert_(stack_index % 2 == 1);
         i32 a_index = stack[stack_index--];
         i32 b_index = stack[stack_index--];
 
@@ -708,13 +708,13 @@ phy_add_points(phy_memory_t memory, i32 count) {
 
 phy_collision_t*
 phy_add_collision(phy_state_t* state) {
-    assert(state->collisions.count < state->collisions.capacity);
+    assert_(state->collisions.count < state->collisions.capacity);
     return state->collisions.values + state->collisions.count++;
 }
 
 phy_collision_t*
 phy_add_collision(phy_state_t* state, phy_collision_t collision) {
-    assert(state->collisions.count < state->collisions.capacity);
+    assert_(state->collisions.count < state->collisions.capacity);
     phy_collision_t* result =
             state->collisions.values + state->collisions.count++;
     *result = collision;
@@ -788,7 +788,7 @@ do_simplex(phy_support_result_t support,
                 result = ac_p;
             }
         } break;
-        default: assert(false);
+        default: assert_(false);
     }
     return result;
 }
@@ -816,7 +816,7 @@ do_gjk(phy_hull_t* a, phy_hull_t* b, phy_support_result_t* simplex) {
             return true;
         }
     }
-    assert(false);
+    assert_(false);
     return false;
 }
 
@@ -878,7 +878,7 @@ do_epa(phy_hull_t* a,
 
     reorder_simplex(polytope);
     u32 vertex_count = 3;
-    const f32 threshold = 0.01f;
+    const f32 threshold = 0.001f;
 
     for (int i = 0; i < 20; i++) {
         phy_edge_t edge = find_closest_edge_to_origin(polytope,
@@ -900,7 +900,7 @@ do_epa(phy_hull_t* a,
                                  support);
         }
     }
-    assert(false);
+    assert_(false);
     return false;
 }
 
@@ -1001,7 +1001,7 @@ phy_add_aabb_for_body(phy_memory_t memory,
     phy_aabb_tree_t* tree = &state->aabb_tree;
 
     phy_body_t *body = state->bodies.try_get(body_index);
-    assert(body);
+    assert_(body);
 
     i32 index = -1;
     phy_aabb_t aabb = get_aabb(body);
@@ -1029,8 +1029,8 @@ phy_add_aabb_for_body(phy_memory_t memory,
         phy_body_t* left_body = state->bodies.try_get(tree->nodes.at(left)->body_index);
         phy_body_t* right_body = state->bodies.try_get(tree->nodes.at(right)->body_index);
 
-        assert(left_body);
-        assert(right_body);
+        assert_(left_body);
+        assert_(right_body);
 
         left_body->aabb_node_index = left;
         right_body->aabb_node_index = right;
@@ -1077,7 +1077,7 @@ is_stale(phy_state_t* state, phy_collision_t* c) {
 inline b32 are_same(phy_collision_t *first, phy_collision_t *second) {
     const f32 threshold_sq = 0.002f;
     
-    assert(first->a_index == second->a_index);
+    assert_(first->a_index == second->a_index);
     v2 distance_a = first->local_contact_a - second->local_contact_a;
     v2 distance_b = first->local_contact_b - second->local_contact_b;
     return length_squared(distance_a) < threshold_sq &&
@@ -1120,7 +1120,7 @@ which_is_furthest(phy_state_t* state,
             max_index = i;
         }
     }
-    assert(max_index != -1);
+    assert_(max_index != -1);
     return max_index;
 }
 
@@ -1132,7 +1132,7 @@ get_collision_manifold(phy_state_t *state,
 
     u64 a_64 = (u64)collision->a_index;
     u64 b_64 = (u64)collision->b_index;
-    assert(a_64 < b_64);
+    assert_(a_64 < b_64);
     u64 hash_key = (b_64 << 32) | a_64;
     phy_manifold_t* manifold =
             get_hash_item(&state->manifold_cache, hash_key);
@@ -1160,7 +1160,7 @@ get_collision_manifold(phy_state_t *state,
             new_manifold.collisions[new_manifold.collision_count++] =
                     potential_collisions[--potential_collision_index];
         } else {
-            assert(potential_collision_index == 3);
+            assert_(potential_collision_index == 3);
             i32 max_depth = 0;
             i32 furthest = which_is_furthest(state,
                                              potential_collisions,
@@ -1218,7 +1218,7 @@ find_narrow_phase_collisions(phy_state_t* state, hashmap<entity_ties_t>* collisi
         int b_index = potential_collision.b_index;
         phy_body_t* a = state->bodies.try_get(a_index);
         phy_body_t* b = state->bodies.try_get(b_index);
-        assert(a && b);
+        assert_(a && b);
 
         bool found = false;
         phy_collision_t collision = {0};
@@ -1245,7 +1245,7 @@ pre_solve_velocity_constraints(phy_state_t* state) {
         phy_body_t *a = state->bodies.try_get(collision->a_index);
         phy_body_t *b = state->bodies.try_get(collision->b_index);
 
-        assert(a && b);
+        assert_(a && b);
 
         phy_manifold_t *manifold = get_collision_manifold(state,
                                                           collision,
@@ -1264,7 +1264,7 @@ solve_velocity_constraints(phy_state_t* state, f32 dt) {
         phy_body_t *a = state->bodies.try_get(collision->a_index);
         phy_body_t *b = state->bodies.try_get(collision->b_index);
 
-        assert(a && b);
+        assert_(a && b);
 
         phy_manifold_t *manifold = get_collision_manifold(state,
                                                           collision,
@@ -1444,10 +1444,10 @@ _phy_update(phy_memory_t memory, hashmap<entity_ties_t>* collision_map, f32 dt) 
 //     phy_aabb_tree_node_t* right = state->aabb_tree.nodes.at(node->right);
 
 //     if (node->type == LEAF_NODE) {
-//         assert(aabb_is_contained_in(state->bodies.at(node->body_index)->aabb, node->fat_aabb));
+//         assert_(aabb_is_contained_in(state->bodies.at(node->body_index)->aabb, node->fat_aabb));
 //     } else {
-//         assert(aabb_is_contained_in(left->fat_aabb, node->fat_aabb));
-//         assert(aabb_is_contained_in(right->fat_aabb, node->fat_aabb));
+//         assert_(aabb_is_contained_in(left->fat_aabb, node->fat_aabb));
+//         assert_(aabb_is_contained_in(right->fat_aabb, node->fat_aabb));
 
 //         check_aabbs(state, left);
 //         check_aabbs(state, right);   
@@ -1463,7 +1463,7 @@ phy_update(phy_memory_t memory, hashmap<entity_ties_t>* collision_map, f32 dt) {
 	const i32 max_iterations = 12;
     f32 current_time = 0;
     f32 target_time =  dt;
-    assert(state->time_step > 0);
+    assert_(state->time_step > 0);
 	for (int i = 0;
 		 i < max_iterations && current_time + state->time_step < target_time;
 		++i) {

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <intrin.h>
+
 // #include <unistd.h>
 #include <locale.h>
 #include <Windows.h>
@@ -20,7 +21,7 @@
 
 void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* data) {
     i32 next_write_index = (queue->write_index + 1) % TASK_QUEUE_MAX_ENTRIES;
-    assert(next_write_index != queue->read_index);
+    assert_(next_write_index != queue->read_index);
 
     task_t* task = queue->tasks + queue->write_index;
     task->callback = callback;
@@ -213,6 +214,86 @@ void printer_task(task_queue_t* queue, void* data) {
     printf("%s\n", as_str);
 }
 
+ 
+void check_sdl_error(int line = -1) {
+    const char *error = SDL_GetError();
+    if (*error != '\0')
+    {
+        char buffer[1024];
+        sprintf(buffer, "SDL Error: %s\n", error);
+        if (line != -1)
+            sprintf(buffer, " + line: %i\n", line);
+        SDL_ClearError();
+        OutputDebugString(buffer);
+    }
+}
+
+GLint check_shader_status(GLuint item_id, GLenum status_id) {
+    GLint result = GL_FALSE;
+    GLint info_log_length = 0;
+    glGetShaderiv(item_id, status_id, &result);
+    if (result != GL_TRUE) {
+        glGetShaderiv(item_id, GL_INFO_LOG_LENGTH, &info_log_length);
+        char* buffer = (char*)alloca(info_log_length);
+        glGetShaderInfoLog(item_id, info_log_length, NULL, buffer);
+        OutputDebugString(buffer);
+    }
+
+    return result;
+}
+
+GLint check_program_status(GLuint item_id, GLenum status_id) {
+    GLint result = GL_FALSE;
+    GLint info_log_length = 0;
+    glGetProgramiv(item_id, status_id, &result);
+    if (result != GL_TRUE) {
+        glGetProgramiv(item_id, GL_INFO_LOG_LENGTH, &info_log_length);
+        char* buffer = (char*)alloca(info_log_length);
+        glGetProgramInfoLog(item_id, info_log_length, NULL, buffer);
+        OutputDebugString(buffer);
+    }
+
+    return result;
+}
+
+b32 load_program(GLuint* program_result,
+                 const char* vertex_path,
+                 const char* fragment_path) {
+    platform_read_entire_file_result_t vertex_file = platform_read_entire_file(vertex_path);
+	char* vertex_code = (char*)vertex_file.contents;
+    char* fragment_code = (char*)platform_read_entire_file(fragment_path).contents;
+
+    GLuint program_id = glCreateProgram();
+    GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
+
+    glShaderSource(vertex_shader_id, 1, &vertex_code, 0);
+    glCompileShader(vertex_shader_id);
+    if (check_shader_status(vertex_shader_id, GL_COMPILE_STATUS) != GL_TRUE) {
+        return false;
+    }
+    glAttachShader(program_id, vertex_shader_id);
+
+    glShaderSource(fragment_shader_id, 1, &fragment_code, 0);
+    glCompileShader(fragment_shader_id);
+    if (check_shader_status(fragment_shader_id, GL_COMPILE_STATUS) != GL_TRUE) {
+        return false;
+    }
+    glAttachShader(program_id, fragment_shader_id);
+
+    glLinkProgram(program_id);
+    if (check_program_status(program_id, GL_LINK_STATUS) != GL_TRUE) {
+        return false;
+    }
+
+    *program_result = program_id;
+
+    // glDeleteShader(vertex_shader_id);
+    // glDeleteShader(fragment_shader_id);
+
+    return true;
+}
+
 const char* to_print = "hello, world";
 
 int CALLBACK WinMain(
@@ -250,20 +331,159 @@ int CALLBACK WinMain(
         SDL_CreateThread(thread_func, buffer, (void*)&render_queue);
     }
 
+    check_sdl_error(__LINE__);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
     context.window = SDL_CreateWindow("hello",
                                       SDL_WINDOWPOS_UNDEFINED,
                                       SDL_WINDOWPOS_UNDEFINED,
                                       START_WIDTH,
                                       START_HEIGHT,
-                                      SDL_WINDOW_RESIZABLE);
+                                      SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+    check_sdl_error(__LINE__);
 
+    context.gl_context = SDL_GL_CreateContext(context.window);
+    check_sdl_error(__LINE__);
 
-    if (!context.window) {
-        printf("Unable to create window: %s\n", SDL_GetError());
-        return 1;
+    glewExperimental = GL_TRUE;
+	if (glewInit() != GLEW_OK) {
+        OutputDebugString("Error initializing GLEW");
     }
 
+    if( SDL_GL_SetSwapInterval(1) < 0 ){
+        check_sdl_error(__LINE__);
+    }
+    
+    // glEnable(GL_DEPTH_TEST);
+    // glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    GLuint rect_program;
+    if (!load_program(&rect_program,
+                      "shaders/rect_vertex_shader.glsl",
+                      "shaders/rect_fragment_shader.glsl")) {
+        OutputDebugString("Error loading GL program");
+        return -1; 
+    }
+
+    GLfloat rect_vertex_data[] = {
+        -0.5f, -0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+         0.5f,  0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f
+    };
+    GLuint rect_index_data[] = { 0, 1, 2, 3 };
+
+    GLuint rect_vbo;
+    GLuint rect_ibo;
+
+    glGenBuffers(1, &rect_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(rect_vertex_data),
+                 rect_vertex_data,
+                 GL_STATIC_DRAW);
+
+    glGenBuffers(1, &rect_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rect_ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 sizeof(rect_index_data),
+                 rect_index_data,
+                 GL_STATIC_DRAW);
+
+    GLint rect_modelspace = glGetAttribLocation(rect_program, "vertex_modelspace");
+    GLint rect_transform = glGetUniformLocation(rect_program, "rect_transform");
+    GLint rect_color = glGetUniformLocation(rect_program, "rect_color");
+
+    platform.rect_program.id = rect_program;
+    platform.rect_program.transform_loc = rect_transform;
+    platform.rect_program.color_loc = rect_color;
+    platform.rect_program.vertex_modelspace_loc = rect_modelspace;
+    platform.rect_program.vbo = rect_vbo;
+    platform.rect_program.ibo = rect_ibo;
+
+    GLuint texture_program;
+    if (!load_program(&texture_program,
+                      "shaders/texture_vertex_shader.glsl",
+                      "shaders/texture_fragment_shader.glsl")) {
+        OutputDebugString("Error loading GL program");
+        return -1; 
+    }
+
+    GLfloat texture_vertex_data[] = {
+        -0.5f, -0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+         0.5f,  0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f
+    };
+
+    GLfloat texture_uv_data[] = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f
+    };
+
+    GLuint texture_index_data[] = { 0, 1, 2, 3 };
+
+    GLuint texture_vbo;
+    GLuint texture_uv_vbo;
+    GLuint texture_ibo;
+
+    glGenBuffers(1, &texture_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, texture_vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(texture_vertex_data),
+                 texture_vertex_data,
+                 GL_STATIC_DRAW);
+
+    glGenBuffers(1, &texture_uv_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, texture_uv_vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(texture_uv_data),
+                 texture_uv_data,
+                 GL_STATIC_DRAW);
+
+    glGenBuffers(1, &texture_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texture_ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 sizeof(texture_index_data),
+                 texture_index_data,
+                 GL_STATIC_DRAW);
+
+    platform.texture_program.id = texture_program;
+    platform.texture_program.vbo = texture_vbo;
+    platform.texture_program.uv_vbo = texture_uv_vbo;
+    platform.texture_program.ibo = texture_ibo;
+    platform.texture_program.transform_loc =
+        glGetUniformLocation(texture_program, "texture_transform");
+    platform.texture_program.uv_transform_loc =
+        glGetUniformLocation(texture_program, "uv_transform");
+    platform.texture_program.vertex_modelspace_loc = 
+        glGetAttribLocation(texture_program, "vertex_modelspace");
+    platform.texture_program.vertex_uv_loc = 
+        glGetAttribLocation(texture_program, "vertex_uv");
+    platform.texture_program.texture_sampler_loc =
+        glGetUniformLocation(texture_program, "texture_sampler");
+
+    glClearColor(0.784f, 0.8745f, 0.925f, 1.0f);
+
     context.renderer = SDL_CreateRenderer(context.window, -1, SDL_RENDERER_PRESENTVSYNC);
+    check_sdl_error(__LINE__);
+
+    SDL_RendererInfo renderer_info;
+    SDL_GetRendererInfo(context.renderer, &renderer_info);
+
+    if ((renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 || 
+        (renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
+        assert_(false);
+    }
 
     if (!context.renderer) {
         printf("Unable to create renderer: %s\n", SDL_GetError());
@@ -375,6 +595,8 @@ int CALLBACK WinMain(
         game_buffer.pitch = START_WIDTH * 4;
         game_buffer.bytes_per_pixel = 4;
 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         game_update_and_render(platform,
                                (game_state_t*)game_memory,
                                target_seconds_per_frame,
@@ -383,14 +605,16 @@ int CALLBACK WinMain(
 
         prev_input = next_input;
 
-        if (SDL_UpdateTexture(context.texture,0, pixels, START_WIDTH * 4)) {
-            printf("Unable to update SDL texture: %s\n", SDL_GetError());
-            return 1;
-        }
+        // if (SDL_UpdateTexture(context.texture,0, pixels, START_WIDTH * 4)) {
+        //     printf("Unable to update SDL texture: %s\n", SDL_GetError());
+        //     return 1;
+        // }
 
-        SDL_RenderCopy(context.renderer, context.texture, 0, 0);
+        // SDL_RenderCopy(context.renderer, context.texture, 0, 0);
 
-        SDL_RenderPresent(context.renderer);
+        // SDL_RenderPresent(context.renderer);
+
+        SDL_GL_SwapWindow(context.window);
 
         print_debug_log();
     }

@@ -10,7 +10,7 @@
 #ifdef assert
 #undef assert
 #endif
-#define assert(exp) exp || (*((i32*)0) = 0)
+#define assert_(exp) exp || (*((i32*)0) = 0)
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -33,13 +33,13 @@ struct memory_arena_t {
 };
 
 void* _push_size(memory_arena_t* arena, u32 size) {
-    assert(arena->used + size <= arena->size);
+    assert_(arena->used + size <= arena->size);
     u8* result = arena->base + arena->used;
     arena->used += size;
     return result;
 };
 
-#define ARRAY_SIZE(array) ((sizeof(array)) / sizeof(array[0]))
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 #define PUSH_STRUCT(arena, type) (type *)_push_size(arena, sizeof(type))
 #define PUSH_ARRAY(arena, count, type) (type *)_push_size(arena, count * sizeof(type))
 #define ZERO_STRUCT(instance) ZeroMemory(&(instance), sizeof(instance))
@@ -55,20 +55,21 @@ struct vec {
   inline T* at(i32 index) { return this->values + index; }
   inline i32 push(T val) {
     i32 result = this->count++;
-    assert(this->count <= this->capacity);
+    assert_(this->count <= this->capacity);
     this->values[result] = val;
     return result;
   }
   inline T pop() {
-    assert(this->count);
+    assert_(this->count);
     T result = this->values[--this->count];
     return result;
   }
   inline i32 push_unassigned() {
     i32 result = this->count++;
-    assert(this->count <= this->capacity);
+    assert_(this->count <= this->capacity);
     return result;
   }
+  inline void set(i32 index, T val) { this->values[index] = val; }
 };
 
 template <class T>
@@ -78,6 +79,7 @@ struct array {
 
   inline T operator[](i32 index) { return this->values[index]; }
   inline T *at(i32 index) { return this->values + index; }
+  inline void set(i32 index, T val) { this->values[index] = val; }
 };
 
 template <class T1, class T2>
@@ -115,7 +117,7 @@ struct pool {
       ZERO_ARRAY(result, 1);
     } else {
       result = values + size++;
-      assert(size <= capacity);
+      assert_(size <= capacity);
     }
     return result;
   }
@@ -149,7 +151,7 @@ struct pool {
       if (!found) {
         result.values = values + size;
         size += count;
-        assert(size <= capacity);
+        assert_(size <= capacity);
       }
     }
 
@@ -196,7 +198,7 @@ struct iterable_pool {
       ZERO_STRUCT(result->obj);
     } else {
       result = values + size++;
-      assert(size <= capacity);
+      assert_(size <= capacity);
     }
     result->freed = false;
 
@@ -232,7 +234,7 @@ struct iterable_pool {
       if (!found) {
         result.values = values + size;
         size += count;
-        assert(size <= capacity);
+        assert_(size <= capacity);
       }
     }
     result.count = count;

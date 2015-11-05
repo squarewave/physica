@@ -1,5 +1,5 @@
 const v2 tile_diagonal = v2 {1.0f, 1.0f};
-const f32 tile_z = 1.0f;
+const f32 tile_z = 0.5f;
 
 sim_entity_t*
 create_tile(game_state_t* game_state, v2 position) {
@@ -25,7 +25,7 @@ UPDATE_FUNC(TILE) {
     phy_body_t* body = entity->body;
 
     push_rect(&game_state->main_render_group,
-              color_t {1.0f,1.0f,1.0f},
+              to_rgb(0x8f8672),
               body->position,
               tile_diagonal,
               body->orientation,

@@ -19,7 +19,7 @@
 
 void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* data) {
     i32 next_write_index = (queue->write_index + 1) % TASK_QUEUE_MAX_ENTRIES;
-    assert(next_write_index != queue->read_index);
+    assert_(next_write_index != queue->read_index);
 
     task_t* task = queue->tasks + queue->write_index;
     task->callback = callback;

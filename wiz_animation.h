@@ -3,6 +3,7 @@
 
 const i32 WIZ_WIDTH = 18;
 const i32 WIZ_HEIGHT = 24;
+const f32 WIZ_PIXEL_SIZE = 0.05f;
 
 u32* inverted_coord(tex2 texture, v2i pos) {
     return texture.pixels + (texture.height - pos.y) * texture.pitch + pos.x;
@@ -30,18 +31,19 @@ animation_spec_t wiz_walking_right(vec<animation_frame_t>* frames, tex2 wiz_bmp)
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
 		animation_frame_t* frame = frames->at(index);
+
+		rect_i source_rect;
+		source_rect.min_x = WIZ_WIDTH * i;
+		source_rect.min_y = wiz_bmp.height - WIZ_HEIGHT;
+		source_rect.max_x = source_rect.min_x + WIZ_WIDTH;
+		source_rect.max_y = source_rect.min_y + WIZ_HEIGHT;
+
+		frame->source_rect = source_rect;
 		frame->duration = 0.15f;
-		frame->pixel_size = 3.0f;
+		frame->pixel_size = WIZ_PIXEL_SIZE;
 		frame->orientation = 0.0f;
 		frame->hotspot = v2{ 7.0f, 6.0f };
-
-		tex2 texture;
-		texture.pitch = wiz_bmp.pitch;
-		texture.width = WIZ_WIDTH;
-		texture.height = WIZ_HEIGHT;
-	    v2i bottom_left = {WIZ_WIDTH * i, WIZ_HEIGHT};
-	    texture.pixels = inverted_coord(wiz_bmp, bottom_left);
-	    frame->texture = texture;
+	    frame->texture = wiz_bmp;
 	}
 
 	return result;
@@ -55,18 +57,19 @@ animation_spec_t wiz_standing_right(vec<animation_frame_t>* frames, tex2 wiz_bmp
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
 		animation_frame_t* frame = frames->at(index);
+
+		rect_i source_rect;
+		source_rect.min_x = WIZ_WIDTH * i;
+		source_rect.min_y = wiz_bmp.height - WIZ_HEIGHT;
+		source_rect.max_x = source_rect.min_x + WIZ_WIDTH;
+		source_rect.max_y = source_rect.min_y + WIZ_HEIGHT;
+
+		frame->source_rect = source_rect;
 		frame->duration = 0.15f;
-		frame->pixel_size = 3.0f;
+		frame->pixel_size = WIZ_PIXEL_SIZE;
 		frame->orientation = 0.0f;
 		frame->hotspot = v2{ 7.0f, 6.0f };
-
-		tex2 texture;
-		texture.pitch = wiz_bmp.pitch;
-		texture.width = WIZ_WIDTH;
-		texture.height = WIZ_HEIGHT;
-	    v2i bottom_left = {WIZ_WIDTH * i, WIZ_HEIGHT};
-	    texture.pixels = inverted_coord(wiz_bmp, bottom_left);
-	    frame->texture = texture;
+	    frame->texture = wiz_bmp;
 	}
 
 	return result;
@@ -80,18 +83,19 @@ animation_spec_t wiz_jumping_right(vec<animation_frame_t>* frames, tex2 wiz_bmp)
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
 		animation_frame_t* frame = frames->at(index);
+
+		rect_i source_rect;
+		source_rect.min_x = WIZ_WIDTH * i;
+		source_rect.min_y = wiz_bmp.height - (3 * WIZ_HEIGHT);
+		source_rect.max_x = source_rect.min_x + WIZ_WIDTH;
+		source_rect.max_y = source_rect.min_y + WIZ_HEIGHT;
+
+		frame->source_rect = source_rect;
 		frame->duration = 0.15f;
-		frame->pixel_size = 3.0f;
+		frame->pixel_size = WIZ_PIXEL_SIZE;
 		frame->orientation = 0.0f;
 		frame->hotspot = v2{ 7.0f, 6.0f };
-
-		tex2 texture;
-		texture.pitch = wiz_bmp.pitch;
-		texture.width = WIZ_WIDTH;
-		texture.height = WIZ_HEIGHT;
-	    v2i bottom_left = {WIZ_WIDTH * i, 3 * WIZ_HEIGHT};
-	    texture.pixels = inverted_coord(wiz_bmp, bottom_left);
-	    frame->texture = texture;
+	    frame->texture = wiz_bmp;
 	}
 
 	return result;
@@ -105,18 +109,19 @@ animation_spec_t wiz_walking_left(vec<animation_frame_t>* frames, tex2 wiz_bmp) 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
 		animation_frame_t* frame = frames->at(index);
+
+		rect_i source_rect;
+		source_rect.min_x = WIZ_WIDTH * i;
+		source_rect.min_y = wiz_bmp.height - (2 * WIZ_HEIGHT);
+		source_rect.max_x = source_rect.min_x + WIZ_WIDTH;
+		source_rect.max_y = source_rect.min_y + WIZ_HEIGHT;
+
+		frame->source_rect = source_rect;
 		frame->duration = 0.15f;
-		frame->pixel_size = 3.0f;
+		frame->pixel_size = WIZ_PIXEL_SIZE;
 		frame->orientation = 0.0f;
 		frame->hotspot = v2{ 11.0f, 6.0f };
-
-		tex2 texture;
-		texture.pitch = wiz_bmp.pitch;
-		texture.width = WIZ_WIDTH;
-		texture.height = WIZ_HEIGHT;
-	    v2i bottom_left = {WIZ_WIDTH * i, 2 * WIZ_HEIGHT};
-	    texture.pixels = inverted_coord(wiz_bmp, bottom_left);
-	    frame->texture = texture;
+	    frame->texture = wiz_bmp;
 	}
 
 	return result;
@@ -130,18 +135,19 @@ animation_spec_t wiz_standing_left(vec<animation_frame_t>* frames, tex2 wiz_bmp)
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
 		animation_frame_t* frame = frames->at(index);
+
+		rect_i source_rect;
+		source_rect.min_x = WIZ_WIDTH * i;
+		source_rect.min_y = wiz_bmp.height - (2 * WIZ_HEIGHT);
+		source_rect.max_x = source_rect.min_x + WIZ_WIDTH;
+		source_rect.max_y = source_rect.min_y + WIZ_HEIGHT;
+
+		frame->source_rect = source_rect;
 		frame->duration = 0.15f;
-		frame->pixel_size = 3.0f;
+		frame->pixel_size = WIZ_PIXEL_SIZE;
 		frame->orientation = 0.0f;
 		frame->hotspot = v2{ 11.0f, 6.0f };
-
-		tex2 texture;
-		texture.pitch = wiz_bmp.pitch;
-		texture.width = WIZ_WIDTH;
-		texture.height = WIZ_HEIGHT;
-	    v2i bottom_left = {WIZ_WIDTH * i, 2 * WIZ_HEIGHT};
-	    texture.pixels = inverted_coord(wiz_bmp, bottom_left);
-	    frame->texture = texture;
+	    frame->texture = wiz_bmp;
 	}
 
 	return result;
@@ -155,18 +161,19 @@ animation_spec_t wiz_jumping_left(vec<animation_frame_t>* frames, tex2 wiz_bmp) 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
 		animation_frame_t* frame = frames->at(index);
+
+		rect_i source_rect;
+		source_rect.min_x = WIZ_WIDTH * (i + 1);
+		source_rect.min_y = wiz_bmp.height - (3 * WIZ_HEIGHT);
+		source_rect.max_x = source_rect.min_x + WIZ_WIDTH;
+		source_rect.max_y = source_rect.min_y + WIZ_HEIGHT;
+
+		frame->source_rect = source_rect;
 		frame->duration = 0.15f;
-		frame->pixel_size = 3.0f;
+		frame->pixel_size = WIZ_PIXEL_SIZE;
 		frame->orientation = 0.0f;
 		frame->hotspot = v2{ 11.0f, 6.0f };
-
-		tex2 texture;
-		texture.pitch = wiz_bmp.pitch;
-		texture.width = WIZ_WIDTH;
-		texture.height = WIZ_HEIGHT;
-	    v2i bottom_left = {WIZ_WIDTH * (i + 1), 3 * WIZ_HEIGHT};
-	    texture.pixels = inverted_coord(wiz_bmp, bottom_left);
-	    frame->texture = texture;
+	    frame->texture = wiz_bmp;
 	}
 
 	return result;

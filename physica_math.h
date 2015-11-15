@@ -6,7 +6,10 @@
 #define PHYSICA_PHYSICA_MATH_H
 #include "emmintrin.h"
 #include <math.h>
+
 const f32 fPI = 3.14159265358979323846264338327950288f;
+const f32 f2PI = 2.0f * 3.14159265358979323846264338327950288f;
+const f32 fPI_OVER_2 = fPI / 2.0f;
 
 struct rect_i {
     i32 min_x, min_y, max_x, max_y;
@@ -534,6 +537,27 @@ inline m3x3 operator*(f32 lhs, m3x3 rhs) {
     result.r3.c1 *= lhs;
     result.r3.c2 *= lhs;
     result.r3.c3 *= lhs;
+    return result;
+}
+
+inline m4x4 operator*(f32 lhs, m4x4 rhs) {
+    m4x4 result = rhs;
+    result.r1.c1 *= lhs;
+    result.r1.c2 *= lhs;
+    result.r1.c3 *= lhs;
+    result.r1.c4 *= lhs;
+    result.r2.c1 *= lhs;
+    result.r2.c2 *= lhs;
+    result.r2.c3 *= lhs;
+    result.r2.c4 *= lhs;
+    result.r3.c1 *= lhs;
+    result.r3.c2 *= lhs;
+    result.r3.c3 *= lhs;
+    result.r3.c4 *= lhs;
+    result.r4.c1 *= lhs;
+    result.r4.c2 *= lhs;
+    result.r4.c3 *= lhs;
+    result.r4.c4 *= lhs;
     return result;
 }
 

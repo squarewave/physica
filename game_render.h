@@ -21,19 +21,25 @@ struct video_buffer_description_t {
 
 struct camera_t {
     v2 center, to_top_left;
-    f32 pixels_per_meter;
-    f32 scaling;
+    f32 orientation;
 };
 
 typedef v3 color_t;
 typedef v4 rgba_t;
 
-const u32 RENDER_TYPE_RECT = 1;
-const u32 RENDER_TYPE_TEXTURE = 2;
-const u32 RENDER_TYPE_CIRC_OUTLINE = 3;
+enum render_type_T {
+  RENDER_TYPE_RECT = 1,
+  RENDER_TYPE_TEXTURE = 2,
+  RENDER_TYPE_CIRCLE = 3,
+};
+
+enum render_flags_t {
+  RENDER_WIREFRAME = 0x1,
+};
 
 struct render_rect_t {
   u32 type;
+  u32 flags;
   v2 center;
   v2 diagonal;
   f32 orientation;
@@ -42,6 +48,7 @@ struct render_rect_t {
 
 struct render_texture_t {
   u32 type;
+  u32 flags;
   tex2 texture;
   v2 center;
   v2 hotspot;
@@ -52,6 +59,7 @@ struct render_texture_t {
 
 struct render_circle_t {
   u32 type;
+  u32 flags;
   v2 center;
   f32 radius;
   color_t color;
@@ -60,7 +68,10 @@ struct render_circle_t {
 struct render_object_t {
   f32 z;
   union {
-    u32 type;
+    struct {
+      u32 type;
+      u32 flags; 
+    };
     render_rect_t render_rect;
     render_texture_t render_texture;
     render_circle_t render_circle;
@@ -101,6 +112,8 @@ struct bitmap_header_t {
     u32 blue_mask;
 };
 #pragma pack(pop)
+
+tex2 load_bmp(char* filename, i32 scaling);
 
 render_object_t* push_rect(render_group_t* render_group,
                            color_t color,
@@ -173,5 +186,6 @@ void draw_rectangle(video_buffer_description_t buffer,
 
 void add_debug_point(v2 point, i32 color);
 void draw_debug_points();
+void present_seconary_buffer();
 
 #endif //PHYSICA_GAME_RENDER_H

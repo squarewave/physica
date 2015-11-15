@@ -6,6 +6,7 @@
 #define PHYSICA_GAME_H
 
 #include "typedefs.h"
+#include "constants.h"
 #include "game_debug.h"
 #include "game_render.h"
 #include "physica_math.h"
@@ -13,17 +14,7 @@
 #include "hashmap.h"
 #include "animation.h"
 #include "background.h"
-
-const u32 FRAME_RATE = 60;
-const u32 START_WIDTH = 1366;
-const u32 START_HEIGHT = 768;
-const u32 LEFT_OFFSET = 0;
-const u32 AUDIO_SAMPLE_RATE = 44100; // desired rate - CD quality
-const u32 PERIOD_SIZE = AUDIO_SAMPLE_RATE / FRAME_RATE;
-const u32 SOUND_BUFFER_SIZE = PERIOD_SIZE * 8;
-const u32 VIDEO_STATE_SIZE = 1024LL * 1024LL;
-const u32 PIXEL_SIZE = 2;
-const f32 PIXELS_PER_METER = 30.0f;
+#include "animations.h"
 
 struct platform_read_entire_file_result_t {
     u8* contents;
@@ -64,8 +55,9 @@ struct game_state_t {
     render_group_t background_render_group;
 
     memory_arena_t world_arena;
-    phy_memory_t physics_arena;
     memory_arena_t render_arena;
+
+    phy_state_t physics_state;
 
     tex2 main_panel;
 
@@ -74,6 +66,9 @@ struct game_state_t {
     vec<animation_frame_t> animation_frames;
     animation_group_t main_animation_group;
 
+    animations_list_t animations;
+
+    tex2 terrain_1;
     tex2 wiz_bmp;
 
     animation_spec_t wiz_walking_right;
@@ -86,6 +81,15 @@ struct game_state_t {
     animation_spec_t wiz_buzz;
 
     background_t background;
+
+    u32 frame_buffer;
+    u32 color_buffer;
+
+    sim_entity_t* player;
+    v2 gravity_normal;
+    f32 gravity_magnitude;
+
+    debug_state_t debug_state;
 };
 
 struct button_input_t {
@@ -101,6 +105,14 @@ struct joystick_input_t {
     v2 delta, position;
 };
 
+struct mouse_input_t {
+    v2 position; // position in pixel space
+    v2 normalized_position;
+    button_input_t left_click;
+    button_input_t right_click;
+    button_input_t middle_click;
+};
+
 struct game_input_t {
     button_input_t button_a, button_b, button_x, button_y;
     button_input_t button_l_bumper, button_r_bumper;
@@ -108,6 +120,8 @@ struct game_input_t {
     analog_input_t analog_l_trigger, analog_r_trigger;
     joystick_input_t joystick_l, joystick_r;
     button_input_t up, down, right, left, lshift, rshift;
+
+    mouse_input_t mouse;
 };
 
 struct platform_services_t;  

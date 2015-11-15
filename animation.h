@@ -1,6 +1,36 @@
 #ifndef ANIMATION_H__
 #define ANIMATION_H__
 
+const i32 MAX_FRAMES = 128;
+struct frame_builder_t {
+    rect_i source_rect;
+    f32 frame_duration;
+};
+
+struct animation_builder_t {
+    char* bmp_filepath;
+    i32 frame_count;
+    f32 frame_duration;
+    v2 hotspot;
+};
+
+#define ANIMATION_BUILDER(name, body) animation_builder_t name##_builder() {\
+    animation_builder_t result;\
+    char* bmp_filepath;\
+    i32 frame_count = -1;\
+    f32 frame_duration = -1.0f;\
+    v2 hotspot = {0};\
+\
+    body\
+\
+    result.bmp_filepath = bmp_filepath;\
+    result.frame_count = frame_count;\
+    result.frame_duration = frame_duration;\
+    result.hotspot = hotspot;\
+\
+    return result;\
+}
+
 struct animation_frame_t {
     f32 duration;
     tex2 texture;
@@ -19,6 +49,7 @@ struct animation_t {
     f32 frame_progress;
     i32 frame_index;
     f32 speed;
+    f32 orientation;
     f32 z;
     v2 position;
     animation_spec_t* spec;
@@ -47,6 +78,7 @@ add_animation(animation_group_t* animation_group,
 	animation->spec = spec;
 	animation->speed = 1.0f;
 	animation->z = z;
+    animation->orientation = 0.0f;
 
 	return index;
 }
@@ -85,7 +117,7 @@ update_animations(animation_group_t* animation_group,
 		             frame.pixel_size,
 		             frame.texture,
                      frame.source_rect,
-		             frame.orientation,
+		             animation->orientation + frame.orientation,
 		             animation->z);
 	}
 }

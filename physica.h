@@ -9,26 +9,29 @@
 #include "sim_entity.h"
 #include "hashmap.h"
 
+const i32 LEAF_NODE = -1;
+const v2 FAT_AABB_MARGIN = v2 {0.2f, 0.2f};
+
+struct phy_body_t;
+
 struct phy_aabb_t {
     v2 min, max;
 };
 
-const i32 LEAF_NODE = -1;
-
 struct phy_aabb_tree_node_t {
     i32 parent;
     union {
-        i32 left;
-        i32 body_index;
-    };
-    union {
-        i32 right;
-        i32 type;
+        struct {
+            i32 type;
+            phy_body_t* body;
+        };
+        struct {
+            i32 right;
+            i32 left;
+        };
     };
     phy_aabb_t fat_aabb;
 };
-
-const v2 FAT_AABB_MARGIN = v2 {0.2f, 0.2f};
 
 struct phy_aabb_tree_t {
     vec<phy_aabb_tree_node_t> nodes;
@@ -37,9 +40,11 @@ struct phy_aabb_tree_t {
     i32 root;
 };
 
-const i32 HULL_MESH = 0;
-const i32 HULL_RECT = 1;
-const i32 HULL_FILLET_RECT = 2;
+enum hull_type_t {
+    HULL_MESH = 0,
+    HULL_RECT = 1,
+    HULL_FILLET_RECT = 2
+};
 
 struct phy_hull_t {
     f32 mass, inv_mass, moment, inv_moment, orientation;
@@ -66,11 +71,6 @@ struct phy_edge_t {
     u32 polytope_index;
 };
 
-struct phy_memory_t {
-    u8* base;
-    i64 size;
-};
-
 struct phy_support_result_t {
     v2 p_a;
     v2 p_b;
@@ -78,6 +78,7 @@ struct phy_support_result_t {
 };
 
 const u32 PHY_FIXED_FLAG = 1;
+const u32 PHY_WEIGHTLESS_FLAG = 2;
 
 struct phy_collision_t {
     v2 normal;
@@ -85,7 +86,7 @@ struct phy_collision_t {
     b32 persistent;
     v2 local_contact_a, local_contact_b;
     v2 world_contact_a, world_contact_b;
-    u32 a_index, b_index;
+    phy_body_t *a, *b;
 };
 
 const i32 COLLISION_CAPACITY = 2;
@@ -96,8 +97,8 @@ struct phy_manifold_t {
 };
 
 struct phy_potential_collision_t {
-    i32 a_index;
-    i32 b_index;
+    phy_body_t* a;
+    phy_body_t* b;
 };
 
 struct entity_ties_t {
@@ -130,8 +131,6 @@ struct phy_state_t {
     v2 gravity;
     phy_aabb_tree_t aabb_tree;
     f32 time_step, current_time;
-    void* free_memory;
-    i32 free_memory_size;
 };
 
 struct ray_intersect_t {
@@ -147,7 +146,7 @@ struct ray_body_intersect_t {
 phy_aabb_tree_node_t* aabb_insert_node(phy_aabb_tree_t* tree,
                                        i32 parent_index,
                                        phy_aabb_t fat_aabb,
-                                       i32 body_index);
+                                       phy_body_t body);
 
 void aabb_remove_node(phy_aabb_tree_t *tree, i32 index);
 
@@ -155,49 +154,47 @@ b32 aabb_are_intersecting(phy_aabb_t a, phy_aabb_t b);
 
 b32 aabb_is_contained_in(phy_aabb_t inner, phy_aabb_t outer);
 
-void phy_set_gravity(phy_memory_t memory, v2 gravity);
+void phy_set_gravity(phy_state_t* state, v2 gravity);
 
-void phy_init(phy_memory_t memory);
+phy_state_t phy_init(memory_arena_t* memory);
 
-phy_body_t* phy_add_block(phy_memory_t memory,
+phy_body_t* phy_add_block(phy_state_t* state,
                           v2 center,
                           v2 diagonal,
                           f32 mass,
                           f32 orientation);
 
-phy_body_t* phy_add_fillet_block(phy_memory_t memory,
+phy_body_t* phy_add_fillet_block(phy_state_t* state,
                                  v2 center,
                                  v2 diagonal,
                                  f32 fillet, 
                                  f32 mass,
                                  f32 orientation);
 
-phy_body_t * phy_add_body(phy_memory_t memory);
+phy_body_t * phy_add_body(phy_state_t* state);
 
-void phy_remove_body(phy_memory_t memory);
+void phy_remove_body(phy_state_t* state);
 
-array<phy_hull_t> phy_add_hulls(phy_memory_t memory, i32 count);
+array<phy_hull_t> phy_add_hulls(phy_state_t* state, i32 count);
 
-array<v2> phy_add_points(phy_memory_t memory, i32 count);
+array<v2> phy_add_points(phy_state_t* state, i32 count);
 
-phy_collision_t* phy_add_collision(phy_memory_t memory);
+phy_collision_t* phy_add_collision(phy_state_t* state);
 
-phy_collision_t* phy_add_collision(phy_memory_t memory, phy_collision_t collision);
+phy_collision_t* phy_add_collision(phy_state_t* state, phy_collision_t collision);
 
-void phy_update(phy_memory_t memory, hashmap<entity_ties_t>* collision_map, f32 dt);
+void phy_update(phy_state_t* state, hashmap<entity_ties_t>* collision_map, f32 dt);
 
-void phy_add_aabb_for_body(phy_memory_t memory, i32 body_index);
+void phy_add_aabb_for_body(phy_state_t* state, phy_body_t* body);
 
 // NOTE(doug): user-defined
 phy_support_result_t do_support(phy_hull_t* a, phy_hull_t* b, v2 direction);
 
 v2 do_support(phy_hull_t* a, v2 direction);
 
-void find_broad_phase_collisions(phy_state_t* state, i32 a_index, i32 b_index);
-
 ray_intersect_t ray_segment_intersect(v2 p, v2 d, v2 a, v2 b);
 
 ray_intersect_t ray_hull_intersect(v2 p, v2 d, phy_hull_t* hull);
 
-ray_body_intersect_t ray_cast_from_body(phy_memory_t memory, phy_body_t* self, f32 width, v2 d);
+ray_body_intersect_t ray_cast_from_body(phy_state_t* state, phy_body_t* self, f32 width, v2 d);
 #endif //PHYSICA_PHYSICA_H

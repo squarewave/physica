@@ -17,11 +17,19 @@ __inline__ u64 rdtsc() {
 #define TIMED_BLOCK(ID) timed_block_t timed_block##ID((char*)#ID, __COUNTER__)
 #define TIMED_FUNC() timed_block_t timed_func((char*)__FUNCTION__, __COUNTER__)
 
+struct game_state_t;
+struct phy_body_t;
+
 struct debug_block_t {
     char* id;
     u32 call_count;
     u64 total_cycles;
 };
+
+struct debug_state_t {
+    phy_body_t* selected;
+};
+
 
 const i32 max_debug_blocks = 200;
 global debug_block_t debug_blocks[max_debug_blocks] = {0};
@@ -58,5 +66,7 @@ void print_debug_log() {
         }
 	}
 }
+
+void debug_draw_physics(game_state_t* game_state);
 
 #endif

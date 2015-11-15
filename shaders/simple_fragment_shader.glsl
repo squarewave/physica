@@ -1,8 +1,8 @@
 #version 150 core
 
-uniform vec4 rect_color;
+uniform vec4 draw_color;
 out vec4 color;
 
 void main() {
-    color = rect_color;
+    color = draw_color;
 }

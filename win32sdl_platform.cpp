@@ -154,6 +154,39 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
                 SDL_GameControllerClose(context->controller_handle);
             }
         } break;
+        case SDL_MOUSEMOTION: {
+            i32 window_width = 0;
+            i32 window_height = 0;
+            SDL_GetWindowSize(context->window,
+                              &window_width,
+                              &window_height);
+
+            context->next_input->mouse.position.x = (f32)event->motion.x;
+            context->next_input->mouse.position.y = (f32)event->motion.y;
+            context->next_input->mouse.normalized_position.x =
+                ((f32)event->motion.x) / (0.5f * (f32)window_width) - 1.0f;
+            context->next_input->mouse.normalized_position.y =
+                -1.0f * (((f32)event->motion.y) / (0.5f * (f32)window_height) - 1.0f);
+        } break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP: {
+            b32 ended_down = event->button.state != SDL_RELEASED;
+
+            switch (event->button.button) {
+                case SDL_BUTTON_LEFT: {
+                    context->next_input->mouse.left_click.ended_down = ended_down;
+                    context->next_input->mouse.left_click.transition_count++;
+                } break;
+                case SDL_BUTTON_RIGHT: {
+                    context->next_input->mouse.right_click.ended_down = ended_down;
+                    context->next_input->mouse.right_click.transition_count++;
+                } break;
+                case SDL_BUTTON_MIDDLE: {
+                    context->next_input->mouse.middle_click.ended_down = ended_down;
+                    context->next_input->mouse.middle_click.transition_count++;
+                } break;
+            }
+        } break;
     }
 
     SDL_GameController* handle = context->controller_handle;
@@ -175,6 +208,8 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
 
         i16 stick_x = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_LEFTX);
         i16 stick_y = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_LEFTY);
+        i16 l_trigger = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+        i16 r_trigger = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 
         context->next_input->up.ended_down = up;
         context->next_input->down.ended_down = down;
@@ -186,8 +221,11 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
         context->next_input->button_x.ended_down = button_x;
         context->next_input->button_y.ended_down = button_y;
 
-        context->next_input->joystick_l.position.x = ((f32)stick_x) / 32768.0f;        
-        context->next_input->joystick_l.position.y = ((f32)stick_y) / 32768.0f;        
+        context->next_input->joystick_l.position.x = ((f32)stick_x) / 32768.0f;
+        context->next_input->joystick_l.position.y = ((f32)stick_y) / 32768.0f;
+
+        context->next_input->analog_l_trigger.value = ((f32)l_trigger) / 32768.0f;
+        context->next_input->analog_r_trigger.value = ((f32)r_trigger) / 32768.0f;
     }
 
     return should_quit;
@@ -363,58 +401,116 @@ int CALLBACK WinMain(
     // glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glLineWidth(2.0f);
 
-    GLuint rect_program;
-    if (!load_program(&rect_program,
-                      "shaders/rect_vertex_shader.glsl",
-                      "shaders/rect_fragment_shader.glsl")) {
+    GLuint basic_vao;
+    glGenVertexArrays(1,&basic_vao);
+    glBindVertexArray(basic_vao);
+
+    GLuint basic_program;
+    if (!load_program(&basic_program,
+                      "shaders/simple_vertex_shader.glsl",
+                      "shaders/simple_fragment_shader.glsl")) {
         OutputDebugString("Error loading GL program");
-        return -1; 
+        assert_(false);
     }
+    GLint basic_modelspace = glGetAttribLocation(basic_program, "vertex_modelspace");
 
-    GLfloat rect_vertex_data[] = {
+    GLfloat basic_vertex_data[] = {
         -0.5f, -0.5f, 0.0f,
          0.5f, -0.5f, 0.0f,
          0.5f,  0.5f, 0.0f,
         -0.5f,  0.5f, 0.0f
     };
-    GLuint rect_index_data[] = { 0, 1, 2, 3 };
+    GLuint basic_index_data[] = { 0, 1, 2, 3 };
 
-    GLuint rect_vbo;
-    GLuint rect_ibo;
+    GLuint basic_vbo;
+    GLuint basic_ibo;
 
-    glGenBuffers(1, &rect_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, rect_vbo);
+    glGenBuffers(1, &basic_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, basic_vbo);
     glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(rect_vertex_data),
-                 rect_vertex_data,
+                 sizeof(basic_vertex_data),
+                 basic_vertex_data,
                  GL_STATIC_DRAW);
+    glVertexAttribPointer(platform.basic_program.vertex_modelspace_loc,
+                          3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(basic_modelspace);
 
-    glGenBuffers(1, &rect_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rect_ibo);
+    glGenBuffers(1, &basic_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, basic_ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(rect_index_data),
-                 rect_index_data,
+                 sizeof(basic_index_data),
+                 basic_index_data,
                  GL_STATIC_DRAW);
 
-    GLint rect_modelspace = glGetAttribLocation(rect_program, "vertex_modelspace");
-    GLint rect_transform = glGetUniformLocation(rect_program, "rect_transform");
-    GLint rect_color = glGetUniformLocation(rect_program, "rect_color");
+    GLuint ellipse_outline_vao;
+    glGenVertexArrays(1,&ellipse_outline_vao);
+    glBindVertexArray(ellipse_outline_vao);
 
-    platform.rect_program.id = rect_program;
-    platform.rect_program.transform_loc = rect_transform;
-    platform.rect_program.color_loc = rect_color;
-    platform.rect_program.vertex_modelspace_loc = rect_modelspace;
-    platform.rect_program.vbo = rect_vbo;
-    platform.rect_program.ibo = rect_ibo;
+    GLuint ellipse_outline_index_data[25] = {0};
+    GLfloat ellipse_outline_vertex_data[ARRAY_SIZE(ellipse_outline_index_data) * 3] = {0};
+
+    ellipse_outline_index_data[0] = 0;
+    ellipse_outline_vertex_data[0] = 0.0f;
+    ellipse_outline_vertex_data[1] = 0.0f;
+    ellipse_outline_vertex_data[2] = 0.0f;
+
+    f32 angle = f2PI / ((f32)ARRAY_SIZE(ellipse_outline_index_data) - 2); 
+    for (int i = 1; i < ARRAY_SIZE(ellipse_outline_index_data); ++i) {
+        ellipse_outline_vertex_data[i*3] = sin(angle * (f32)(i-1));
+        ellipse_outline_vertex_data[i*3 + 1] = cos(angle * (f32)(i-1));
+        ellipse_outline_vertex_data[i*3 + 2] = 0.0f;
+        ellipse_outline_index_data[i] = i;
+    }
+
+    GLuint ellipse_outline_vbo;
+    GLuint ellipse_outline_ibo;
+
+    glGenBuffers(1, &ellipse_outline_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, ellipse_outline_vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(ellipse_outline_vertex_data),
+                 ellipse_outline_vertex_data,
+                 GL_STATIC_DRAW);
+    glVertexAttribPointer(platform.basic_program.vertex_modelspace_loc,
+                          3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(basic_modelspace);
+
+    glGenBuffers(1, &ellipse_outline_ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ellipse_outline_ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 sizeof(ellipse_outline_index_data),
+                 ellipse_outline_index_data,
+                 GL_STATIC_DRAW);
+
+    GLint basic_transform = glGetUniformLocation(basic_program, "transform");
+    GLint basic_color = glGetUniformLocation(basic_program, "draw_color");
+
+    platform.basic_program.id = basic_program;
+    platform.basic_program.transform_loc = basic_transform;
+    platform.basic_program.color_loc = basic_color;
+    platform.basic_program.vertex_modelspace_loc = basic_modelspace;
+    platform.basic_program.vao = basic_vao;
+    platform.basic_program.ellipse_outline_vao = ellipse_outline_vao;
+    platform.basic_program.vbo = basic_vbo;
+    platform.basic_program.ibo = basic_ibo;
+    platform.basic_program.ellipse_ibo_count = ARRAY_SIZE(ellipse_outline_index_data);
+
+    GLuint texture_vao;
+    glGenVertexArrays(1,&texture_vao);
+    glBindVertexArray(texture_vao);
 
     GLuint texture_program;
     if (!load_program(&texture_program,
                       "shaders/texture_vertex_shader.glsl",
                       "shaders/texture_fragment_shader.glsl")) {
         OutputDebugString("Error loading GL program");
-        return -1; 
+        assert_(false); 
     }
+    
+    GLint vertex_modelspace_loc = glGetAttribLocation(texture_program, "vertex_modelspace");
+    GLint vertex_uv_loc = glGetAttribLocation(texture_program, "vertex_uv");
 
     GLfloat texture_vertex_data[] = {
         -0.5f, -0.5f, 0.0f,
@@ -442,6 +538,8 @@ int CALLBACK WinMain(
                  sizeof(texture_vertex_data),
                  texture_vertex_data,
                  GL_STATIC_DRAW);
+    glEnableVertexAttribArray(vertex_modelspace_loc);
+    glVertexAttribPointer(vertex_modelspace_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glGenBuffers(1, &texture_uv_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, texture_uv_vbo);
@@ -449,6 +547,8 @@ int CALLBACK WinMain(
                  sizeof(texture_uv_data),
                  texture_uv_data,
                  GL_STATIC_DRAW);
+    glEnableVertexAttribArray(vertex_uv_loc);
+    glVertexAttribPointer(vertex_uv_loc, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
     glGenBuffers(1, &texture_ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texture_ibo);
@@ -458,6 +558,7 @@ int CALLBACK WinMain(
                  GL_STATIC_DRAW);
 
     platform.texture_program.id = texture_program;
+    platform.texture_program.vao = texture_vao;
     platform.texture_program.vbo = texture_vbo;
     platform.texture_program.uv_vbo = texture_uv_vbo;
     platform.texture_program.ibo = texture_ibo;
@@ -465,10 +566,6 @@ int CALLBACK WinMain(
         glGetUniformLocation(texture_program, "texture_transform");
     platform.texture_program.uv_transform_loc =
         glGetUniformLocation(texture_program, "uv_transform");
-    platform.texture_program.vertex_modelspace_loc = 
-        glGetAttribLocation(texture_program, "vertex_modelspace");
-    platform.texture_program.vertex_uv_loc = 
-        glGetAttribLocation(texture_program, "vertex_uv");
     platform.texture_program.texture_sampler_loc =
         glGetUniformLocation(texture_program, "texture_sampler");
 
@@ -554,20 +651,22 @@ int CALLBACK WinMain(
         next_input.button_b.ended_down = prev_input.button_b.ended_down;
         next_input.button_x.ended_down = prev_input.button_x.ended_down;
         next_input.button_y.ended_down = prev_input.button_y.ended_down;
-        next_input.button_l_bumper.ended_down =
-            prev_input.button_l_bumper.ended_down;
-        next_input.button_r_bumper.ended_down =
-            prev_input.button_r_bumper.ended_down;
-        next_input.button_l_stick.ended_down =
-            prev_input.button_l_stick.ended_down;
-        next_input.button_r_stick.ended_down =
-            prev_input.button_r_stick.ended_down;
+        next_input.button_l_bumper.ended_down = prev_input.button_l_bumper.ended_down;
+        next_input.button_r_bumper.ended_down = prev_input.button_r_bumper.ended_down;
+        next_input.button_l_stick.ended_down = prev_input.button_l_stick.ended_down;
+        next_input.button_r_stick.ended_down = prev_input.button_r_stick.ended_down;
+        next_input.mouse.left_click.ended_down = prev_input.mouse.left_click.ended_down;
+        next_input.mouse.right_click.ended_down = prev_input.mouse.right_click.ended_down;
+        next_input.mouse.middle_click.ended_down = prev_input.mouse.middle_click.ended_down;
 
         next_input.analog_l_trigger.value = prev_input.analog_l_trigger.value;
         next_input.analog_r_trigger.value = prev_input.analog_r_trigger.value;
 
         next_input.joystick_l.position = prev_input.joystick_l.position;
         next_input.joystick_r.position = prev_input.joystick_r.position;
+
+        next_input.mouse.position = prev_input.mouse.position;
+        next_input.mouse.normalized_position = prev_input.mouse.normalized_position;
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {

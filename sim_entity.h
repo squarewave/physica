@@ -11,6 +11,8 @@
 
 enum entity_type {
     PLAYER,
+    BOGGER,
+    BOGGER_BALL,
     TILE,
     WIZ_BUZZ
 };
@@ -37,11 +39,24 @@ struct aabb_t {
     v2 top_right, bottom_left;
 };
 
+struct tile_info_t {
+    i32 tex_coord_x;
+    i32 tex_coord_y;
+};
+
+struct bogger_state_t {
+    f32 shoot_timer;
+};
+
 struct sim_entity_t {
     i64 id;
     phy_body_t* body;
     entity_type type;
-    void* custom_state;
+    union {
+        tile_info_t tile_info;
+        bogger_state_t bogger_state;
+        void* custom_state;
+    };
 };
 
 struct sim_region_t {

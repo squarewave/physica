@@ -8,6 +8,7 @@
 #include "intrinsics.h"
 #include "game.h"
 #include "gl/gl.h"
+#include "camera.h"
 
 tex2 load_bmp(char* filename, i32 scaling) {
     tex2 result = {};
@@ -84,18 +85,20 @@ tex2 load_bmp(char* filename, i32 scaling) {
     return result;
 }
 
-render_object_t* push_circle_outline(render_group_t* render_group,
-                                     color_t color,
-                                     v2 center,
-                                     f32 radius,
-                                     f32 z) {
+render_object_t* push_circle(render_group_t* render_group,
+                             color_t color,
+                             v2 center,
+                             f32 radius,
+                             f32 z,
+                             u32 flags) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
-    obj->type = RENDER_TYPE_CIRC_OUTLINE;
+    obj->type = RENDER_TYPE_CIRCLE;
     obj->render_circle.color = color;
     obj->render_circle.center = center;
     obj->render_circle.radius = radius;
     obj->z = z;
+    obj->flags = flags;
     return obj;
 }
 
@@ -104,7 +107,8 @@ render_object_t* push_rect(render_group_t* render_group,
                            v2 center,
                            v2 diagonal,
                            f32 orientation,
-                           f32 z) {
+                           f32 z,
+                           u32 flags) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_RECT;
@@ -113,18 +117,8 @@ render_object_t* push_rect(render_group_t* render_group,
     obj->render_rect.diagonal = diagonal;
     obj->render_rect.orientation = orientation;
     obj->z = z;
+    obj->flags = flags;
     return obj;
-}
-
-render_object_t* push_background(render_group_t* render_group,
-                                 color_t color,
-                                 video_buffer_description_t buffer) {
-    return push_rect(render_group,
-                     color,
-                     v2{0,0},
-                     v2 {(f32)buffer.width, (f32)buffer.height},
-                     0.0f,
-                     0.0f);
 }
 
 render_object_t* push_texture(render_group_t* render_group,
@@ -138,6 +132,7 @@ render_object_t* push_texture(render_group_t* render_group,
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_TEXTURE;
+    obj->flags = 0;
     obj->render_texture.texture = texture;
     obj->render_texture.source_rect = source_rect;
     obj->render_texture.pixel_size = pixel_size;
@@ -192,60 +187,6 @@ void sort_render_objects(vec<render_object_t> objs) {
     }
 }
 
-void run_render_task(task_queue_t* queue, void* data) {
-    render_task_t* task = (render_task_t*)data;
-
-    const f32 max_distance_from_cam_sq = 400.0f;
-
-    m3x3 flip_y = identity_3x3();
-    flip_y.r2.c2 = -1;
-    flip_y.r2.c3 = task->camera.to_top_left.y * 2;
-    m3x3 scale = get_scaling_matrix(task->camera.scaling *
-                                    task->camera.pixels_per_meter);
-
-    m3x3 camera_space_transform =
-            flip_y *
-            get_translation_matrix(task->camera.to_top_left) *
-            scale *
-            get_translation_matrix(-task->camera.center);
-
-    for (int i = 0; i < task->render_group->objects.count; ++i) {
-        render_object_t* obj = task->render_group->objects.at(i);
-        switch (obj->type) {
-            case RENDER_TYPE_RECT: {
-                v2 center = camera_space_transform * obj->render_rect.center;
-                v2 diagonal = scale * obj->render_rect.diagonal;
-                draw_rectangle(task->buffer,
-                               task->clip_rect,
-                               obj->render_rect.color,
-                               (i32)center.x,
-                               (i32)center.y,
-                               (u32)diagonal.x,
-                               (u32)diagonal.y,
-                               obj->render_rect.orientation);
-            } break;
-            case RENDER_TYPE_TEXTURE: {
-                draw_bmp(task->buffer,
-                         task->clip_rect,
-                         obj->render_texture.texture,
-                         camera_space_transform * obj->render_texture.center,
-                         obj->render_texture.pixel_size,
-                         obj->render_texture.hotspot,
-                         obj->render_texture.orientation);
-            } break;
-            case RENDER_TYPE_CIRC_OUTLINE: {
-                v2 center = camera_space_transform * obj->render_circle.center;
-                f32 radius = task->camera.scaling * task->camera.pixels_per_meter;
-                draw_circ_outline(task->buffer,
-                                  task->clip_rect,
-                                  obj->render_circle.color,
-                                  center,
-                                  radius);
-            }
-        }
-    }
-}
-
 void draw_gl_rect(platform_services_t platform,
                   camera_t camera,
                   render_rect_t rect,
@@ -253,40 +194,71 @@ void draw_gl_rect(platform_services_t platform,
     // our base rect is simply a square at the origin with sides of length 1.0f,
     // transform that square to get our draw rect
 
-    m4x4 rotate = get_rotation_matrix_4x4(rect.orientation);
-    m4x4 scale_and_translate = identity_4x4();
+    m4x4 model_rotate = get_rotation_matrix_4x4(rect.orientation);
+    m4x4 model_scale = identity_4x4();
+    m4x4 model_translate = identity_4x4();
     //scale
-    scale_and_translate.r1.c1 = rect.diagonal.x;
-    scale_and_translate.r2.c2 = rect.diagonal.y;
+    model_scale.r1.c1 = rect.diagonal.x;
+    model_scale.r2.c2 = rect.diagonal.y;
     // translate
-    scale_and_translate.r1.c4 = rect.center.x;
-    scale_and_translate.r2.c4 = rect.center.y;
-    scale_and_translate.r3.c4 = z;
+    model_translate.r1.c4 = rect.center.x;
+    model_translate.r2.c4 = rect.center.y;
+    model_translate.r3.c4 = z;
 
-    m4x4 model = scale_and_translate * rotate;
-
-    f32 camera_scale_x = 1.0f / camera.to_top_left.x;
-    f32 camera_scale_y = 1.0f / camera.to_top_left.y;
-    m4x4 view = identity_4x4();
-    //scale
-    view.r1.c1 = camera_scale_x;
-	view.r2.c2 = camera_scale_y;
-    //translate
-    view.r1.c4 = camera.center.x * -camera_scale_x;
-    view.r2.c4 = camera.center.y * -camera_scale_y;
-
+    m4x4 model = model_translate * model_rotate * model_scale;
+    m4x4 view = get_view_transform_4x4(camera);
     m4x4 transform = view * model;
 
-    glUniformMatrix4fv(platform.rect_program.transform_loc,
+    glUniformMatrix4fv(platform.basic_program.transform_loc,
                        1,
                        GL_TRUE,
                        transform.vals);
-    glUniform4f(platform.rect_program.color_loc,
+    glUniform4f(platform.basic_program.color_loc,
                 rect.color.r,
                 rect.color.g,
                 rect.color.b,
                 1.0f);
     glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
+}
+
+void draw_gl_circle(platform_services_t platform,
+                    camera_t camera,
+                    render_circle_t circle,
+                    f32 z,
+                    u32 flags) {
+    // our base rect is simply a square at the origin with sides of length 1.0f,
+    // transform that square to get our draw rect
+
+    m4x4 model_rotate = identity_4x4();
+    m4x4 model_scale = identity_4x4();
+    m4x4 model_translate = identity_4x4();
+    //scale
+    model_scale.r1.c1 = circle.radius;
+    model_scale.r2.c2 = circle.radius;
+    // translate
+    model_translate.r1.c4 = circle.center.x;
+    model_translate.r2.c4 = circle.center.y;
+    model_translate.r3.c4 = z;
+
+    m4x4 model = model_translate * model_rotate * model_scale;
+    m4x4 view = get_view_transform_4x4(camera);
+    
+    m4x4 transform = view * model;
+
+    glUniformMatrix4fv(platform.basic_program.transform_loc,
+                       1,
+                       GL_TRUE,
+                       transform.vals);
+    glUniform4f(platform.basic_program.color_loc,
+                circle.color.r,
+                circle.color.g,
+                circle.color.b,
+                1.0f);
+    if (flags & RENDER_WIREFRAME) {
+        glDrawArrays(GL_LINE_STRIP, 1, platform.basic_program.ellipse_ibo_count - 1);
+    } else {
+        glDrawArrays(GL_TRIANGLE_FAN, 0, platform.basic_program.ellipse_ibo_count);
+    }
 }
 
 void draw_gl_texture(platform_services_t platform,
@@ -299,33 +271,41 @@ void draw_gl_texture(platform_services_t platform,
     f32 width = src_width * texture.pixel_size;
     f32 height = src_height * texture.pixel_size;
 
-    v2 hotspot_transform = -1.0f * (v2 {-width / 2.0f, -height / 2.0f} +
-                                    (texture.hotspot * texture.pixel_size));
 
     // our base rect is simply a square at the origin with sides of length 1.0f,
     // transform that square to get our draw rect
 
-    m4x4 rotate = get_rotation_matrix_4x4(texture.orientation);
-    m4x4 scale_and_translate = identity_4x4();
+    v2 hotspot_transform = -1.0f * (v2 {-width / 2.0f, -height / 2.0f} +
+                                    (texture.hotspot * texture.pixel_size));
+    m4x4 hotspot_translate = identity_4x4();
+    m4x4 model_rotate = get_rotation_matrix_4x4(texture.orientation);
+    m4x4 model_scale = identity_4x4();
+    m4x4 model_translate = identity_4x4();
     //scale
-    scale_and_translate.r1.c1 = width;
-    scale_and_translate.r2.c2 = height;
+    model_scale.r1.c1 = width;
+    model_scale.r2.c2 = height;
     // translate
-    scale_and_translate.r1.c4 = texture.center.x + hotspot_transform.x;
-    scale_and_translate.r2.c4 = texture.center.y + hotspot_transform.y;
-    scale_and_translate.r3.c4 = z;
+    hotspot_translate.r1.c4 = hotspot_transform.x;
+    hotspot_translate.r2.c4 = hotspot_transform.y;
+    model_translate.r1.c4 = texture.center.x;
+    model_translate.r2.c4 = texture.center.y;
+    model_translate.r3.c4 = z;
 
-    m4x4 model = scale_and_translate * rotate;
+    m4x4 model = model_translate * model_rotate * hotspot_translate * model_scale;
 
     f32 camera_scale_x = 1.0f / camera.to_top_left.x;
     f32 camera_scale_y = 1.0f / camera.to_top_left.y;
-    m4x4 view = identity_4x4();
+    m4x4 view_rotate = get_rotation_matrix_4x4(-camera.orientation);
+    m4x4 view_translate = identity_4x4();
+    m4x4 view_scale = identity_4x4();
     //scale
-    view.r1.c1 = camera_scale_x;
-    view.r2.c2 = camera_scale_y;
+    view_scale.r1.c1 = camera_scale_x;
+    view_scale.r2.c2 = camera_scale_y;
     //translate
-    view.r1.c4 = camera.center.x * -camera_scale_x;
-    view.r2.c4 = camera.center.y * -camera_scale_y;
+    view_translate.r1.c4 = -camera.center.x;
+    view_translate.r2.c4 = -camera.center.y;
+
+    m4x4 view = view_scale * view_rotate * view_translate;
 
     m4x4 transform = view * model;
 
@@ -350,49 +330,53 @@ void draw_gl_texture(platform_services_t platform,
 }
 
 void setup_gl_for_type(platform_services_t platform,
-                       u32 type) {
+                       u32 type,
+                       u32 flags) {
+
+    if (flags & RENDER_WIREFRAME) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
     switch (type) {
         case RENDER_TYPE_RECT: {
-            glUseProgram(platform.rect_program.id);
-            glEnableVertexAttribArray(platform.rect_program.vertex_modelspace_loc);
-
-            glBindBuffer(GL_ARRAY_BUFFER, platform.rect_program.vbo);
-            glVertexAttribPointer(platform.rect_program.vertex_modelspace_loc,
-                                  3, GL_FLOAT, GL_FALSE, 0, 0);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, platform.rect_program.ibo);
+            glUseProgram(platform.basic_program.id);
+            glBindVertexArray(platform.basic_program.vao);
+        } break;
+        case RENDER_TYPE_CIRCLE: {
+            glUseProgram(platform.basic_program.id);
+            glBindVertexArray(platform.basic_program.ellipse_outline_vao);
         } break;
         case RENDER_TYPE_TEXTURE: {
             glUseProgram(platform.texture_program.id);
-
+            glBindVertexArray(platform.texture_program.vao);
             glActiveTexture(GL_TEXTURE0);
-            glEnableVertexAttribArray(platform.texture_program.vertex_modelspace_loc);
-            glEnableVertexAttribArray(platform.texture_program.vertex_uv_loc);
-
-            glBindBuffer(GL_ARRAY_BUFFER, platform.texture_program.vbo);
-            glVertexAttribPointer(platform.texture_program.vertex_modelspace_loc,
-                                  3, GL_FLOAT, GL_FALSE, 0, 0);
-
-            glBindBuffer(GL_ARRAY_BUFFER, platform.texture_program.uv_vbo);
-            glVertexAttribPointer(platform.texture_program.vertex_uv_loc,
-                                  2, GL_FLOAT, GL_FALSE, 0, 0);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, platform.texture_program.ibo);
         } break;
     }
 }
 
-void teardown_gl_for_type(platform_services_t platform,
-                          u32 type) {
-    switch (type) {
-        case RENDER_TYPE_RECT: {
-            glDisableVertexAttribArray(platform.rect_program.vertex_modelspace_loc);
-        } break;
-        case RENDER_TYPE_TEXTURE: {
-            glDisableVertexAttribArray(platform.texture_program.vertex_modelspace_loc);
-            glDisableVertexAttribArray(platform.texture_program.vertex_uv_loc);
-        } break;
-    }
+void present_frame_buffer(platform_services_t platform,
+                          u32 color_buffer) {
+    setup_gl_for_type(platform, RENDER_TYPE_TEXTURE, 0);
+
+    glBindTexture(GL_TEXTURE_2D, color_buffer);
+    glUniform1i(platform.texture_program.texture_sampler_loc, 0);
+
+    m4x4 transform = identity_4x4();
+    transform.r1.c1 = 2.0f;
+    transform.r2.c2 = 2.0f;
+    m3x3 uv_transform = identity_3x3();
+    glUniformMatrix4fv(platform.texture_program.transform_loc,
+                       1,
+                       GL_TRUE,
+                       transform.vals);
+    glUniformMatrix3fv(platform.texture_program.uv_transform_loc,
+                       1,
+                       GL_TRUE,
+                       uv_transform.vals);
+    glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
+
 }
 
 void draw_render_group(platform_services_t platform,
@@ -404,15 +388,13 @@ void draw_render_group(platform_services_t platform,
 #if 1
     sort_render_objects(render_group->objects);
 
-    u32 previous_type = -1;
+    static u32 previous_type = -1;
+    static u32 previous_flags = -1;
     for (int i = 0; i < render_group->objects.count; ++i) {
         render_object_t* obj = render_group->objects.at(i);
 
-        if (obj->type != previous_type) {
-            if (previous_type != -1 ) {
-                teardown_gl_for_type(platform, previous_type);
-            }
-            setup_gl_for_type(platform, obj->type);
+        if (obj->type != previous_type || obj->flags != previous_flags) {
+            setup_gl_for_type(platform, obj->type, obj->flags);
         }
 
         switch (obj->type) {
@@ -421,6 +403,13 @@ void draw_render_group(platform_services_t platform,
                              camera,
                              obj->render_rect,
                              obj->z);
+            } break;
+            case RENDER_TYPE_CIRCLE: {
+                draw_gl_circle(platform,
+                               camera,
+                               obj->render_circle,
+                               obj->z,
+                               obj->flags);
             } break;
             case RENDER_TYPE_TEXTURE: {
                 draw_gl_texture(platform,
@@ -431,6 +420,7 @@ void draw_render_group(platform_services_t platform,
         }
 
         previous_type = obj->type;
+        previous_flags = obj->flags;
     }
 
 #else
@@ -992,35 +982,4 @@ void add_debug_rect(v2 top_right, v2 bottom_left, i32 color) {
     debug_rects[debug_rect_count+1] = bottom_left;
     debug_colors[debug_rect_count / 2] = color;
     debug_rect_count += 2;
-}
-
-void draw_debug_points(video_buffer_description_t buffer, camera_t camera) {
-    m3x3 flip_y = identity_3x3();
-    flip_y.r2.c2 = -1;
-    flip_y.r2.c3 = camera.to_top_left.y * 2;
-    m3x3 scale = get_scaling_matrix(camera.scaling) *
-            get_scaling_matrix(30.0f);
-
-    m3x3 camera_space_transform =
-            flip_y *
-            get_translation_matrix(camera.to_top_left) *
-            get_translation_matrix(-camera.center) *
-            scale;
-
-    for (int i = 0; i < debug_point_count; ++i) {
-        v2 p = camera_space_transform * debug_points[i];
-        // draw_rectangle(buffer, debug_colors[i], p.x, p.y, 2, 2, 0.0f);
-    }
-
-    for (int i = 0; i < (debug_rect_count / 2); ++i) {
-        v2 top_right = debug_rects[i*2];
-        v2 bottom_left = debug_rects[i*2+1];
-        v2 p = camera_space_transform * ((top_right + bottom_left) * 0.5f);
-        v2 size = scale * (top_right - bottom_left);
-
-        // draw_rectangle(buffer, debug_rect_colors[i], p.x, p.y, size.x, size.y, 0.0f);
-    }
-
-    debug_point_count = 0;
-    debug_rect_count = 0;
 }

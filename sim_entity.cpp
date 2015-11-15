@@ -10,11 +10,11 @@ create_block_entity(game_state_t* game_state,
                     u32 flags) {
     sim_entity_t* entity = game_state->entities.acquire();
 
-	phy_body_t* body =  phy_add_block(game_state->physics_arena,
-	                                  position,
-	                                  diagonal,
-	                                  mass,
-	                                  orientation);
+	phy_body_t* body = phy_add_block(&game_state->physics_state,
+                                     position,
+                                     diagonal,
+                                     mass,
+                                     orientation);
 
 	body->flags = flags;
     body->position = position;
@@ -36,7 +36,10 @@ create_fillet_block_entity(game_state_t* game_state,
                            u32 flags) {
     sim_entity_t* entity = game_state->entities.acquire();
 
-	phy_body_t* body =  phy_add_fillet_block(game_state->physics_arena,
+    assert_(fillet < diagonal.x / 2.0f);
+    assert_(fillet < diagonal.y / 2.0f);
+
+	phy_body_t* body =  phy_add_fillet_block(&game_state->physics_state,
 	                                         position,
 	                                         diagonal,
 	                                         fillet,
@@ -54,7 +57,7 @@ create_fillet_block_entity(game_state_t* game_state,
 
 void
 remove_entity(game_state_t* game_state, sim_entity_t* entity) {
-	phy_remove_body(game_state->physics_arena,
+	phy_remove_body(&game_state->physics_state,
 	                entity->body);	
     game_state->entities.free(entity);
 }

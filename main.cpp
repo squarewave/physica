@@ -14,4 +14,6 @@
 #include "tile.cpp"
 #include "sim_entity.cpp"
 #include "background.cpp"
+#include "bogger.cpp"
+#include "game_debug.cpp"
 // #pragma clang diagnostic pop

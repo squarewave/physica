@@ -38,13 +38,14 @@ struct offscreen_buffer_t
     int bytes_per_pixel;
 };
 
-struct rect_program_t {
-    GLuint id, vbo, ibo;
+struct basic_program_t {
+    GLuint id, vao, ellipse_outline_vao, vbo, ibo;
     GLint transform_loc, color_loc, vertex_modelspace_loc;
+    i32 ellipse_ibo_count;
 };
 
 struct texture_program_t {
-    GLuint id, vbo, uv_vbo, ibo;
+    GLuint id, vao, vbo, uv_vbo, ibo;
     GLint transform_loc;
     GLint uv_transform_loc;
     GLint vertex_modelspace_loc;
@@ -93,7 +94,7 @@ struct platform_services_t {
     task_queue_t* render_queue;
     start_task_func* start_task;
     wait_on_queue_func* wait_on_queue;
-    rect_program_t rect_program;
+    basic_program_t basic_program;
     texture_program_t texture_program;
 };
 

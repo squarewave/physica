@@ -1,7 +1,6 @@
 #include "background.h"
 #include "random.h"
 
-const f32 VIRTUAL_PIXEL_SIZE = 0.05f;
 const f32 MOTE_AREA_RADIUS_Y = 5.0f;
 const f32 MOTE_AREA_RADIUS_X = 10.0f;
 const f32 FLOATY_AREA_RADIUS_Y = 15.0f;
@@ -34,7 +33,9 @@ global u32 palette[] = {
 
 global char* texture_paths[] = {
     "assets/cloud.bmp",
-    "assets/tower.bmp"
+    "assets/cloud_2.bmp",
+    "assets/tower.bmp",
+    "assets/castle.bmp"
 };
 
 void create_background(game_state_t* game_state,
@@ -74,7 +75,7 @@ void create_background(game_state_t* game_state,
             random_f32(-FLOATY_AREA_RADIUS_Y, FLOATY_AREA_RADIUS_Y)
         };
 
-        floaty->velocity = random_f32(0.0f, 0.5f) * VIRTUAL_PIXEL_SIZE;
+        floaty->velocity = vpixels_to_meters(random_f32(0.0f, 0.5f));
     }
 
 	for (i32 i = 0; i < mote_count; ++i) {
@@ -87,7 +88,7 @@ void create_background(game_state_t* game_state,
 			random_f32(-MOTE_AREA_RADIUS_X, MOTE_AREA_RADIUS_X),
 			random_f32(-MOTE_AREA_RADIUS_Y, MOTE_AREA_RADIUS_Y)
 		};
-		mote->velocity = random_f32(-2.0f, 2.0f) * VIRTUAL_PIXEL_SIZE;
+		mote->velocity = vpixels_to_meters(random_f32(-2.0f, 2.0f));
 	}
 }
 
@@ -144,6 +145,7 @@ void update_background(background_t* background,
 		          v2 { snap_to(mote->center.x, VIRTUAL_PIXEL_SIZE), mote->center.y },
 		          v2 { (f32)mote->width, 1.0f } * VIRTUAL_PIXEL_SIZE,
 		          0.0f,
-                  0.9f);
+                  0.9f,
+                  0);
 	}
 }

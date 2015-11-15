@@ -39,6 +39,10 @@ void* _push_size(memory_arena_t* arena, u32 size) {
     return result;
 };
 
+const i32 SMALL_STACK_SIZE = 256;
+const i32 MEDIUM_STACK_SIZE = 1024;
+const i32 LARGE_STACK_SIZE = 1024 * 32;
+
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 #define PUSH_STRUCT(arena, type) (type *)_push_size(arena, sizeof(type))
 #define PUSH_ARRAY(arena, count, type) (type *)_push_size(arena, count * sizeof(type))
@@ -51,6 +55,11 @@ struct vec {
   i32 count;
   i32 capacity;
 
+  inline void init(memory_arena_t* memory, i32 capacity) {
+    this->capacity = capacity;
+    this->count = 0;
+    this->values = PUSH_ARRAY(memory, capacity, T);
+  }
   inline T& operator[] (i32 index) { return this->values[index]; }
   inline T* at(i32 index) { return this->values + index; }
   inline i32 push(T val) {
@@ -77,6 +86,10 @@ struct array {
   T *values;
   i32 count;
 
+  inline void init(memory_arena_t* memory, i32 count) {
+    this->count = count;
+    this->values = PUSH_ARRAY(memory, count, T);
+  }
   inline T operator[](i32 index) { return this->values[index]; }
   inline T *at(i32 index) { return this->values + index; }
   inline void set(i32 index, T val) { this->values[index] = val; }
@@ -101,6 +114,10 @@ struct pool_obj {
   b32 freed;
 };
 
+template <class T>
+inline b32 is_freed(T* ptr) {
+  return ((pool_obj<T>*)ptr)->freed;
+}
 
 template <class T>
 struct pool {
@@ -108,6 +125,13 @@ struct pool {
   vec<i32> freed;
   i32 size;
   i32 capacity;
+
+  inline void init(memory_arena_t* memory, i32 capacity) {
+    this->capacity = capacity;
+    this->size = 0;
+    this->values = PUSH_ARRAY(memory, capacity, T);
+    this->freed.init(memory, capacity);
+  }
 
   inline T*
   acquire() {
@@ -165,17 +189,21 @@ struct pool {
     return values + index;
   }
 
+  inline i32
+  index_of(T* val) {
+    T* loc = (T*)val;
+    return (i32)(loc - values);
+  }
+
   inline void
   free(T* val) {
-    T* loc = (pool_obj<T>*)val;
-    i32 index = (i32)(loc - values);
+    i32 index = index_of(val);
     freed.push(index);
   }
 
   inline void
   free_many(T* val, i32 count) {
-    T* loc = (T*)val;
-    i32 index = (i32)(loc - values);
+    i32 index = index_of(val);
 
     for (int i = 0; i < count; ++i) {
       freed.push(index + i);
@@ -189,6 +217,13 @@ struct iterable_pool {
   vec<i32> freed;
   i32 size;
   i32 capacity;
+
+  inline void init(memory_arena_t* memory, i32 capacity) {
+    this->capacity = capacity;
+    this->size = 0;
+    this->values = PUSH_ARRAY(memory, capacity, pool_obj<T>);
+    this->freed.init(memory, capacity);
+  }
 
   inline T*
   acquire() {
@@ -252,22 +287,26 @@ struct iterable_pool {
     }
   }
 
+  inline i32
+  index_of(T* val) {
+    pool_obj<T>* loc = (pool_obj<T>*)val;
+    return (i32)(loc - values);
+  }
+
   inline void 
   free(T* val) {
-    pool_obj<T>* loc = (pool_obj<T>*)val;
-    i32 index = (i32)(loc - values);
+    i32 index = index_of(val);
     freed.push(index);
-    loc->freed = true;
+    values[index].freed = true;
   }
 
   inline void 
   free_many(T* val, i32 count) {
-    pool_obj<T>* loc = (pool_obj<T>*)val;
-    i32 index = (i32)(loc - values);
+    i32 index = index_of(val);
 
-    for (int i = 0; i < count; ++i) {
-      loc[i].freed = true;
-      freed.push(index + i);
+    for (int i = index; i < index + count; ++i) {
+      values[i].freed = true;
+      freed.push(i);
     }
   }
 

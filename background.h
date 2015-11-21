@@ -5,7 +5,8 @@ struct mote_t {
 	i32 width;
 	u32 color;
 	v2 center;
-	f32 velocity;
+    f32 velocity;
+    f32 z;
 };
 
 struct floaty_t {
@@ -13,6 +14,7 @@ struct floaty_t {
     rect_i source_rect;
     v2 center;
     f32 velocity;
+    f32 z;
 };
 
 struct background_t {

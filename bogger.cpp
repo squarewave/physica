@@ -43,7 +43,7 @@ UPDATE_FUNC(BOGGER) {
 
         if (state->shoot_timer > bogger_shoot_delay) {
             state->shoot_timer = 0.0f;
-            create_bogger_ball(game_state, entity->body->position, to_player);
+            create_turret_shot(game_state, entity->body->position, to_player);
         }
     } else {
         virtual_dx = 0.0f;

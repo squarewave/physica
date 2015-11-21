@@ -117,6 +117,7 @@ update_animations(animation_group_t* animation_group,
 		             frame.pixel_size,
 		             frame.texture,
                      frame.source_rect,
+                     rgba_t{0},
 		             animation->orientation + frame.orientation,
 		             animation->z);
 	}

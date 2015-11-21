@@ -514,7 +514,7 @@ int main(int argc, char const *argv[]) {
         next_input.joystick_r.delta =
                 next_input.joystick_r.position - prev_input.joystick_r.position;
 
-        video_buffer_description_t game_buffer = {};
+        window_description_t game_buffer = {};
         game_buffer.memory = offscreen_buffer.xcb_image->data;
         game_buffer.width = offscreen_buffer.width;
         game_buffer.height = offscreen_buffer.height;

@@ -37,6 +37,20 @@ struct input_memo_t {
     f32 jump_elapsed;
 };
 
+enum world_direction_t {
+    DIR_UP,
+    DIR_RIGHT,
+    DIR_DOWN,
+    DIR_LEFT,
+};
+
+struct rotation_state_t {
+    b32 needs_reset;
+    i32 target_direction;
+    i32 current_direction;
+    f32 progress;
+};
+
 struct game_state_t {
     u32 initialized;
 
@@ -49,10 +63,12 @@ struct game_state_t {
     spatial_partition_t* spatial_partitions;
     u32 spatial_partition_count;
 
-    camera_t camera;
+    camera_t main_camera;
     camera_t background_camera;
+    camera_t ui_camera;
     render_group_t main_render_group;
     render_group_t background_render_group;
+    render_group_t ui_render_group;
 
     memory_arena_t world_arena;
     memory_arena_t render_arena;
@@ -85,9 +101,13 @@ struct game_state_t {
     u32 frame_buffer;
     u32 color_buffer;
 
+    gl_programs_t gl_programs;
+
     sim_entity_t* player;
     v2 gravity_normal;
     f32 gravity_magnitude;
+
+    rotation_state_t rotation_state;
 
     debug_state_t debug_state;
 };
@@ -127,8 +147,8 @@ struct game_input_t {
 struct platform_services_t;  
 
 void game_update_and_render(platform_services_t platform,
-                            game_state_t* game_state, f64 dt,
-                            video_buffer_description_t buffer_description,
+                            game_state_t* game_state, f32 dt,
+                            window_description_t buffer_description,
                             game_input_t game_input);
 
 platform_read_entire_file_result_t platform_read_entire_file(const char * filename);

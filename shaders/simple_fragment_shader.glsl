@@ -1,4 +1,4 @@
-#version 150 core
+#version 330 core
 
 uniform vec4 draw_color;
 out vec4 color;

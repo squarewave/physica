@@ -8,6 +8,8 @@ const f32 TARGET_VIEW_HEIGHT_IN_METERS = 7.0f;
 const f32 VIRTUAL_PIXEL_SIZE = 1.0f / 32.0f;
 const f32 INV_VIRTUAL_PIXEL_SIZE = 1.0f / VIRTUAL_PIXEL_SIZE;
 const f32 PARALLAX_COEFFICIENT = 0.2f;
+const f32 TIME_TO_ROTATE = 0.3f;
+const i32 MAX_PARTICLES = 20000;
 
 inline f32 vpixels_to_meters(f32 meters) {
     return VIRTUAL_PIXEL_SIZE * meters;

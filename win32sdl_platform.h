@@ -94,8 +94,6 @@ struct platform_services_t {
     task_queue_t* render_queue;
     start_task_func* start_task;
     wait_on_queue_func* wait_on_queue;
-    basic_program_t basic_program;
-    texture_program_t texture_program;
 };
 
 #endif //PHYSICA_SDL_PLATFORM_H

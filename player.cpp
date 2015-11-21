@@ -7,7 +7,7 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
 	const f32 player_block_fillet = 0.25f * player_width;
 	const f32 player_mass = 10.0f;
 	const f32 player_initial_orientation = 0.0f;
-    const f32 player_z_index = 0.2f;
+    const f32 player_z_index = 0.1f;
     const u32 player_flags = 0;
 
     sim_entity_t* player = create_fillet_block_entity(game_state,
@@ -44,36 +44,61 @@ UPDATE_FUNC(PLAYER) {
     const f32 player_move_factor = 40.0f;
     const f32 direction_deadzone = 0.1f;
     const f32 max_vel = 7.0f;
-    const f32 jump_speed = 16.0f;
+    const f32 jump_speed = 14.0f;
     const f32 jump_falloff = 7.0f;
     const f32 jump_velocity_threshold = 0.5f;
     const f32 jump_min_distance = (0.5f * player_height) + 0.1f;
     const f32 jump_raycast_threshold = player_width / 2;
     const f32 camera_move_factor = 0.4f;
 
-    // v2 camera_target = game_state->camera.scaling *
-    //     game_state->camera.pixels_per_meter *
-    //     entity->body->position;
-    // v2 d_camera = camera_target - game_state->camera.center;
-    // game_state->camera.center = game_state->camera.center +
-    //     (camera_move_factor * d_camera);
-
     f32 gravity_orientation = atanv(game_state->gravity_normal) + fPI_OVER_2;
 
-    f32 sum_trigger_delta =
-        game_input.analog_l_trigger.delta - game_input.analog_r_trigger.delta;
+    f32 combined_l_r_trigger = game_input.analog_r_trigger.value -
+        game_input.analog_l_trigger.value;
 
-    gravity_orientation += sum_trigger_delta * fPI_OVER_2;
-    game_state->gravity_normal = v2_from_theta(gravity_orientation - fPI_OVER_2);
+    if (game_state->rotation_state.target_direction ==
+        game_state->rotation_state.current_direction) {
+        if (combined_l_r_trigger < -0.75f) {
+            if (!game_state->rotation_state.needs_reset) {
+                game_state->rotation_state.needs_reset = true;
+                game_state->rotation_state.target_direction--;
+                if (game_state->rotation_state.target_direction == -1) {
+                    game_state->rotation_state.target_direction = 3;
+                }
+                game_state->rotation_state.progress = 0.0f;
+            }
+        } else if (combined_l_r_trigger > 0.75f) {
+            if (!game_state->rotation_state.needs_reset) {
+                game_state->rotation_state.needs_reset = true;
+                game_state->rotation_state.target_direction++;
 
-    game_state->camera.center = entity->body->position;
-    game_state->camera.orientation = gravity_orientation;
+                if (game_state->rotation_state.target_direction == 4) {
+                    game_state->rotation_state.target_direction = 0;
+                }
+                game_state->rotation_state.progress = 0.0f;
+            }
+        } else if (fabs(combined_l_r_trigger) < 0.5f) {
+            game_state->rotation_state.needs_reset = false;
+        }
+    }
+
+    game_state->main_camera.center = entity->body->position;
+    f32 camera_adjustment = -0.1f * fmin(fmax(combined_l_r_trigger, -0.5f), 0.5f);
+    game_state->main_camera.orientation = gravity_orientation + camera_adjustment;
 
     b32 direction_changed = false;
     b32 moving = false;
 
     f32 virtual_dx = flt_cross(game_state->gravity_normal, entity->body->velocity);
     f32 virtual_dy = -dot(game_state->gravity_normal, entity->body->velocity);
+
+    ray_body_intersect_t r =
+        ray_cast_from_body(&game_state->physics_state,
+                           entity->body,
+                           jump_raycast_threshold,
+                           game_state->gravity_normal);
+
+    b32 is_supported = r.body && r.depth < jump_min_distance;
 
     // left/right movement
     if (game_input.joystick_l.position.x > direction_deadzone) {
@@ -84,10 +109,16 @@ UPDATE_FUNC(PLAYER) {
     	}
 
         if (virtual_dx < 0.0f) {
-            virtual_dx = 0.0f;
+            if (is_supported) {
+                virtual_dx = 0.0f;
+            } else {
+                virtual_dx = fmin(max_vel, virtual_dx +
+                    player_move_factor * dt * game_input.joystick_l.position.x);
+            }
         }
+
         virtual_dx = fmin(max_vel, virtual_dx +
-            player_move_factor * dt * game_input.joystick_l.position.x);
+            player_move_factor * dt * game_input.joystick_l.position.x);   
 
     } else if (game_input.joystick_l.position.x < -direction_deadzone) {
     	moving = true;
@@ -97,21 +128,19 @@ UPDATE_FUNC(PLAYER) {
     	}
 
         if (virtual_dx > 0.0f) {
-            virtual_dx = 0.0f;
+            if (is_supported) {
+                virtual_dx = 0.0f;
+            } else {
+                virtual_dx = fmax(-max_vel, virtual_dx +
+                    player_move_factor * dt * game_input.joystick_l.position.x);
+            }
         }
+
         virtual_dx = fmax(-max_vel, virtual_dx +
-            player_move_factor * dt * game_input.joystick_l.position.x);   
-    } else {
+            player_move_factor * dt * game_input.joystick_l.position.x);
+    } else if (is_supported) {
         virtual_dx = 0.0f;
     }
-
-    ray_body_intersect_t r =
-        ray_cast_from_body(&game_state->physics_state,
-                           entity->body,
-                           jump_raycast_threshold,
-                           game_state->gravity_normal);
-
-    b32 is_supported = r.body && r.depth < jump_min_distance;
 
     // jump
     if (game_input.button_a.ended_down) {
@@ -152,5 +181,43 @@ UPDATE_FUNC(PLAYER) {
 		}
 	}
 
+    entity_ties_t* collision = get_hash_item(&game_state->collision_map, entity->id);
+    if (collision && collision->type == SAVE_POINT) {
+        player->save_position = entity->body->position;
+        player->save_gravity_normal = game_state->gravity_normal;
+        player->save_rotation_state = game_state->rotation_state;
+    }
+
     entity->body->velocity = rotate(v2{virtual_dx, virtual_dy}, gravity_orientation);
+}
+
+void kill_player(game_state_t* game_state) {
+    sim_entity_t* player = game_state->player;
+    player_state_t* player_state = (player_state_t*)player->custom_state;
+    player->body->position = player_state->save_position;
+    game_state->gravity_normal = player_state->save_gravity_normal;
+    game_state->rotation_state = player_state->save_rotation_state;
+
+    phy_update_body(&game_state->physics_state, player->body);
+}
+
+const v2 save_point_diagonal = v2 {1.0f, 1.0f};
+
+sim_entity_t*
+create_save_point(game_state_t* game_state, v2 position) {
+    const f32 save_point_mass = 1.0f;
+    const f32 save_point_orientation = 0.0f;
+
+    sim_entity_t* save_point = create_block_entity(game_state,
+                                             SAVE_POINT,
+                                             position,
+                                             save_point_diagonal,
+                                             save_point_mass,
+                                             save_point_orientation,
+                                             PHY_FIXED_FLAG | PHY_INCORPOREAL_FLAG);
+
+    return save_point;
+}
+
+UPDATE_FUNC(SAVE_POINT) {
 }

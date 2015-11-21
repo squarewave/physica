@@ -20,6 +20,7 @@ struct phy_aabb_t {
 
 struct phy_aabb_tree_node_t {
     i32 parent;
+    b32 is_asleep;
     union {
         struct {
             i32 type;
@@ -79,6 +80,7 @@ struct phy_support_result_t {
 
 const u32 PHY_FIXED_FLAG = 1;
 const u32 PHY_WEIGHTLESS_FLAG = 2;
+const u32 PHY_INCORPOREAL_FLAG = 4;
 
 struct phy_collision_t {
     v2 normal;
@@ -146,7 +148,8 @@ struct ray_body_intersect_t {
 phy_aabb_tree_node_t* aabb_insert_node(phy_aabb_tree_t* tree,
                                        i32 parent_index,
                                        phy_aabb_t fat_aabb,
-                                       phy_body_t body);
+                                       phy_body_t body,
+                                       b32 is_asleep);
 
 void aabb_remove_node(phy_aabb_tree_t *tree, i32 index);
 

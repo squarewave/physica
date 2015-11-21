@@ -16,4 +16,12 @@
 #include "background.cpp"
 #include "bogger.cpp"
 #include "game_debug.cpp"
+#include "enemies.cpp"
+
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 // #pragma clang diagnostic pop

@@ -99,19 +99,19 @@ vert_resolution	game.h	/^    i32 vert_resolution;$/;"	m	struct:bitmap_header_t
 width	game.h	/^    i32 width;$/;"	m	struct:bitmap_header_t
 world_arena	game.h	/^    memory_arena_t world_arena;$/;"	m	struct:game_state_t
 draw_bmp	game_render.cpp	/^void draw_bmp(tex2 dest,$/;"	f
-draw_bmp	game_render.cpp	/^void draw_bmp(video_buffer_description_t buffer,$/;"	f
-draw_rectangle	game_render.cpp	/^void draw_rectangle(video_buffer_description_t buffer,$/;"	f
+draw_bmp	game_render.cpp	/^void draw_bmp(window_description_t buffer,$/;"	f
+draw_rectangle	game_render.cpp	/^void draw_rectangle(window_description_t buffer,$/;"	f
 load_bmp	game_render.cpp	/^tex2 load_bmp(char* filename) {$/;"	f
 PHYSICA_GAME_RENDER_H	game_render.h	6;"	d
-bytes_per_pixel	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
-height	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
+bytes_per_pixel	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
+height	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
 height	game_render.h	/^    u32 width, height;$/;"	m	struct:tex2
-memory	game_render.h	/^    void* memory;$/;"	m	struct:video_buffer_description_t
-pitch	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
+memory	game_render.h	/^    void* memory;$/;"	m	struct:window_description_t
+pitch	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
 pixels	game_render.h	/^    u32* pixels;$/;"	m	struct:tex2
 tex2	game_render.h	/^struct tex2 {$/;"	s
-video_buffer_description_t	game_render.h	/^struct video_buffer_description_t {$/;"	s
-width	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
+window_description_t	game_render.h	/^struct window_description_t {$/;"	s
+width	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
 width	game_render.h	/^    u32 width, height;$/;"	m	struct:tex2
 _find_slot	hashmap.cpp	/^inline u32 _find_slot(hashmap<T>* hm, u64 k) {$/;"	f
 _find_slot	hashmap.cpp	/^inline u32 _find_slot(hashmap_t* hm, u64 k) {$/;"	f

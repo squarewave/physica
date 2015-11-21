@@ -2,6 +2,8 @@
 #define PHYSICA_GAME_DEBUG_H
 #include <intrin.h>
 #include <string.h>
+#include "game_render.h"
+#include "physica_math.h"
 
 __inline__ u64 rdtsc() {
     return __rdtsc();
@@ -18,6 +20,7 @@ __inline__ u64 rdtsc() {
 #define TIMED_FUNC() timed_block_t timed_func((char*)__FUNCTION__, __COUNTER__)
 
 struct game_state_t;
+struct game_input_t;
 struct phy_body_t;
 
 struct debug_block_t {
@@ -27,6 +30,7 @@ struct debug_block_t {
 };
 
 struct debug_state_t {
+    glyph_spec_t monospace_font[96];
     phy_body_t* selected;
 };
 
@@ -66,6 +70,14 @@ void print_debug_log() {
         }
 	}
 }
+
+void debug_init(game_state_t* game_state);
+
+void debug_update_and_render(game_state_t* game_state, f32 dt, game_input_t* game_input);
+
+void debug_load_monospace_font(game_state_t* game_state);
+
+void debug_push_ui_text(game_state_t* game_state, v2 top_left, char* text);
 
 void debug_draw_physics(game_state_t* game_state);
 

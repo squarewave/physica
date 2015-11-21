@@ -14,14 +14,14 @@ phy_init(memory_arena_t* memory) {
 
     result.time_step = 1.0f / 120.0f;
 
-    result.bodies.init(memory, 2000);
-    result.previous_velocities.init(memory, 2000);
-    result.previous_angular_velocities.init(memory, 2000);
-    result.hulls.init(memory, 2000);
-    result.points.init(memory, 2000);
-    result.collisions.init(memory, 2000);
-    result.potential_collisions.init(memory, 2000);
-    result.manifold_cache.pairs.init(memory, 2000);
+    result.bodies.init(memory, 4000);
+    result.previous_velocities.init(memory, 4000);
+    result.previous_angular_velocities.init(memory, 4000);
+    result.hulls.init(memory, 4000);
+    result.points.init(memory, 4000);
+    result.collisions.init(memory, 4000);
+    result.potential_collisions.init(memory, 4000);
+    result.manifold_cache.pairs.init(memory, 4000);
 
     result.aabb_tree.nodes.init(memory, 8000);
     result.aabb_tree.checked_parents.init(memory, 8000);
@@ -219,12 +219,15 @@ phy_aabb_tree_node_t*
 aabb_insert_node(phy_aabb_tree_t* tree,
             i32 parent_index,
             phy_aabb_t fat_aabb,
-            phy_body_t* body) {
+            phy_body_t* body,
+            b32 is_asleep) {
     phy_aabb_tree_node_t* result;
     b32 found_leaf = false;
     while (!found_leaf) {
         phy_aabb_tree_node_t *parent = tree->nodes.at(parent_index);
         if (parent->type == LEAF_NODE) {
+            // if parent is a leaf, split it - transfer the parent's data into
+            // the left child and set up our new node as the right child
             i32 left_index;
             if (tree->dead_nodes.count) {
                 left_index = tree->dead_nodes[--tree->dead_nodes.count];
@@ -247,6 +250,7 @@ aabb_insert_node(phy_aabb_tree_t* tree,
 
             left->parent = parent_index;
             left->fat_aabb = parent->fat_aabb;
+            left->is_asleep = parent->is_asleep;
             left->body = parent_body;
             left->type = LEAF_NODE;
 
@@ -254,6 +258,7 @@ aabb_insert_node(phy_aabb_tree_t* tree,
             right->fat_aabb = fat_aabb;
             right->body = body;
             right->type = LEAF_NODE;
+            right->is_asleep = is_asleep;
 
             found_leaf = true;
         } else {
@@ -276,6 +281,7 @@ aabb_insert_node(phy_aabb_tree_t* tree,
         phy_aabb_tree_node_t *left = tree->nodes.at(parent->left);
         phy_aabb_tree_node_t *right = tree->nodes.at(parent->right);
         parent->fat_aabb = get_union(left->fat_aabb, right->fat_aabb);
+        parent->is_asleep = left->is_asleep && right->is_asleep;
         parent_index = parent->parent;
     }
 
@@ -285,6 +291,7 @@ aabb_insert_node(phy_aabb_tree_t* tree,
 void aabb_remove_node(phy_aabb_tree_t *tree, i32 index) {
     i32 parent_index = tree->nodes[index].parent;
     if (parent_index == -1) {
+        // if parent index is -1, we're removing the root. just kill the tree
         assert_(tree->nodes.count == 1);
         tree->nodes.count = 0;
         tree->dead_nodes.count = 0;
@@ -294,6 +301,8 @@ void aabb_remove_node(phy_aabb_tree_t *tree, i32 index) {
                                                     : parent->left;
         phy_aabb_tree_node_t *sibling = tree->nodes.at(sibling_index);
         if (parent->parent != -1) {
+            // if we have a grand parent, then replace the parent node with
+            // the sibling of the node we're removing
             phy_aabb_tree_node_t *grandparent = tree->nodes.at(parent->parent);
             sibling->parent = parent->parent;
             i32 parent_was_right = grandparent->right == parent_index;
@@ -315,6 +324,7 @@ void aabb_remove_node(phy_aabb_tree_t *tree, i32 index) {
         phy_aabb_tree_node_t *left = tree->nodes.at(parent->left);
         phy_aabb_tree_node_t *right = tree->nodes.at(parent->right);
         parent->fat_aabb = get_union(left->fat_aabb, right->fat_aabb);
+        parent->is_asleep = left->is_asleep && right->is_asleep;
         parent_index = parent->parent;
     }
 }
@@ -605,12 +615,17 @@ find_broad_phase_collisions(phy_state_t* state) {
         phy_aabb_tree_node_t *a = tree->nodes.at(a_index);
         phy_aabb_tree_node_t *b = tree->nodes.at(b_index);
 
+        if (a->is_asleep && b->is_asleep) {
+            continue;
+        }
+
         if (a->type == LEAF_NODE) {
             if (b->type == LEAF_NODE) {
                 phy_body_t* a_body = a->body;
                 phy_body_t* b_body = b->body;
-                if (!(a_body && (a_body->flags & PHY_FIXED_FLAG)) ||
-                    !(b_body && (b_body->flags & PHY_FIXED_FLAG))) {
+                if (!is_freed(a_body) && !is_freed(b_body) &&
+                    (!(a_body->flags & PHY_FIXED_FLAG) ||
+                    !(b_body->flags & PHY_FIXED_FLAG))) {
 
                     phy_aabb_t aabb_a = a_body->aabb;
                     phy_aabb_t aabb_b = b_body->aabb;
@@ -1100,7 +1115,12 @@ phy_add_aabb_for_body(phy_state_t* state,
         node->type = LEAF_NODE;
         body->aabb_node_index = index;
     } else {
-        phy_aabb_tree_node_t *parent = aabb_insert_node(tree, tree->root, fat_aabb, body);
+        b32 is_asleep = body->flags & PHY_FIXED_FLAG;
+        phy_aabb_tree_node_t *parent = aabb_insert_node(tree,
+                                                        tree->root,
+                                                        fat_aabb,
+                                                        body,
+                                                        is_asleep);
         i32 left = parent->left;
         i32 right = parent->right;
 
@@ -1339,6 +1359,10 @@ solve_velocity_constraints(phy_state_t* state, f32 dt) {
         phy_body_t *a = collision->a;
         phy_body_t *b = collision->b;
 
+        if (a->flags & PHY_INCORPOREAL_FLAG || b->flags & PHY_INCORPOREAL_FLAG) {
+            continue;
+        }
+
         assert_(a && b);
 
         phy_manifold_t *manifold = get_collision_manifold(state,
@@ -1428,8 +1452,8 @@ integrate_velocities(phy_state_t* state, f32 dt) {
         body->velocity = body->velocity + accel * dt;
         body->angular_velocity = body->angular_velocity + angular_accel * dt;
 
-        body->velocity *= 1.0f / (1.0f + dt * 0.01f);
-        body->angular_velocity *= 1.0f / (1.0f + dt * 0.01f);
+        body->velocity *= 1.0f / (1.0f + dt * 0.3f);
+        body->angular_velocity *= 1.0f / (1.0f + dt * 0.3f);
     }
 }
 

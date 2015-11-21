@@ -114,7 +114,7 @@ button_r_bumper	game.h	/^    button_input_t button_l_bumper, button_r_bumper;$/;
 button_r_stick	game.h	/^    button_input_t button_l_stick, button_r_stick;$/;"	m	struct:game_input_t
 button_x	game.h	/^    button_input_t button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_t
 button_y	game.h	/^    button_input_t button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_t
-bytes_per_pixel	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
+bytes_per_pixel	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
 bytes_per_pixel	linux_platform.h	/^    int bytes_per_pixel;$/;"	m	struct:offscreen_buffer_t
 c1	physica_math.h	/^    f32 c1, c2, c3;$/;"	m	struct:row3_t
 c1	physica_math.h	/^    f32 c1, c2;$/;"	m	struct:row2_t
@@ -162,8 +162,8 @@ dot	physica_math.h	/^inline f32 dot(v2 lhs, v2 rhs) {$/;"	f
 dot	physica_math.h	/^inline f32 dot(v6 lhs, v6 rhs) {$/;"	f
 down	game.h	/^    button_input_t up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_t
 draw_bmp	game_render.cpp	/^void draw_bmp(tex2 dest,$/;"	f
-draw_bmp	game_render.cpp	/^void draw_bmp(video_buffer_description_t buffer,$/;"	f
-draw_rectangle	game_render.cpp	/^void draw_rectangle(video_buffer_description_t buffer,$/;"	f
+draw_bmp	game_render.cpp	/^void draw_bmp(window_description_t buffer,$/;"	f
+draw_rectangle	game_render.cpp	/^void draw_rectangle(window_description_t buffer,$/;"	f
 ended_down	game.h	/^    b32 ended_down;$/;"	m	struct:button_input_t
 entities	game.h	/^    sim_entity_t* entities;$/;"	m	struct:game_state_t
 entity_capacity	game.h	/^    u32 entity_capacity;$/;"	m	struct:game_state_t
@@ -208,7 +208,7 @@ hashmap	hashmap.h	/^struct hashmap {$/;"	s
 hashmap_t	hashmap.h	/^struct hashmap_t {$/;"	s
 hashpair	hashmap.h	/^struct hashpair {$/;"	s
 height	game.h	/^    i32 height;$/;"	m	struct:bitmap_header_t
-height	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
+height	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
 height	game_render.h	/^    u32 width, height;$/;"	m	struct:tex2
 height	linux_platform.h	/^    int height;$/;"	m	struct:offscreen_buffer_t
 height	sim_entity.h	/^    f32 height;$/;"	m	struct:sim_entity_t
@@ -257,7 +257,7 @@ manifold_cache	physica.h	/^    hashmap<phy_manifold_t> manifold_cache;$/;"	m	str
 mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_t
 mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_t
 max	physica.h	/^    v2 min, max;$/;"	m	struct:phy_aabb_t
-memory	game_render.h	/^    void* memory;$/;"	m	struct:video_buffer_description_t
+memory	game_render.h	/^    void* memory;$/;"	m	struct:window_description_t
 memory	linux_platform.h	/^    void *memory;$/;"	m	struct:offscreen_buffer_t
 memory_arena_t	game.h	/^struct memory_arena_t {$/;"	s
 meters_to_pixels	test.cpp	/^meters_to_pixels(f32 meters) {$/;"	f
@@ -317,7 +317,7 @@ phy_support_result_t	physica.h	/^struct phy_support_result_t {$/;"	s
 phy_update	physica.cpp	/^phy_update(phy_memory_t memory, f32 dt) {$/;"	f
 physics_arena	game.h	/^    phy_memory_t physics_arena;$/;"	m	struct:game_state_t
 physics_state_t	test.cpp	/^struct physics_state_t {$/;"	s	file:
-pitch	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
+pitch	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
 pitch	linux_platform.h	/^    int pitch;$/;"	m	struct:offscreen_buffer_t
 pixels	game_render.h	/^    u32* pixels;$/;"	m	struct:tex2
 planes	game.h	/^    u16 planes;$/;"	m	struct:bitmap_header_t
@@ -418,9 +418,9 @@ values	typedefs.h	/^  T* values;$/;"	m	struct:vec
 vec	typedefs.h	/^struct vec {$/;"	s
 velocity	physica.h	/^    v2 position, velocity;$/;"	m	struct:phy_body_t
 vert_resolution	game.h	/^    i32 vert_resolution;$/;"	m	struct:bitmap_header_t
-video_buffer_description_t	game_render.h	/^struct video_buffer_description_t {$/;"	s
+window_description_t	game_render.h	/^struct window_description_t {$/;"	s
 width	game.h	/^    i32 width;$/;"	m	struct:bitmap_header_t
-width	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:video_buffer_description_t
+width	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
 width	game_render.h	/^    u32 width, height;$/;"	m	struct:tex2
 width	linux_platform.h	/^    int width;$/;"	m	struct:offscreen_buffer_t
 width	sim_entity.h	/^    f32 width;$/;"	m	struct:sim_entity_t

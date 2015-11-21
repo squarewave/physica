@@ -346,6 +346,10 @@ inline f32 cos(f32 val) {
     return cos((f64)val);
 }
 
+inline f32 scale(f32 normalized, f32 min, f32 max) {
+    return (max - min) * normalized + min;
+}
+
 inline v2 operator* (m2x2 lhs, v2 rhs) {
     v2 result;
     result.x = lhs.r1.c1 * rhs.x + lhs.r1.c2 * rhs.y;

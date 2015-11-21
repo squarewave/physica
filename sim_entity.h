@@ -14,7 +14,11 @@ enum entity_type {
     BOGGER,
     BOGGER_BALL,
     TILE,
-    WIZ_BUZZ
+    WIZ_BUZZ,
+    TURRET,
+    TURRET_SHOT,
+    SPIKES,
+    SAVE_POINT,
 };
 
 #define UPDATE_FUNC(type) void update_##type(game_state_t* game_state,\
@@ -44,17 +48,29 @@ struct tile_info_t {
     i32 tex_coord_y;
 };
 
+struct spikes_info_t {
+    i32 direction;
+};
+
 struct bogger_state_t {
     f32 shoot_timer;
+};
+
+struct turret_state_t {
+    f32 shoot_timer;
+    v2 direction;
 };
 
 struct sim_entity_t {
     i64 id;
     phy_body_t* body;
     entity_type type;
+
     union {
         tile_info_t tile_info;
+        spikes_info_t spikes_info;
         bogger_state_t bogger_state;
+        turret_state_t turret_state;
         void* custom_state;
     };
 };

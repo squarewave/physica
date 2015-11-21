@@ -17,7 +17,7 @@ for (var i = dir.length - 1; i >= 0; i--) {
     animation_spec_t* spec = &animations.' + typename + ';\n\
     spec->frames.count = builder.frame_count;\n\
     spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);\n\
-    tex2 texture = load_bmp(builder.bmp_filepath, 1);\n\
+    tex2 texture = load_image(builder.bmp_filepath);\n\
     i32 frame_height = texture.height;\n\
     assert_(texture.width % builder.frame_count == 0);\n\
     i32 frame_width = texture.width / builder.frame_count;\n\

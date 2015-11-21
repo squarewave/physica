@@ -1,4 +1,4 @@
-#version 150 core
+#version 330 core
 
 in vec2 vertex_uv;
 in vec3 vertex_modelspace;

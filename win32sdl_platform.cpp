@@ -221,6 +221,9 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
         context->next_input->button_x.ended_down = button_x;
         context->next_input->button_y.ended_down = button_y;
 
+        context->next_input->button_l_bumper.ended_down = l_shoulder;
+        context->next_input->button_r_bumper.ended_down = r_shoulder;
+
         context->next_input->joystick_l.position.x = ((f32)stick_x) / 32768.0f;
         context->next_input->joystick_l.position.y = ((f32)stick_y) / 32768.0f;
 
@@ -266,72 +269,6 @@ void check_sdl_error(int line = -1) {
     }
 }
 
-GLint check_shader_status(GLuint item_id, GLenum status_id) {
-    GLint result = GL_FALSE;
-    GLint info_log_length = 0;
-    glGetShaderiv(item_id, status_id, &result);
-    if (result != GL_TRUE) {
-        glGetShaderiv(item_id, GL_INFO_LOG_LENGTH, &info_log_length);
-        char* buffer = (char*)alloca(info_log_length);
-        glGetShaderInfoLog(item_id, info_log_length, NULL, buffer);
-        OutputDebugString(buffer);
-    }
-
-    return result;
-}
-
-GLint check_program_status(GLuint item_id, GLenum status_id) {
-    GLint result = GL_FALSE;
-    GLint info_log_length = 0;
-    glGetProgramiv(item_id, status_id, &result);
-    if (result != GL_TRUE) {
-        glGetProgramiv(item_id, GL_INFO_LOG_LENGTH, &info_log_length);
-        char* buffer = (char*)alloca(info_log_length);
-        glGetProgramInfoLog(item_id, info_log_length, NULL, buffer);
-        OutputDebugString(buffer);
-    }
-
-    return result;
-}
-
-b32 load_program(GLuint* program_result,
-                 const char* vertex_path,
-                 const char* fragment_path) {
-    platform_read_entire_file_result_t vertex_file = platform_read_entire_file(vertex_path);
-	char* vertex_code = (char*)vertex_file.contents;
-    char* fragment_code = (char*)platform_read_entire_file(fragment_path).contents;
-
-    GLuint program_id = glCreateProgram();
-    GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
-
-    glShaderSource(vertex_shader_id, 1, &vertex_code, 0);
-    glCompileShader(vertex_shader_id);
-    if (check_shader_status(vertex_shader_id, GL_COMPILE_STATUS) != GL_TRUE) {
-        return false;
-    }
-    glAttachShader(program_id, vertex_shader_id);
-
-    glShaderSource(fragment_shader_id, 1, &fragment_code, 0);
-    glCompileShader(fragment_shader_id);
-    if (check_shader_status(fragment_shader_id, GL_COMPILE_STATUS) != GL_TRUE) {
-        return false;
-    }
-    glAttachShader(program_id, fragment_shader_id);
-
-    glLinkProgram(program_id);
-    if (check_program_status(program_id, GL_LINK_STATUS) != GL_TRUE) {
-        return false;
-    }
-
-    *program_result = program_id;
-
-    // glDeleteShader(vertex_shader_id);
-    // glDeleteShader(fragment_shader_id);
-
-    return true;
-}
-
 const char* to_print = "hello, world";
 
 int CALLBACK WinMain(
@@ -372,12 +309,12 @@ int CALLBACK WinMain(
     check_sdl_error(__LINE__);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    context.window = SDL_CreateWindow("hello",
+    context.window = SDL_CreateWindow("Physica",
                                       SDL_WINDOWPOS_UNDEFINED,
                                       SDL_WINDOWPOS_UNDEFINED,
                                       START_WIDTH,
@@ -397,178 +334,12 @@ int CALLBACK WinMain(
         check_sdl_error(__LINE__);
     }
     
-    // glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glLineWidth(2.0f);
-
-    GLuint basic_vao;
-    glGenVertexArrays(1,&basic_vao);
-    glBindVertexArray(basic_vao);
-
-    GLuint basic_program;
-    if (!load_program(&basic_program,
-                      "shaders/simple_vertex_shader.glsl",
-                      "shaders/simple_fragment_shader.glsl")) {
-        OutputDebugString("Error loading GL program");
-        assert_(false);
-    }
-    GLint basic_modelspace = glGetAttribLocation(basic_program, "vertex_modelspace");
-
-    GLfloat basic_vertex_data[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f
-    };
-    GLuint basic_index_data[] = { 0, 1, 2, 3 };
-
-    GLuint basic_vbo;
-    GLuint basic_ibo;
-
-    glGenBuffers(1, &basic_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, basic_vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(basic_vertex_data),
-                 basic_vertex_data,
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(platform.basic_program.vertex_modelspace_loc,
-                          3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(basic_modelspace);
-
-    glGenBuffers(1, &basic_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, basic_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(basic_index_data),
-                 basic_index_data,
-                 GL_STATIC_DRAW);
-
-    GLuint ellipse_outline_vao;
-    glGenVertexArrays(1,&ellipse_outline_vao);
-    glBindVertexArray(ellipse_outline_vao);
-
-    GLuint ellipse_outline_index_data[25] = {0};
-    GLfloat ellipse_outline_vertex_data[ARRAY_SIZE(ellipse_outline_index_data) * 3] = {0};
-
-    ellipse_outline_index_data[0] = 0;
-    ellipse_outline_vertex_data[0] = 0.0f;
-    ellipse_outline_vertex_data[1] = 0.0f;
-    ellipse_outline_vertex_data[2] = 0.0f;
-
-    f32 angle = f2PI / ((f32)ARRAY_SIZE(ellipse_outline_index_data) - 2); 
-    for (int i = 1; i < ARRAY_SIZE(ellipse_outline_index_data); ++i) {
-        ellipse_outline_vertex_data[i*3] = sin(angle * (f32)(i-1));
-        ellipse_outline_vertex_data[i*3 + 1] = cos(angle * (f32)(i-1));
-        ellipse_outline_vertex_data[i*3 + 2] = 0.0f;
-        ellipse_outline_index_data[i] = i;
-    }
-
-    GLuint ellipse_outline_vbo;
-    GLuint ellipse_outline_ibo;
-
-    glGenBuffers(1, &ellipse_outline_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, ellipse_outline_vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(ellipse_outline_vertex_data),
-                 ellipse_outline_vertex_data,
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(platform.basic_program.vertex_modelspace_loc,
-                          3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(basic_modelspace);
-
-    glGenBuffers(1, &ellipse_outline_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ellipse_outline_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(ellipse_outline_index_data),
-                 ellipse_outline_index_data,
-                 GL_STATIC_DRAW);
-
-    GLint basic_transform = glGetUniformLocation(basic_program, "transform");
-    GLint basic_color = glGetUniformLocation(basic_program, "draw_color");
-
-    platform.basic_program.id = basic_program;
-    platform.basic_program.transform_loc = basic_transform;
-    platform.basic_program.color_loc = basic_color;
-    platform.basic_program.vertex_modelspace_loc = basic_modelspace;
-    platform.basic_program.vao = basic_vao;
-    platform.basic_program.ellipse_outline_vao = ellipse_outline_vao;
-    platform.basic_program.vbo = basic_vbo;
-    platform.basic_program.ibo = basic_ibo;
-    platform.basic_program.ellipse_ibo_count = ARRAY_SIZE(ellipse_outline_index_data);
-
-    GLuint texture_vao;
-    glGenVertexArrays(1,&texture_vao);
-    glBindVertexArray(texture_vao);
-
-    GLuint texture_program;
-    if (!load_program(&texture_program,
-                      "shaders/texture_vertex_shader.glsl",
-                      "shaders/texture_fragment_shader.glsl")) {
-        OutputDebugString("Error loading GL program");
-        assert_(false); 
-    }
     
-    GLint vertex_modelspace_loc = glGetAttribLocation(texture_program, "vertex_modelspace");
-    GLint vertex_uv_loc = glGetAttribLocation(texture_program, "vertex_uv");
-
-    GLfloat texture_vertex_data[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f
-    };
-
-    GLfloat texture_uv_data[] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f
-    };
-
-    GLuint texture_index_data[] = { 0, 1, 2, 3 };
-
-    GLuint texture_vbo;
-    GLuint texture_uv_vbo;
-    GLuint texture_ibo;
-
-    glGenBuffers(1, &texture_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, texture_vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(texture_vertex_data),
-                 texture_vertex_data,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertex_modelspace_loc);
-    glVertexAttribPointer(vertex_modelspace_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glGenBuffers(1, &texture_uv_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, texture_uv_vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(texture_uv_data),
-                 texture_uv_data,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertex_uv_loc);
-    glVertexAttribPointer(vertex_uv_loc, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glGenBuffers(1, &texture_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texture_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(texture_index_data),
-                 texture_index_data,
-                 GL_STATIC_DRAW);
-
-    platform.texture_program.id = texture_program;
-    platform.texture_program.vao = texture_vao;
-    platform.texture_program.vbo = texture_vbo;
-    platform.texture_program.uv_vbo = texture_uv_vbo;
-    platform.texture_program.ibo = texture_ibo;
-    platform.texture_program.transform_loc =
-        glGetUniformLocation(texture_program, "texture_transform");
-    platform.texture_program.uv_transform_loc =
-        glGetUniformLocation(texture_program, "uv_transform");
-    platform.texture_program.texture_sampler_loc =
-        glGetUniformLocation(texture_program, "texture_sampler");
-
     glClearColor(0.784f, 0.8745f, 0.925f, 1.0f);
 
     context.renderer = SDL_CreateRenderer(context.window, -1, SDL_RENDERER_PRESENTVSYNC);
@@ -687,14 +458,9 @@ int CALLBACK WinMain(
         next_input.joystick_r.delta =
                 next_input.joystick_r.position - prev_input.joystick_r.position;
 
-        video_buffer_description_t game_buffer = {};
-        game_buffer.memory = pixels;
+        window_description_t game_buffer = {};
         game_buffer.width = START_WIDTH;
         game_buffer.height = START_HEIGHT;
-        game_buffer.pitch = START_WIDTH * 4;
-        game_buffer.bytes_per_pixel = 4;
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         game_update_and_render(platform,
                                (game_state_t*)game_memory,
@@ -703,15 +469,6 @@ int CALLBACK WinMain(
                                next_input);
 
         prev_input = next_input;
-
-        // if (SDL_UpdateTexture(context.texture,0, pixels, START_WIDTH * 4)) {
-        //     printf("Unable to update SDL texture: %s\n", SDL_GetError());
-        //     return 1;
-        // }
-
-        // SDL_RenderCopy(context.renderer, context.texture, 0, 0);
-
-        // SDL_RenderPresent(context.renderer);
 
         SDL_GL_SwapWindow(context.window);
 

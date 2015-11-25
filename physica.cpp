@@ -67,8 +67,8 @@ ray_hull_intersect(v2 p, v2 d, phy_hull_t* hull) {
             v2 ps[4] = {
                 v2 {width/2.0f, height/2.0f},
                 v2 {width/2.0f, -height/2.0f},
-				v2{ -width / 2.0f, -height / 2.0f },
-				v2{ -width / 2.0f, height / 2.0f },
+                v2{ -width / 2.0f, -height / 2.0f },
+                v2{ -width / 2.0f, height / 2.0f },
             };
 
             for (int i = 0; i < 4; ++i) {
@@ -84,29 +84,29 @@ ray_hull_intersect(v2 p, v2 d, phy_hull_t* hull) {
             }
         } break;
         case HULL_FILLET_RECT: {
-			f32 width = hull->width;
-			f32 height = hull->height;
-			v2 ps[4] = {
-				v2{ width / 2.0f, height / 2.0f },
-				v2{ width / 2.0f, -height / 2.0f },
-				v2{ -width / 2.0f, -height / 2.0f },
-				v2{ -width / 2.0f, height / 2.0f },
-			};
+            f32 width = hull->width;
+            f32 height = hull->height;
+            v2 ps[4] = {
+                v2{ width / 2.0f, height / 2.0f },
+                v2{ width / 2.0f, -height / 2.0f },
+                v2{ -width / 2.0f, -height / 2.0f },
+                v2{ -width / 2.0f, height / 2.0f },
+            };
 
-			for (int i = 0; i < 4; ++i) {
-				v2 a = hp + rotation * ps[(i == 0 ? 4 : i) - 1];
-				v2 b = hp + rotation * ps[i];
-				ray_intersect_t r = ray_segment_intersect(p, d, a, b);
+            for (int i = 0; i < 4; ++i) {
+                v2 a = hp + rotation * ps[(i == 0 ? 4 : i) - 1];
+                v2 b = hp + rotation * ps[i];
+                ray_intersect_t r = ray_segment_intersect(p, d, a, b);
 
-				if (!r.intersecting || (result.intersecting && result.depth < r.depth)) {
-					continue;
-				}
+                if (!r.intersecting || (result.intersecting && result.depth < r.depth)) {
+                    continue;
+                }
 
-				// TODO(doug) right now raycasting is only used for jump logic - make this
-				// actually take the fillet of the rect into account later if we need it
+                // TODO(doug) right now raycasting is only used for jump logic - make this
+                // actually take the fillet of the rect into account later if we need it
 
-				result = r;
-			}
+                result = r;
+            }
         } break;
     }
     return result;
@@ -289,6 +289,8 @@ aabb_insert_node(phy_aabb_tree_t* tree,
 }
 
 void aabb_remove_node(phy_aabb_tree_t *tree, i32 index) {
+    TIMED_FUNC();
+
     i32 parent_index = tree->nodes[index].parent;
     if (parent_index == -1) {
         // if parent index is -1, we're removing the root. just kill the tree
@@ -331,25 +333,31 @@ void aabb_remove_node(phy_aabb_tree_t *tree, i32 index) {
 
 phy_aabb_t
 get_aabb(phy_body_t *body) {
+    TIMED_FUNC();
+
     phy_aabb_t result;
     result.min = v2 {FLT_MAX, FLT_MAX};
     result.max = v2 {-FLT_MAX, -FLT_MAX};
     m2x2 rotation = get_rotation_matrix(body->orientation);
     for (int i = 0; i < body->hulls.count; ++i) {
         phy_hull_t *hull = body->hulls.at(i);
-        if (hull->type == HULL_MESH) {
-            for (int j = 0; j < hull->points.count; ++j) {
-                v2 p = hull->position + rotation * hull->points[j];
-                if (p.x < result.min.x) { result.min.x = p.x; }
-                if (p.y < result.min.y) { result.min.y = p.y; }
-                if (p.x > result.max.x) { result.max.x = p.x; }
-                if (p.y > result.max.y) { result.max.y = p.y; }
-            }   
-        } else {
-            result.min.x = do_support(hull, v2 {-1.0f, 0.0f}).x;
-            result.max.x = do_support(hull, v2 {1.0f, 0.0f}).x;
-            result.min.y = do_support(hull, v2 {0.0f, -1.0f}).y;
-            result.max.y = do_support(hull, v2 {0.0f, 1.0f}).y;
+
+        switch (hull->type) {
+            case HULL_MESH: {
+                for (int j = 0; j < hull->points.count; ++j) {
+                    v2 p = hull->position + rotation * hull->points[j];
+                    if (p.x < result.min.x) { result.min.x = p.x; }
+                    if (p.y < result.min.y) { result.min.y = p.y; }
+                    if (p.x > result.max.x) { result.max.x = p.x; }
+                    if (p.y > result.max.y) { result.max.y = p.y; }
+                }
+            } break;
+            default: {
+                result.min.x = do_support(hull, v2 {-1.0f, 0.0f}).x;
+                result.max.x = do_support(hull, v2 {1.0f, 0.0f}).x;
+                result.min.y = do_support(hull, v2 {0.0f, -1.0f}).y;
+                result.max.y = do_support(hull, v2 {0.0f, 1.0f}).y;
+            } break;
         }
     }
     return result;
@@ -503,7 +511,11 @@ phy_body_t* pick_body(phy_state_t* state, v2 p) {
     return result;
 }
 
-ray_body_intersect_t ray_cast(phy_state_t* state, v2 p, v2 d, phy_body_t* exclude = 0) {
+ray_body_intersect_t ray_cast(phy_state_t* state,
+                              v2 p,
+                              v2 d,
+                              u32 required_flags,
+                              phy_body_t* exclude) {
     phy_aabb_tree_t* tree = &state->aabb_tree;
 
     ray_body_intersect_t result = {0};
@@ -523,6 +535,8 @@ ray_body_intersect_t ray_cast(phy_state_t* state, v2 p, v2 d, phy_body_t* exclud
         if (node->type == LEAF_NODE) {
             phy_body_t* body = node->body;
             if (!body || body == exclude) { continue; }
+            if ((body->flags & required_flags) != required_flags) { continue; }
+
             r = ray_body_intersect(p, d, body);
 
             if (!r.intersecting || (result.body && result.depth < r.depth)) {
@@ -541,7 +555,11 @@ ray_body_intersect_t ray_cast(phy_state_t* state, v2 p, v2 d, phy_body_t* exclud
 }
 
 ray_body_intersect_t
-ray_cast_from_body(phy_state_t* state, phy_body_t* self, f32 width, v2 d) {
+ray_cast_from_body(phy_state_t* state,
+                   phy_body_t* self,
+                   f32 width,
+                   v2 d,
+                   u32 required_flags) {
 
     phy_aabb_tree_t* tree = &state->aabb_tree;
 
@@ -567,6 +585,7 @@ ray_cast_from_body(phy_state_t* state, phy_body_t* self, f32 width, v2 d) {
             if (node->type == LEAF_NODE) {
                 phy_body_t* body = node->body;
                 if (!body || body == self) { continue; }
+                if ((body->flags & required_flags) != required_flags) { continue; }
                 r = ray_body_intersect(p, d, body);
 
                 if (!r.intersecting || (result.body && result.depth < r.depth)) {
@@ -712,6 +731,7 @@ phy_add_block(phy_state_t* state,
     f32 height = diagonal.y;
 
     body->mass = mass;
+    body->gravity_normal = v2{0};
     body->inv_mass = 1.0f / body->mass;
     body->moment = 1.0f/12.0f * body->mass * (width * width + height * height);
     body->inv_moment = 1.0f / body->moment;
@@ -748,6 +768,7 @@ phy_add_fillet_block(phy_state_t* state,
     f32 height = diagonal.y;
     
     body->mass = mass;
+    body->gravity_normal = v2{0};
     body->inv_mass = 1.0f / body->mass;
     body->moment = 1.0f/12.0f * body->mass * (width * width + height * height);
     body->inv_moment = 1.0f / body->moment;
@@ -812,6 +833,7 @@ phy_add_collision(phy_state_t* state, phy_collision_t collision) {
 
 void
 update_hulls(phy_body_t* body) {
+    TIMED_FUNC();
     m2x2 rotation = get_rotation_matrix(body->orientation);
     for (int i = 0; i < body->hulls.count; ++i) {
         phy_hull_t* hull = body->hulls.at(i);
@@ -992,11 +1014,11 @@ do_epa(phy_hull_t* a,
         }
     }
 
-	char buffer[1024 * 4];
-	i32 buffer_index = 0;
-	for (i32 i = 0; i < vertex_count; i++) {
-		buffer_index += sprintf(buffer + buffer_index, "%f,%f\n", polytope[i].p.x, polytope[i].p.y);
-	}
+    char buffer[1024 * 4];
+    i32 buffer_index = 0;
+    for (i32 i = 0; i < vertex_count; i++) {
+        buffer_index += sprintf(buffer + buffer_index, "%f,%f\n", polytope[i].p.x, polytope[i].p.y);
+    }
 
     assert_(false);
     return false;
@@ -1092,6 +1114,9 @@ solve_velocity_constraint(phy_body_t *a,
 void
 phy_add_aabb_for_body(phy_state_t* state,
                       phy_body_t* body) {
+
+    TIMED_FUNC();
+
     phy_aabb_tree_t* tree = &state->aabb_tree;
 
     assert_(!is_freed(body));
@@ -1350,6 +1375,19 @@ pre_solve_velocity_constraints(phy_state_t* state) {
     }
 }
 
+b32
+collision_is_physical(phy_body_t* a, phy_body_t* b) {
+    if (a->flags & PHY_INCORPOREAL_FLAG || b->flags & PHY_INCORPOREAL_FLAG) {
+        return false;
+    }
+
+    if (a->flags & PHY_CHARACTER_FLAG && b->flags & PHY_CHARACTER_FLAG) {
+        return false;
+    }
+
+    return true;
+}
+
 void
 solve_velocity_constraints(phy_state_t* state, f32 dt) {
     TIMED_FUNC();
@@ -1359,7 +1397,7 @@ solve_velocity_constraints(phy_state_t* state, f32 dt) {
         phy_body_t *a = collision->a;
         phy_body_t *b = collision->b;
 
-        if (a->flags & PHY_INCORPOREAL_FLAG || b->flags & PHY_INCORPOREAL_FLAG) {
+        if (!collision_is_physical(a, b)) {
             continue;
         }
 
@@ -1436,6 +1474,8 @@ void
 integrate_velocities(phy_state_t* state, f32 dt) {
     TIMED_FUNC();
 
+    f32 gravity_magnitude = length(state->gravity);
+
     for (int i = 0; i < state->bodies.size; ++i) {
         phy_body_t* body = state->bodies.try_get(i);
         if (!body) {
@@ -1445,7 +1485,11 @@ integrate_velocities(phy_state_t* state, f32 dt) {
         *(state->previous_velocities.at(i)) = body->velocity;
         *(state->previous_angular_velocities.at(i)) = body->angular_velocity;
         if (!(body->flags & PHY_FIXED_FLAG) && !(body->flags & PHY_WEIGHTLESS_FLAG)) {
-            body->force += state->gravity * body->mass;
+            if (body->gravity_normal.x != 0.0f || body->gravity_normal.y != 0.0f) {
+                body->force += body->gravity_normal * body->mass * gravity_magnitude;
+            } else {
+                body->force += state->gravity * body->mass;
+            }
         }
         v2 accel = body->force * body->inv_mass;
         f32 angular_accel = body->torque * body->inv_moment;
@@ -1485,26 +1529,29 @@ integrate_positions(phy_state_t* state, f32 dt) {
 
 inline void
 phy_update_body(phy_state_t* state, phy_body_t* body) {
+    TIMED_FUNC();
 
     body->force = v2{0,0};
     body->torque = 0.0f;
     update_hulls(body);
-    body->aabb = get_aabb(body);
-    phy_aabb_t fat_aabb =
-            state->aabb_tree.nodes.at(body->aabb_node_index)->fat_aabb;
 
     if (body->aabb_node_index == -1) {
         phy_add_aabb_for_body(state, body);
-    } else if (!aabb_is_contained_in(body->aabb, fat_aabb)) {
-        aabb_remove_node(&state->aabb_tree, body->aabb_node_index);
-        phy_add_aabb_for_body(state, body);
+    } else if (!(body->flags & PHY_FIXED_FLAG)) {
+        body->aabb = get_aabb(body);
+        phy_aabb_t fat_aabb =
+                state->aabb_tree.nodes.at(body->aabb_node_index)->fat_aabb;
+
+        if (!aabb_is_contained_in(body->aabb, fat_aabb)) {
+            aabb_remove_node(&state->aabb_tree, body->aabb_node_index);
+            phy_add_aabb_for_body(state, body);
+        }
     }
 }
 
 void
 finalize_update(phy_state_t* state, f32 dt) {
     TIMED_FUNC();
-
 
     for (int i = 0; i < state->bodies.size; ++i) {
         phy_body_t* body = state->bodies.try_get(i);
@@ -1561,13 +1608,13 @@ phy_update(phy_state_t* state, hashmap<entity_ties_t>* collision_map, f32 dt) {
     TIMED_FUNC();
 
 
-	const i32 max_iterations = 12;
+    const i32 max_iterations = 12;
     f32 current_time = 0;
-    f32 target_time =  dt;
+    f32 target_time = dt;
     assert_(state->time_step > 0);
-	for (int i = 0;
-		 i < max_iterations && current_time + state->time_step < target_time;
-		++i) {
+    for (int i = 0;
+         i < max_iterations && current_time + state->time_step <= target_time;
+        ++i) {
         current_time += state->time_step;
         _phy_update(state, collision_map, state->time_step);
     }

@@ -13,10 +13,15 @@
 #include "animations.h"
 #include "random.h"
 #include "enemies.h"
+#include "npcs.h"
 
 void
 initialize_render_arena(game_state_t* game_state, window_description_t window) {
     game_state->gl_programs = load_programs();
+
+    // rgba_t lighting = to_rgba(0xff818dba);
+    rgba_t lighting = (1.0f / 255.0f) * rgba_t {237.0f,222.0f,213.0f,255.0f};
+    // rgba_t lighting = (1.0f / 255.0f) * rgba_t {255.0f,255.0f,255.0f,255.0f};
 
     const i32 max_render_objects = 20000;
     game_state->main_render_group.objects.count = 0;
@@ -24,7 +29,8 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
     game_state->main_render_group.objects.values =
         PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_t);
     game_state->main_render_group.frame_buffer =
-        create_frame_buffer(2.0f * window.width, 2.0f * window.height);
+        create_frame_buffer(window.width, window.height);
+    game_state->main_render_group.lighting = lighting;
 
     const i32 max_background_objects = 60000;
     game_state->background_render_group.objects.count = 0;
@@ -33,6 +39,7 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
         PUSH_ARRAY(&game_state->render_arena, max_background_objects, render_object_t);
     game_state->background_render_group.frame_buffer =
         game_state->main_render_group.frame_buffer;
+    game_state->background_render_group.lighting = lighting;
 
     const i32 max_ui_objects = 1000;
     game_state->ui_render_group.objects.count = 0;
@@ -41,6 +48,10 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
         PUSH_ARRAY(&game_state->render_arena, max_ui_objects, render_object_t);
     game_state->ui_render_group.frame_buffer =
         game_state->main_render_group.frame_buffer;
+    game_state->ui_render_group.lighting = lighting;
+
+
+    glClearColor(0.784f * lighting.r, 0.8745f * lighting.g, 0.925f * lighting.b, 1.0f);
 
     const i32 max_animations = 1024 * 6;
     game_state->main_animation_group.animations.count = 0;
@@ -82,16 +93,15 @@ void
 setup_world(game_state_t *game_state) {
 
     const char* tile_map =
-    "------------------------------------------------------------------------------------------------------"
+    "                                                                                                     *"
     "######################################################################################################"
     "######################################################################################################"
     "######################################################################################################"
     "######################################################################################################"
-    "######################################################################################################"
-    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM########################################################################"
+    "                MMMMMMMMMMMMMM########################################################################"
     "                              # ######################################################################"
     "                              # ######################################################################"
-    " s                    #         ######################################################################"
+    " s gggggggg           #         ######################################################################"
     "#################  ##   ##   ## ######################################################################"
     "#################MM##MMM##MMM## ######################################################################"
     "############################### ######################################################################"
@@ -118,10 +128,8 @@ setup_world(game_state_t *game_state) {
     "######################################################################################################"
     "######################################################################################################";
 
-    i32 tile_map_width = i32(strchr(tile_map, '#') - tile_map);
-    i32 tile_map_height = strlen(tile_map) / tile_map_width - 1;
-
-    tile_map = tile_map + tile_map_width;
+    i32 tile_map_width = i32(strchr(tile_map, '*') - tile_map + 1);
+    i32 tile_map_height = strlen(tile_map) / tile_map_width;
 
     for (int y = 0; y < tile_map_height; ++y) {
         for (int x = 0; x < tile_map_width; ++x) {
@@ -185,21 +193,24 @@ setup_world(game_state_t *game_state) {
                     const v2 tile_diagonal = v2 {1.0f, 1.0f};
                     const f32 tile_mass = 10.0f;
 
-                    sim_entity_t* tile = create_fillet_block_entity(game_state,
-                                                                    TILE,
-                                                                    position,
-                                                                    tile_diagonal,
-                                                                    0.15f,
-                                                                    tile_mass,
-                                                                    0.3f,
-                                                                    0);
+                    create_fillet_block_entity(game_state,
+                                               TILE,
+                                               position,
+                                               tile_diagonal,
+                                               0.15f,
+                                               tile_mass,
+                                               0.3f,
+                                               0);
                 } break;
+                case 'g': {
+                    create_lilguy(game_state, position);
+                }
             }
         }
     }
 
     game_state->gravity_normal = v2 {0.0f, -1.0f};
-    game_state->gravity_magnitude = 78.0f;
+    game_state->gravity_magnitude = BASE_GRAVITY_MAGNITUDE;
 
     game_state->rotation_state.target_direction = DIR_DOWN;
     game_state->rotation_state.current_direction = DIR_DOWN;
@@ -267,7 +278,9 @@ initialize_game_state(game_state_t* game_state, window_description_t window) {
 
 void
 game_update_and_render(platform_services_t platform,
-                       game_state_t* game_state, f32 dt,
+                       game_state_t* game_state,
+                       transient_state_t* transient_state,
+                       f32 dt,
                        window_description_t window,
                        game_input_t game_input) {
 
@@ -275,6 +288,12 @@ game_update_and_render(platform_services_t platform,
 
     if (!game_state->initialized) {
         initialize_game_state(game_state, window);
+
+        i32 index = add_animation(&game_state->main_animation_group,
+                      &game_state->animations.lilguy_standing_right,
+                      0.0f);
+
+
     }
 
     clear_hashmap(&game_state->collision_map);
@@ -301,6 +320,7 @@ game_update_and_render(platform_services_t platform,
             __UPDATE_CASE(TURRET);
             __UPDATE_CASE(TURRET_SHOT);
             __UPDATE_CASE(SPIKES);
+            __UPDATE_CASE(LILGUY);
         }
     }
 
@@ -322,11 +342,11 @@ game_update_and_render(platform_services_t platform,
             ((cos(game_state->rotation_state.progress * fPI) * -0.5f) + 0.5f)
             * fPI_OVER_2;
         if (target_direction == ((current_direction + 1) % 4)) { // clockwise
-            game_state->gravity_normal =
+            game_state->player->body->gravity_normal =
                 rotate(base_normal, -progess_with_easing);
         } else {
             assert_(target_direction == (current_direction ? (current_direction - 1) : 3));
-            game_state->gravity_normal =
+            game_state->player->body->gravity_normal =
                 rotate(base_normal, progess_with_easing);
         }
 
@@ -335,10 +355,9 @@ game_update_and_render(platform_services_t platform,
         }
     }
 
-    debug_update_and_render(game_state, dt, &game_input);
+    debug_update_and_render(game_state, dt, window, &game_input);
 
-    game_state->background_camera.center = PARALLAX_COEFFICIENT *
-        game_state->main_camera.center;
+    game_state->background_camera.center = game_state->main_camera.center;
     game_state->background_camera.orientation = game_state->main_camera.orientation;
 
     update_background(&game_state->background,
@@ -352,13 +371,33 @@ game_update_and_render(platform_services_t platform,
 
     setup_frame_buffer(game_state->main_render_group.frame_buffer);
 
-    draw_render_group(&game_state->gl_programs,
+    v2 viewport = v2 {
+        (f32)game_state->main_render_group.frame_buffer.width,
+        (f32)game_state->main_render_group.frame_buffer.height
+    };
+
+    f32 rotation = atanv(game_state->player->body->gravity_normal) + fPI_OVER_2;
+    rgba_t up_color = to_rgba(0xffc4f0e7);
+    rgba_t down_color = to_rgba(0xfff7b798);
+    // rgba_t up_color = to_rgba(0xff562f77);
+    // rgba_t down_color = to_rgba(0xff66a8bd);
+    draw_gradient(&game_state->gl_programs,
+                  viewport,
+                  rotate(v2 {0.0f, -1.0f}, -rotation),
+                  rotate(v2 {0.0f, 1.0f}, -rotation),
+                  down_color,
+                  up_color);
+
+    draw_render_group(transient_state,
+                      &game_state->gl_programs,
                       game_state->background_camera,
                       &game_state->background_render_group);
-    draw_render_group(&game_state->gl_programs,
+    draw_render_group(transient_state,
+                      &game_state->gl_programs,
                       game_state->main_camera,
                       &game_state->main_render_group);
-    draw_render_group(&game_state->gl_programs,
+    draw_render_group(transient_state,
+                      &game_state->gl_programs,
                       game_state->ui_camera,
                       &game_state->ui_render_group);
 

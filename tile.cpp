@@ -18,7 +18,7 @@ create_tile(game_state_t* game_state, v2 position, tile_info_t info) {
                                              tile_diagonal,
                                              tile_mass,
                                              tile_orientation,
-                                             PHY_FIXED_FLAG);
+                                             PHY_FIXED_FLAG | PHY_GROUND_FLAG);
 
     tile->body->inv_moment = 0.0f;
     tile->body->inv_mass = 0.0f;
@@ -57,19 +57,19 @@ create_spikes(game_state_t* game_state, v2 position, i32 direction) {
     v2 center;
     switch (direction) {
         case DIR_UP: {
-            diagonal = v2 {0.5f, 1.0f};
+            diagonal = v2 {1.0f, 0.5f};
             center = position - v2 {0.0f, 0.25f};
         } break;
         case DIR_DOWN: {
-            diagonal = v2 {0.5f, 1.0f};
+            diagonal = v2 {1.0f, 0.5f};
             center = position + v2 {0.0f, 0.25f};
         } break;
         case DIR_LEFT: {
-            diagonal = v2 {1.0f, 0.5f};
+            diagonal = v2 {0.5f, 1.0f};
             center = position - v2 {0.25f, 0.0f};
         } break;
         case DIR_RIGHT: {
-            diagonal = v2 {1.0f, 0.5f};
+            diagonal = v2 {0.5f, 1.0f};
             center = position + v2 {0.25f, 0.0f};
         } break;
     }

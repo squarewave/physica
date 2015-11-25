@@ -8,6 +8,7 @@
 #include "typedefs.h"
 #include "physica_math.h"
 #include "camera.h"
+#include "stb_truetype.h"
 
 struct tex2 {
     i32 width, height, pitch;
@@ -20,6 +21,11 @@ struct glyph_spec_t {
     v2 hotspot;
     f32 advance_width;
     f32 left_side_bearing;
+};
+
+struct font_spec_t {
+    tex2 texture;
+    stbtt_bakedchar baked_chars[96];
 };
 
 struct window_description_t {
@@ -44,7 +50,6 @@ enum render_flags_t {
 struct render_rect_t {
     // required:
     u32 type;
-    u32 flags;
     v2 center;
     b32 parallax;
 
@@ -56,7 +61,6 @@ struct render_rect_t {
 struct render_texture_t {
     // required:
     u32 type;
-    u32 flags;
     v2 center;
     b32 parallax;
 
@@ -72,7 +76,6 @@ struct render_texture_t {
 struct render_circle_t {
     // required:
     u32 type;
-    u32 flags;
     v2 center;
     b32 parallax;
 
@@ -86,7 +89,6 @@ struct render_object_t {
     union {
         struct {
           u32 type;
-          u32 flags;
           v2 center;
           b32 parallax;
         };
@@ -105,6 +107,7 @@ struct frame_buffer_t {
 
 struct render_group_t {
     frame_buffer_t frame_buffer;
+    rgba_t lighting;
     vec<render_object_t> objects;
 };
 
@@ -113,6 +116,50 @@ struct render_task_t {
     camera_t camera;
     render_group_t* render_group;
     rect_i clip_rect;
+};
+
+
+enum gl_resouce_t {
+    RES_SOLIDS_PROG,
+    RES_SOLIDS_VAO_RECT,
+    RES_SOLIDS_VAO_CIRCLE,
+    RES_SOLIDS_VERTEX_MODELSPACE,
+    RES_SOLIDS_DRAW_COLOR,
+    RES_SOLIDS_TRANSFORM,
+    RES_SOLIDS_LIGHTING,
+
+    RES_TEXTURES_PROG,
+    RES_TEXTURES_VAO_RECT,
+    RES_TEXTURES_VERTEX_MODELSPACE,
+    RES_TEXTURES_VERTEX_UV,
+    RES_TEXTURES_TINT,
+    RES_TEXTURES_TRANSFORM,
+    RES_TEXTURES_UV_TRANSFORM,
+    RES_TEXTURES_SAMPLER,
+    RES_TEXTURES_LIGHTING,
+
+    RES_SOLID_PARTICLES_PROG,
+    RES_SOLID_PARTICLES_VAO_RECT,
+    RES_SOLID_PARTICLES_VERTEX_MODELSPACE,
+    RES_SOLID_PARTICLES_CENTER,
+    RES_SOLID_PARTICLES_SCALING,
+    RES_SOLID_PARTICLES_DRAW_COLOR,
+    RES_SOLID_PARTICLES_CENTER_BUFFER,
+    RES_SOLID_PARTICLES_SCALING_BUFFER,
+    RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER,
+    RES_SOLID_PARTICLES_VIEW_TRANSFORM,
+    RES_SOLID_PARTICLES_LIGHTING,
+
+    RES_GRADIENT_PROG,
+    RES_GRADIENT_VAO_RECT,
+    RES_GRADIENT_VERTEX_MODELSPACE,
+    RES_GRADIENT_VIEWPORT,
+    RES_GRADIENT_START_COLOR,
+    RES_GRADIENT_END_COLOR,
+    RES_GRADIENT_GRADIENT_START,
+    RES_GRADIENT_GRADIENT_END,
+
+    RES_COUNT,
 };
 
 enum gl_program_id_t {
@@ -148,6 +195,8 @@ enum gl_uniform_id_t {
 
     GL_UNIFORM_DRAW_COLOR,
 
+    GL_UNIFORM_LIGHTING,
+
     GL_UNIFORM_COUNT,
 };
 
@@ -168,6 +217,10 @@ struct gl_program_t {
 };
 
 struct gl_programs_t {
+    union {
+        i32 i_res_ids[RES_COUNT];
+        u32 u_res_ids[RES_COUNT];
+    };
     gl_program_t programs[GL_PROG_COUNT];
 };
 
@@ -212,9 +265,20 @@ render_object_t* push_rect(render_group_t* render_group,
                            f32 z,
                            b32 parallax = false);
 
-render_object_t* push_background(render_group_t* render_group,
-                                 color_t color,
-                                 window_description_t buffer);
+render_object_t* push_rect_outline(render_group_t* render_group,
+                                   color_t color,
+                                   v2 center,
+                                   v2 diagonal,
+                                   f32 orientation,
+                                   f32 z,
+                                   b32 parallax = false);
+
+render_object_t* push_circle(render_group_t* render_group,
+                             color_t color,
+                             v2 center,
+                             f32 radius,
+                             f32 z,
+                             b32 parallax = false);
 
 render_object_t* push_texture(render_group_t* render_group,
                               v2 center,
@@ -227,9 +291,10 @@ render_object_t* push_texture(render_group_t* render_group,
                               f32 z,
                               b32 parallax = false);
 
-struct platform_services_t;
+struct transient_state_t;
 
-void draw_render_group(platform_services_t platform,
+void draw_render_group(transient_state_t* transient_state,
+                       gl_programs_t* programs,
                        camera_t camera,
                        render_group_t* render_group);
 

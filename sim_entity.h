@@ -19,6 +19,7 @@ enum entity_type {
     TURRET_SHOT,
     SPIKES,
     SAVE_POINT,
+    LILGUY,
 };
 
 #define UPDATE_FUNC(type) void update_##type(game_state_t* game_state,\
@@ -61,6 +62,14 @@ struct turret_state_t {
     v2 direction;
 };
 
+const u32 LILGUY_LEFT_FACING  = 0x01;
+const u32 LILGUY_RUNNING      = 0x02;
+
+struct lilguy_state_t {
+    u32 flags;
+    i32 animation_index;
+};
+
 struct sim_entity_t {
     i64 id;
     phy_body_t* body;
@@ -71,6 +80,7 @@ struct sim_entity_t {
         spikes_info_t spikes_info;
         bogger_state_t bogger_state;
         turret_state_t turret_state;
+        lilguy_state_t lilguy_state;
         void* custom_state;
     };
 };

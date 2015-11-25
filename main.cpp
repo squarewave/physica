@@ -17,6 +17,7 @@
 #include "bogger.cpp"
 #include "game_debug.cpp"
 #include "enemies.cpp"
+#include "npcs.cpp"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"

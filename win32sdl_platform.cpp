@@ -189,48 +189,6 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
         } break;
     }
 
-    SDL_GameController* handle = context->controller_handle;
-    if(handle && SDL_GameControllerGetAttached(handle))
-    {
-        // NOTE: We have a controller with index ControllerIndex.
-        b32 up = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_UP);
-        b32 down = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-        b32 left = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-        b32 right = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-        b32 start = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_START);
-        b32 back = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_BACK);
-        b32 l_shoulder = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-        b32 r_shoulder = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-        b32 button_a = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_A);
-        b32 button_b = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_B);
-        b32 button_x = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_X);
-        b32 button_y = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_Y);
-
-        i16 stick_x = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_LEFTX);
-        i16 stick_y = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_LEFTY);
-        i16 l_trigger = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-        i16 r_trigger = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
-
-        context->next_input->up.ended_down = up;
-        context->next_input->down.ended_down = down;
-        context->next_input->left.ended_down = left;
-        context->next_input->right.ended_down = right;
-
-        context->next_input->button_a.ended_down = button_a;
-        context->next_input->button_b.ended_down = button_b;
-        context->next_input->button_x.ended_down = button_x;
-        context->next_input->button_y.ended_down = button_y;
-
-        context->next_input->button_l_bumper.ended_down = l_shoulder;
-        context->next_input->button_r_bumper.ended_down = r_shoulder;
-
-        context->next_input->joystick_l.position.x = ((f32)stick_x) / 32768.0f;
-        context->next_input->joystick_l.position.y = ((f32)stick_y) / 32768.0f;
-
-        context->next_input->analog_l_trigger.value = ((f32)l_trigger) / 32768.0f;
-        context->next_input->analog_r_trigger.value = ((f32)r_trigger) / 32768.0f;
-    }
-
     return should_quit;
 }
 
@@ -312,6 +270,7 @@ int CALLBACK WinMain(
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    // SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     context.window = SDL_CreateWindow("Physica",
@@ -323,6 +282,9 @@ int CALLBACK WinMain(
     check_sdl_error(__LINE__);
 
     context.gl_context = SDL_GL_CreateContext(context.window);
+    check_sdl_error(__LINE__);
+
+    SDL_GL_MakeCurrent(context.window, context.gl_context);
     check_sdl_error(__LINE__);
 
     glewExperimental = GL_TRUE;
@@ -339,35 +301,35 @@ int CALLBACK WinMain(
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glLineWidth(2.0f);
-    
+
     glClearColor(0.784f, 0.8745f, 0.925f, 1.0f);
 
-    context.renderer = SDL_CreateRenderer(context.window, -1, SDL_RENDERER_PRESENTVSYNC);
-    check_sdl_error(__LINE__);
+    // context.renderer = SDL_CreateRenderer(context.window, -1, SDL_RENDERER_PRESENTVSYNC);
+    // check_sdl_error(__LINE__);
 
-    SDL_RendererInfo renderer_info;
-    SDL_GetRendererInfo(context.renderer, &renderer_info);
+    // SDL_RendererInfo renderer_info;
+    // SDL_GetRendererInfo(context.renderer, &renderer_info);
 
-    if ((renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 || 
-        (renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
-        assert_(false);
-    }
+    // if ((renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 || 
+    //     (renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
+    //     assert_(false);
+    // }
 
-    if (!context.renderer) {
-        printf("Unable to create renderer: %s\n", SDL_GetError());
-        return 1;
-    }
+    // if (!context.renderer) {
+    //     printf("Unable to create renderer: %s\n", SDL_GetError());
+    //     return 1;
+    // }
 
-    context.texture = SDL_CreateTexture(context.renderer,
-                                        SDL_PIXELFORMAT_ARGB8888,
-                                        SDL_TEXTUREACCESS_STREAMING,
-                                        START_WIDTH,
-                                        START_HEIGHT);
+    // context.texture = SDL_CreateTexture(context.renderer,
+    //                                     SDL_PIXELFORMAT_ARGB8888,
+    //                                     SDL_TEXTUREACCESS_STREAMING,
+    //                                     START_WIDTH,
+    //                                     START_HEIGHT);
 
-    if (!context.texture) {
-        printf("Unable to create texture: %s\n", SDL_GetError());
-        return 1;
-    }
+    // if (!context.texture) {
+    //     printf("Unable to create texture: %s\n", SDL_GetError());
+    //     return 1;
+    // }
 
     size_t pixel_bytes = START_WIDTH * START_HEIGHT * 4;
     void* pixels = malloc(pixel_bytes);
@@ -375,6 +337,7 @@ int CALLBACK WinMain(
 
     const u64 one_gig = 1024LL * 1024LL * 1024LL;
     void* game_memory = calloc(one_gig, sizeof(u8));
+    void* transient_memory = calloc(one_gig, sizeof(u8));
 
     context.controller_handle = find_controller_handle();
 
@@ -390,6 +353,7 @@ int CALLBACK WinMain(
     u64 last_counter = SDL_GetPerformanceCounter();
     const f32 target_seconds_per_frame = 1.0f / (f32)FRAME_RATE;
     while(running) {
+
         f32 elapsed = get_seconds_elapsed(last_counter, SDL_GetPerformanceCounter());
         if (elapsed < target_seconds_per_frame) {
             u32 sleep_time = ((target_seconds_per_frame - elapsed) * 1000) - 1;
@@ -439,6 +403,48 @@ int CALLBACK WinMain(
         next_input.mouse.position = prev_input.mouse.position;
         next_input.mouse.normalized_position = prev_input.mouse.normalized_position;
 
+        SDL_GameController* handle = context.controller_handle;
+        if(handle && SDL_GameControllerGetAttached(handle))
+        {
+            // NOTE: We have a controller with index ControllerIndex.
+            b32 up = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_UP);
+            b32 down = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+            b32 left = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+            b32 right = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+            b32 start = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_START);
+            b32 back = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_BACK);
+            b32 l_shoulder = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+            b32 r_shoulder = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+            b32 button_a = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_A);
+            b32 button_b = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_B);
+            b32 button_x = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_X);
+            b32 button_y = SDL_GameControllerGetButton(handle, SDL_CONTROLLER_BUTTON_Y);
+
+            i16 stick_x = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_LEFTX);
+            i16 stick_y = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_LEFTY);
+            i16 l_trigger = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+            i16 r_trigger = SDL_GameControllerGetAxis(handle, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+
+            context.next_input->up.ended_down = up;
+            context.next_input->down.ended_down = down;
+            context.next_input->left.ended_down = left;
+            context.next_input->right.ended_down = right;
+
+            context.next_input->button_a.ended_down = button_a;
+            context.next_input->button_b.ended_down = button_b;
+            context.next_input->button_x.ended_down = button_x;
+            context.next_input->button_y.ended_down = button_y;
+
+            context.next_input->button_l_bumper.ended_down = l_shoulder;
+            context.next_input->button_r_bumper.ended_down = r_shoulder;
+
+            context.next_input->joystick_l.position.x = ((f32)stick_x) / 32768.0f;
+            context.next_input->joystick_l.position.y = ((f32)stick_y) / 32768.0f;
+
+            context.next_input->analog_l_trigger.value = ((f32)l_trigger) / 32768.0f;
+            context.next_input->analog_r_trigger.value = ((f32)r_trigger) / 32768.0f;
+        }
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (handle_sdl_event(&event, &context)) {
@@ -464,6 +470,7 @@ int CALLBACK WinMain(
 
         game_update_and_render(platform,
                                (game_state_t*)game_memory,
+                               (transient_state_t*)transient_memory,
                                target_seconds_per_frame,
                                game_buffer,
                                next_input);

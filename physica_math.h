@@ -330,6 +330,19 @@ inline v2 normalize(v2 val) {
     return !fequals(l, 0.0f) ? (1.0f / l) * val : v2{0};
 }
 
+inline f32 length_squared(v3 val) {
+    return val.x * val.x + val.y * val.y + val.z * val.z;
+}
+
+inline f32 length(v3 val) {
+    return sqrt(length_squared(val));
+}
+
+inline v3 normalize(v3 val) {
+    f32 l = length(val);
+    return !fequals(l, 0.0f) ? (1.0f / l) * val : v3{0};
+}
+
 inline f32 atanv(v2 val) {
     return atan2(val.y, val.x);
 }

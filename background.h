@@ -1,11 +1,15 @@
 #ifndef BACKGROUND_H__
 #define BACKGROUND_H__
 
+struct mote_attractor_t {
+    v2 position;
+};
+
 struct mote_t {
 	i32 width;
 	u32 color;
 	v2 center;
-    f32 velocity;
+    v2 velocity;
     f32 z;
 };
 
@@ -20,6 +24,7 @@ struct floaty_t {
 struct background_t {
 	array<mote_t> motes;
     array<floaty_t> floaties;
+    array<mote_attractor_t> attractors;
     array<tex2> textures;
 	color_t background_color;
     f32 wind_x;

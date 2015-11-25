@@ -78,9 +78,11 @@ struct phy_support_result_t {
     v2 p;
 };
 
-const u32 PHY_FIXED_FLAG = 1;
-const u32 PHY_WEIGHTLESS_FLAG = 2;
-const u32 PHY_INCORPOREAL_FLAG = 4;
+const u32 PHY_FIXED_FLAG        = 0x01;
+const u32 PHY_WEIGHTLESS_FLAG   = 0x02;
+const u32 PHY_INCORPOREAL_FLAG  = 0x04;
+const u32 PHY_GROUND_FLAG       = 0x08;
+const u32 PHY_CHARACTER_FLAG    = 0x10;
 
 struct phy_collision_t {
     v2 normal;
@@ -114,6 +116,7 @@ struct phy_body_t {
     f32 mass, inv_mass, moment, inv_moment;
     v2 position, velocity;
     f32 orientation, angular_velocity;
+    v2 gravity_normal;
     v2 force; // zeroed after integration
     f32 torque; // zeroed after integration
     phy_aabb_t aabb;
@@ -199,5 +202,15 @@ ray_intersect_t ray_segment_intersect(v2 p, v2 d, v2 a, v2 b);
 
 ray_intersect_t ray_hull_intersect(v2 p, v2 d, phy_hull_t* hull);
 
-ray_body_intersect_t ray_cast_from_body(phy_state_t* state, phy_body_t* self, f32 width, v2 d);
+ray_body_intersect_t ray_cast(phy_state_t* state,
+                              v2 p,
+                              v2 d,
+                              u32 required_flags = 0,
+                              phy_body_t* exclude = 0);
+
+ray_body_intersect_t ray_cast_from_body(phy_state_t* state,
+                                        phy_body_t* self,
+                                        f32 width,
+                                        v2 d,
+                                        u32 required_flags = 0);
 #endif //PHYSICA_PHYSICA_H

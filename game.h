@@ -112,6 +112,12 @@ struct game_state_t {
     debug_state_t debug_state;
 };
 
+struct transient_state_t {
+    v4 particle_center_data[MAX_PARTICLES];
+    v2 particle_scaling_data[MAX_PARTICLES];
+    rgba_t particle_color_data[MAX_PARTICLES];
+};
+
 struct button_input_t {
     u32 transition_count;
     b32 ended_down;
@@ -147,8 +153,10 @@ struct game_input_t {
 struct platform_services_t;  
 
 void game_update_and_render(platform_services_t platform,
-                            game_state_t* game_state, f32 dt,
-                            window_description_t buffer_description,
+                            game_state_t* game_state,
+                            transient_state_t* transient_state,
+                            f32 dt,
+                            window_description_t window,
                             game_input_t game_input);
 
 platform_read_entire_file_result_t platform_read_entire_file(const char * filename);

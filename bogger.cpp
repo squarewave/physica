@@ -32,6 +32,7 @@ UPDATE_FUNC(BOGGER) {
     ray_body_intersect_t cast = ray_cast(&game_state->physics_state,
                                          entity->body->position,
                                          to_player,
+                                         0,
                                          entity->body);
 
     if (cast.body == game_state->player->body) {

@@ -8,7 +8,7 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
 	const f32 player_mass = 10.0f;
 	const f32 player_initial_orientation = 0.0f;
     const f32 player_z_index = 0.1f;
-    const u32 player_flags = 0;
+    const u32 player_flags = PHY_CHARACTER_FLAG;
 
     sim_entity_t* player = create_fillet_block_entity(game_state,
                                                       PLAYER,
@@ -20,10 +20,11 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
                                                       player_flags);
 
     player->body->inv_moment = 0.0f;
+    player->body->gravity_normal = v2 {0.0f, -1.0f};
     
     i32 animation_index =
         add_animation(&game_state->main_animation_group,
-                      &game_state->animations.martin_standing_right,
+                      &game_state->animations.may_standing_right,
                       player_z_index);
 
     player_state_t* player_state = PUSH_STRUCT(&game_state->world_arena,
@@ -41,17 +42,17 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
 UPDATE_FUNC(PLAYER) {
 	player_state_t* player = (player_state_t*)entity->custom_state;
 
-    const f32 player_move_factor = 40.0f;
+    const f32 player_move_factor = 20.0f;
     const f32 direction_deadzone = 0.1f;
-    const f32 max_vel = 7.0f;
-    const f32 jump_speed = 14.0f;
-    const f32 jump_falloff = 7.0f;
-    const f32 jump_velocity_threshold = 0.5f;
+    const f32 max_vel = 3.5f;
+    const f32 jump_speed = 7.0f;
+    const f32 jump_falloff = 3.5f;
+    const f32 jump_velocity_threshold = 0.25f;
     const f32 jump_min_distance = (0.5f * player_height) + 0.1f;
     const f32 jump_raycast_threshold = player_width / 2;
     const f32 camera_move_factor = 0.4f;
 
-    f32 gravity_orientation = atanv(game_state->gravity_normal) + fPI_OVER_2;
+    f32 gravity_orientation = atanv(entity->body->gravity_normal) + fPI_OVER_2;
 
     f32 combined_l_r_trigger = game_input.analog_r_trigger.value -
         game_input.analog_l_trigger.value;
@@ -89,14 +90,17 @@ UPDATE_FUNC(PLAYER) {
     b32 direction_changed = false;
     b32 moving = false;
 
-    f32 virtual_dx = flt_cross(game_state->gravity_normal, entity->body->velocity);
-    f32 virtual_dy = -dot(game_state->gravity_normal, entity->body->velocity);
+    f32 old_virtual_dx = flt_cross(entity->body->gravity_normal, entity->body->velocity);
+    f32 old_virtual_dy = -dot(entity->body->gravity_normal, entity->body->velocity);
+    f32 virtual_dx = old_virtual_dx;
+    f32 virtual_dy = old_virtual_dy;
 
     ray_body_intersect_t r =
         ray_cast_from_body(&game_state->physics_state,
                            entity->body,
                            jump_raycast_threshold,
-                           game_state->gravity_normal);
+                           entity->body->gravity_normal,
+                           PHY_GROUND_FLAG);
 
     b32 is_supported = r.body && r.depth < jump_min_distance;
 
@@ -108,6 +112,9 @@ UPDATE_FUNC(PLAYER) {
 	    	direction_changed = true;
     	}
 
+        f32 ddx = player_move_factor * dt * game_input.joystick_l.position.x;
+        f32 test_dx = fmin(max_vel, virtual_dx + ddx);
+
         if (virtual_dx < 0.0f) {
             if (is_supported) {
                 virtual_dx = 0.0f;
@@ -117,8 +124,7 @@ UPDATE_FUNC(PLAYER) {
             }
         }
 
-        virtual_dx = fmin(max_vel, virtual_dx +
-            player_move_factor * dt * game_input.joystick_l.position.x);   
+        virtual_dx = fmax(test_dx, old_virtual_dx);   
 
     } else if (game_input.joystick_l.position.x < -direction_deadzone) {
     	moving = true;
@@ -145,6 +151,7 @@ UPDATE_FUNC(PLAYER) {
     // jump
     if (game_input.button_a.ended_down) {
         if (is_supported && virtual_dy < jump_velocity_threshold) {
+            is_supported = false;
             virtual_dy = jump_speed;
         }
     } else if (virtual_dy > jump_falloff && 
@@ -161,30 +168,62 @@ UPDATE_FUNC(PLAYER) {
     entity->body->orientation = gravity_orientation;
     phy_update_body(&game_state->physics_state, entity->body);
 
+    u32 intended_animation_state = 0;
 	if (player->facing_right) {
-		animation->speed = 1.0f;
 		if (!is_supported) {
-			animation->spec = &game_state->animations.martin_jumping_right;
+            intended_animation_state = ANIM_JUMPING_RIGHT;
 		} else if (moving) {
-			animation->spec = &game_state->animations.martin_running_right;
+            intended_animation_state = ANIM_RUNNING_RIGHT;
 		} else {
-			animation->spec = &game_state->animations.martin_standing_right;
+            intended_animation_state = ANIM_STANDING_RIGHT;
 		}
 	} else {
-		animation->speed = 1.0f;
 		if (!is_supported) {
-			animation->spec = &game_state->animations.martin_jumping_left;
+            intended_animation_state = ANIM_JUMPING_LEFT;
 		} else if (moving) {
-            animation->spec = &game_state->animations.martin_running_left;
+            intended_animation_state = ANIM_RUNNING_LEFT;
 		} else {
-            animation->spec = &game_state->animations.martin_standing_left;
+            intended_animation_state = ANIM_STANDING_LEFT;
 		}
 	}
+
+    if (player->animation_state != intended_animation_state) {
+        switch (intended_animation_state) {
+            case ANIM_RUNNING_RIGHT: {
+                reset_animation(animation, &game_state->animations.may_running_right);
+            } break;
+            case ANIM_STANDING_RIGHT: {
+                reset_animation(animation, &game_state->animations.may_standing_right);
+            } break;
+            case ANIM_RUNNING_LEFT: {
+                reset_animation(animation, &game_state->animations.may_running_left);
+            } break;
+            case ANIM_STANDING_LEFT: {
+                reset_animation(animation, &game_state->animations.may_standing_left);
+            } break;
+            case ANIM_JUMPING_RIGHT: {
+                if (player->animation_state == ANIM_JUMPING_LEFT) {
+                    set_animation(animation, &game_state->animations.may_jumping_right);
+                } else {
+                    reset_animation(animation, &game_state->animations.may_jumping_right);
+                }
+            } break;
+            case ANIM_JUMPING_LEFT: {
+                if (player->animation_state == ANIM_JUMPING_RIGHT) {
+                    set_animation(animation, &game_state->animations.may_jumping_left);
+                } else {
+                    reset_animation(animation, &game_state->animations.may_jumping_left);
+                }
+            } break;
+        }
+        player->animation_state = intended_animation_state;
+    }
+
 
     entity_ties_t* collision = get_hash_item(&game_state->collision_map, entity->id);
     if (collision && collision->type == SAVE_POINT) {
         player->save_position = entity->body->position;
-        player->save_gravity_normal = game_state->gravity_normal;
+        player->save_gravity_normal = entity->body->gravity_normal;
         player->save_rotation_state = game_state->rotation_state;
     }
 
@@ -195,7 +234,7 @@ void kill_player(game_state_t* game_state) {
     sim_entity_t* player = game_state->player;
     player_state_t* player_state = (player_state_t*)player->custom_state;
     player->body->position = player_state->save_position;
-    game_state->gravity_normal = player_state->save_gravity_normal;
+    player->body->gravity_normal = player_state->save_gravity_normal;
     game_state->rotation_state = player_state->save_rotation_state;
 
     phy_update_body(&game_state->physics_state, player->body);

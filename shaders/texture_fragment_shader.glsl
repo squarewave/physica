@@ -4,6 +4,7 @@ in vec2 uv;
 out vec4 color;
  
 uniform vec4 tint;
+uniform vec4 lighting;
 uniform sampler2D texture_sampler;
  
 void main() {
@@ -12,5 +13,10 @@ void main() {
         discard;
     }
 
-    color = vec4(tint.a * tint.rgb + (1.0 - tint.a) * texel.rgb, texel.a);
+    vec4 tinted = vec4(tint.a * tint.rgb + (1.0 - tint.a) * texel.rgb, texel.a);
+
+    color = vec4(lighting.r * tinted.r,
+                 lighting.g * tinted.g,
+                 lighting.b * tinted.b,
+                 tinted.a);
 }

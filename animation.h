@@ -10,6 +10,7 @@ struct frame_builder_t {
 struct animation_builder_t {
     char* bmp_filepath;
     i32 frame_count;
+    i32 cycle_point;
     f32 frame_duration;
     v2 hotspot;
 };
@@ -18,6 +19,7 @@ struct animation_builder_t {
     animation_builder_t result;\
     char* bmp_filepath;\
     i32 frame_count = -1;\
+    i32 cycle_point = 0;\
     f32 frame_duration = -1.0f;\
     v2 hotspot = {0};\
 \
@@ -25,6 +27,7 @@ struct animation_builder_t {
 \
     result.bmp_filepath = bmp_filepath;\
     result.frame_count = frame_count;\
+    result.cycle_point = cycle_point;\
     result.frame_duration = frame_duration;\
     result.hotspot = hotspot;\
 \
@@ -41,6 +44,7 @@ struct animation_frame_t {
 };
 
 struct animation_spec_t {
+    i32 cycle_point;
     array<animation_frame_t> frames;
 };
 
@@ -48,7 +52,6 @@ struct animation_t {
 	b32 freed;
     f32 frame_progress;
     i32 frame_index;
-    f32 speed;
     f32 orientation;
     f32 z;
     v2 position;
@@ -76,7 +79,6 @@ add_animation(animation_group_t* animation_group,
 	animation->frame_progress = 0.0f;
 	animation->frame_index = 0;
 	animation->spec = spec;
-	animation->speed = 1.0f;
 	animation->z = z;
     animation->orientation = 0.0f;
 
@@ -95,17 +97,32 @@ remove_animation(animation_group_t* animation_group, i32 index) {
 }
 
 void
+reset_animation(animation_t* animation, animation_spec_t* spec) {
+    animation->spec = spec;
+    animation->frame_progress = 0.0f;
+    animation->frame_index = 0;
+}
+
+void
+set_animation(animation_t* animation, animation_spec_t* spec) {
+    animation->spec = spec;
+}
+
+void
 update_animations(animation_group_t* animation_group,
                   render_group_t* render_group,
                   f32 dt) {
 	for (int i = 0; i < animation_group->animations.count; ++i) {
 		animation_t* animation = animation_group->animations.at(i);
-		animation->frame_progress += animation->speed * dt;
+		animation->frame_progress += dt;
 		animation->frame_index %= animation->spec->frames.count;
 		f32 current_frame_duration = animation->spec->frames[animation->frame_index].duration;
 		if (animation->frame_progress > current_frame_duration) {
 			animation->frame_progress -= current_frame_duration;
 			animation->frame_index++;
+            if (animation->frame_index >= animation->spec->frames.count) {
+                animation->frame_index = animation->spec->cycle_point;
+            }
 			animation->frame_index %= animation->spec->frames.count;
 		}
 

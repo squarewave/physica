@@ -77,105 +77,211 @@ b32 load_program(u32* program_result,
 
     return true;
 }
+// enum gl_resouce_t {
+//     RES_SOLIDS_PROG,
+//     RES_SOLIDS_VAO_RECT,
+//     RES_SOLIDS_VAO_CIRCLE,
+//     RES_SOLIDS_VERTEX_MODELSPACE,
+//     RES_SOLIDS_DRAW_COLOR,
+//     RES_SOLIDS_TRANSFORM,
+//     RES_SOLIDS_LIGHTING,
+
+//     RES_TEXTURES_PROG,
+//     RES_TEXTURES_VAO_RECT,
+//     RES_TEXTURES_VERTEX_MODELSPACE,
+//     RES_TEXTURES_VERTEX_UV,
+//     RES_TEXTURES_TINT,
+//     RES_TEXTURES_TRANSFORM,
+//     RES_TEXTURES_UV_TRANSFORM,
+//     RES_TEXTURES_SAMPLER,
+//     RES_TEXTURES_LIGHTING,
+
+//     RES_SOLID_PARTICLES_PROG,
+//     RES_SOLID_PARTICLES_VAO_RECT,
+//     RES_SOLID_PARTICLES_VERTEX_MODELSPACE,
+//     RES_SOLID_PARTICLES_CENTER,
+//     RES_SOLID_PARTICLES_SCALING,
+//     RES_SOLID_PARTICLES_DRAW_COLOR,
+//     RES_SOLID_PARTICLES_VIEW_TRANSFORM,
+//     RES_SOLID_PARTICLES_LIGHTING,
+
+//     RES_GRADIENT_PROG,
+//     RES_GRADIENT_VAO_RECT,
+//     RES_GRADIENT_VERTEX_MODELSPACE,
+//     RES_GRADIENT_VIEWPORT,
+//     RES_GRADIENT_START_COLOR,
+//     RES_GRADIENT_END_COLOR,
+//     RES_GRADIENT_GRADIENT_START,
+//     RES_GRADIENT_GRADIENT_END,
+
+//     RES_SOLID_PARTICLES_CENTER_BUFFER,
+//     RES_SOLID_PARTICLES_SCALING_BUFFER,
+//     RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER,
+
+//     RES_COUNT,
+// };
 
 gl_programs_t load_programs() {
     gl_programs_t result;
+    i32* res = result.i_res_ids;
+    u32* ures = result.u_res_ids;
 
-    gl_program_t solid_particles_program;
-    glGenVertexArrays(1,&solid_particles_program.vaos[GL_VAO_RECT]);
-    glBindVertexArray(solid_particles_program.vaos[GL_VAO_RECT]);
+    /////////////////////////////////////////////////////////////
+    // gradient program
+    /////////////////////////////////////////////////////////////
 
-    if (!load_program(&solid_particles_program.id,
-                      "shaders/simple_particle_vertex_shader.glsl",
-                      "shaders/simple_particle_fragment_shader.glsl")) {
-        OutputDebugString("Error loading GL program");
-        assert_(false);
+    {
+        if (!load_program(&ures[RES_GRADIENT_PROG],
+                          "shaders/passthrough_vertex_shader.glsl",
+                          "shaders/gradient_fragment_shader.glsl")) {
+            OutputDebugString("Error loading GL program");
+            assert_(false);
+        }
+
+        glGenVertexArrays(1,&ures[RES_GRADIENT_VAO_RECT]);
+        glBindVertexArray(ures[RES_GRADIENT_VAO_RECT]);
+
+        res[RES_GRADIENT_VERTEX_MODELSPACE] = glGetAttribLocation(res[RES_GRADIENT_PROG],
+                                                                  "vertex_modelspace");
+        res[RES_GRADIENT_VIEWPORT] = glGetUniformLocation(res[RES_GRADIENT_PROG],
+                                                          "viewport");
+        res[RES_GRADIENT_START_COLOR] = glGetUniformLocation(res[RES_GRADIENT_PROG],
+                                                             "start_color");
+        res[RES_GRADIENT_END_COLOR] = glGetUniformLocation(res[RES_GRADIENT_PROG],
+                                                           "end_color");
+        res[RES_GRADIENT_GRADIENT_START] = glGetUniformLocation(res[RES_GRADIENT_PROG],
+                                                                "gradient_start");
+        res[RES_GRADIENT_GRADIENT_END] = glGetUniformLocation(res[RES_GRADIENT_PROG],
+                                                              "gradient_end");
+        f32 vertex_data[] = {
+            -1.0f, -1.0f, 0.99f,
+             1.0f, -1.0f, 0.99f,
+             1.0f,  1.0f, 0.99f,
+            -1.0f,  1.0f, 0.99f
+        };
+        u32 index_data[] = { 0, 1, 2, 3 };
+
+        u32 vbo;
+        u32 ibo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(vertex_data),
+                     vertex_data,
+                     GL_STATIC_DRAW);
+        glVertexAttribPointer(res[RES_GRADIENT_VERTEX_MODELSPACE],
+                              3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(res[RES_GRADIENT_VERTEX_MODELSPACE]);
+
+        glGenBuffers(1, &ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     sizeof(index_data),
+                     index_data,
+                     GL_STATIC_DRAW);
     }
-    solid_particles_program.attribs[GL_ATTRIB_VERTEX_MODELSPACE] =
-        glGetAttribLocation(solid_particles_program.id, "modelspace");
-    solid_particles_program.attribs[GL_ATTRIB_PARTICLE_CENTER] =
-        glGetAttribLocation(solid_particles_program.id, "center");
-    solid_particles_program.attribs[GL_ATTRIB_PARTICLE_SCALING] =
-        glGetAttribLocation(solid_particles_program.id, "scaling");
-    solid_particles_program.attribs[GL_ATTRIB_PARTICLE_DRAW_COLOR] =
-        glGetAttribLocation(solid_particles_program.id, "draw_color");
 
-    GLfloat solid_particles_vertex_data[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f
-    };
-    u32 solid_particles_index_data[] = { 0, 1, 2, 3 };
+    /////////////////////////////////////////////////////////////
+    // solid particles program
+    /////////////////////////////////////////////////////////////
 
-    u32 solid_particle_vbo;
-    u32 solid_particle_ibo;
-    glGenBuffers(1, &solid_particle_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, solid_particle_vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(solid_particles_vertex_data),
-                 solid_particles_vertex_data,
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(solid_particles_program.attribs[GL_ATTRIB_VERTEX_MODELSPACE],
-                          3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(solid_particles_program.attribs[GL_ATTRIB_VERTEX_MODELSPACE]);
+    {
+        if (!load_program(&ures[RES_SOLID_PARTICLES_PROG],
+                          "shaders/simple_particle_vertex_shader.glsl",
+                          "shaders/simple_particle_fragment_shader.glsl")) {
+            OutputDebugString("Error loading GL program");
+            assert_(false);
+        }
+
+        glGenVertexArrays(1,&ures[RES_SOLID_PARTICLES_VAO_RECT]);
+        glBindVertexArray(ures[RES_SOLID_PARTICLES_VAO_RECT]);
+
+        res[RES_SOLID_PARTICLES_VERTEX_MODELSPACE] =
+            glGetAttribLocation(ures[RES_SOLID_PARTICLES_PROG], "modelspace");
+        res[RES_SOLID_PARTICLES_CENTER] =
+            glGetAttribLocation(ures[RES_SOLID_PARTICLES_PROG], "center");
+        res[RES_SOLID_PARTICLES_SCALING] =
+            glGetAttribLocation(ures[RES_SOLID_PARTICLES_PROG], "scaling");
+        res[RES_SOLID_PARTICLES_DRAW_COLOR] =
+            glGetAttribLocation(ures[RES_SOLID_PARTICLES_PROG], "draw_color");
+        res[RES_SOLID_PARTICLES_VIEW_TRANSFORM] =
+            glGetUniformLocation(ures[RES_SOLID_PARTICLES_PROG], "view_transform");
+        res[RES_SOLID_PARTICLES_LIGHTING] =
+            glGetUniformLocation(ures[RES_SOLID_PARTICLES_PROG], "lighting");
+    
+        GLfloat vertex_data[] = {
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+             0.5f,  0.5f, 0.0f,
+            -0.5f,  0.5f, 0.0f
+        };
+        u32 index_data[] = { 0, 1, 2, 3 };
+    
+        u32 vbo;
+        u32 ibo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(vertex_data),
+                     vertex_data,
+                     GL_STATIC_DRAW);
+        glVertexAttribPointer(res[RES_SOLID_PARTICLES_VERTEX_MODELSPACE],
+                              3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(res[RES_SOLID_PARTICLES_VERTEX_MODELSPACE]);
+    
+    
+        glGenBuffers(1, &ures[RES_SOLID_PARTICLES_CENTER_BUFFER]);
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     ures[RES_SOLID_PARTICLES_CENTER_BUFFER]);
+        glBufferData(GL_ARRAY_BUFFER,
+                     MAX_PARTICLES * sizeof(f32) * 4,
+                     0,
+                     GL_STREAM_DRAW);
+        glVertexAttribPointer(res[RES_SOLID_PARTICLES_CENTER],
+                              4, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(res[RES_SOLID_PARTICLES_CENTER]);
+        glVertexAttribDivisor(res[RES_SOLID_PARTICLES_CENTER], 1);
+
+    
+        glGenBuffers(1, &ures[RES_SOLID_PARTICLES_SCALING_BUFFER]);
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     ures[RES_SOLID_PARTICLES_SCALING_BUFFER]);
+        glBufferData(GL_ARRAY_BUFFER,
+                     MAX_PARTICLES * sizeof(f32) * 2,
+                     0,
+                     GL_STREAM_DRAW);
+        glVertexAttribPointer(res[RES_SOLID_PARTICLES_SCALING],
+                              2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(res[RES_SOLID_PARTICLES_SCALING]);
+        glVertexAttribDivisor(res[RES_SOLID_PARTICLES_SCALING], 1);
+
+    
+        glGenBuffers(1, &ures[RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER]);
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     ures[RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER]);
+        glBufferData(GL_ARRAY_BUFFER,
+                     MAX_PARTICLES * sizeof(f32) * 4,
+                     0,
+                     GL_STREAM_DRAW);
+        glVertexAttribPointer(res[RES_SOLID_PARTICLES_DRAW_COLOR],
+                              4, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(res[RES_SOLID_PARTICLES_DRAW_COLOR]);
+        glVertexAttribDivisor(res[RES_SOLID_PARTICLES_DRAW_COLOR], 1);
+    
+    
+        glGenBuffers(1, &ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     sizeof(index_data),
+                     index_data,
+                     GL_STATIC_DRAW);
+    }
 
 
-    glGenBuffers(1, &solid_particles_program.dynamic_buffers[GL_DYNAMIC_CENTERS]);
-    glBindBuffer(GL_ARRAY_BUFFER,
-                 solid_particles_program.dynamic_buffers[GL_DYNAMIC_CENTERS]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(f32) * 4,
-                 0,
-                 GL_STREAM_DRAW);
-    glVertexAttribPointer(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_CENTER],
-                          4, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_CENTER]);
-    glVertexAttribDivisor(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_CENTER], 1);
+    /////////////////////////////////////////////////////////////
+    // solids program
+    /////////////////////////////////////////////////////////////
 
-    glGenBuffers(1, &solid_particles_program.dynamic_buffers[GL_DYNAMIC_SCALING]);
-    glBindBuffer(GL_ARRAY_BUFFER,
-                 solid_particles_program.dynamic_buffers[GL_DYNAMIC_SCALING]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(f32) * 2,
-                 0,
-                 GL_STREAM_DRAW);
-    glVertexAttribPointer(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_SCALING],
-                          2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_SCALING]);
-    glVertexAttribDivisor(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_SCALING], 1);
-
-    glGenBuffers(1, &solid_particles_program.dynamic_buffers[GL_DYNAMIC_DRAW_COLOR]);
-    glBindBuffer(GL_ARRAY_BUFFER,
-                 solid_particles_program.dynamic_buffers[GL_DYNAMIC_DRAW_COLOR]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(f32) * 4,
-                 0,
-                 GL_STREAM_DRAW);
-    glVertexAttribPointer(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_DRAW_COLOR],
-                          4, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_DRAW_COLOR]);
-    glVertexAttribDivisor(solid_particles_program.attribs[GL_ATTRIB_PARTICLE_DRAW_COLOR], 1);
-
-
-    glGenBuffers(1, &solid_particle_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, solid_particle_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(solid_particles_index_data),
-                 solid_particles_index_data,
-                 GL_STATIC_DRAW);
-
-    glGenVertexArrays(1,&solid_particles_program.vaos[GL_VAO_CIRCLE]);
-    glBindVertexArray(solid_particles_program.vaos[GL_VAO_CIRCLE]);
-
-    solid_particles_program.uniforms[GL_UNIFORM_MAIN_TRANSFORM] =
-        glGetUniformLocation(solid_particles_program.id, "view_transform");
-
-    result.programs[GL_PROG_SOLID_PARTICLES] = solid_particles_program;
-
-
-    // solids program:
-    // for rendering single solid objects of one color like rects and circles
     gl_program_t solids_program;
     glGenVertexArrays(1,&solids_program.vaos[GL_VAO_RECT]);
     glBindVertexArray(solids_program.vaos[GL_VAO_RECT]);
@@ -258,9 +364,15 @@ gl_programs_t load_programs() {
         glGetUniformLocation(solids_program.id, "transform");
     solids_program.uniforms[GL_UNIFORM_DRAW_COLOR] =
         glGetUniformLocation(solids_program.id, "draw_color");
+    solids_program.uniforms[GL_UNIFORM_LIGHTING] =
+        glGetUniformLocation(solids_program.id, "lighting");
 
     result.programs[GL_PROG_SOLIDS] = solids_program;
 
+
+    /////////////////////////////////////////////////////////////
+    // texture program
+    /////////////////////////////////////////////////////////////
 
     gl_program_t texture_program;
 
@@ -334,6 +446,8 @@ gl_programs_t load_programs() {
         glGetUniformLocation(texture_program.id, "texture_sampler");
     texture_program.uniforms[GL_UNIFORM_DRAW_COLOR] =
         glGetUniformLocation(texture_program.id, "tint");
+    texture_program.uniforms[GL_UNIFORM_LIGHTING] =
+        glGetUniformLocation(texture_program.id, "lighting");
 
     result.programs[GL_PROG_TEXTURES] = texture_program;
 
@@ -438,6 +552,64 @@ tex2 load_image(char* filename) {
 
     return result;
 
+}
+
+font_spec_t load_font(char* font_file_name, f32 pixel_height) {
+    font_spec_t result;
+
+    tex2 texture;
+    stbtt_fontinfo font;
+
+    platform_read_entire_file_result_t file =
+        platform_read_entire_file(font_file_name);
+
+    texture.width = 1024;
+    texture.height = 1024;
+    texture.pitch = 1024;
+    texture.pixels = (u32*)malloc(texture.width * texture.height * sizeof(u32));
+
+    u8* bitmap = (u8*)malloc(texture.width * texture.height * sizeof(u8));
+
+    stbtt_BakeFontBitmap(file.contents,
+                         0,
+                         pixel_height,
+                         bitmap,
+                         texture.width,
+                         texture.height,
+                         32,
+                         ARRAY_SIZE(result.baked_chars),
+                         result.baked_chars);
+
+    for (i32 i = 0; i < texture.height; ++i) {
+        for (i32 j = 0; j < texture.width; ++j) {
+            texture.pixels[i * texture.width + j] =
+                0xffffff00 | bitmap[(texture.height - i - 1) * texture.width + j];
+        }
+    }
+
+    platform_free_file_memory(file.contents);
+    free(bitmap);
+
+    glGenTextures(1, &texture.texture_id);
+    glBindTexture(GL_TEXTURE_2D, texture.texture_id);
+
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 texture.width,
+                 texture.height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_INT_8_8_8_8,
+                 (void*)texture.pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    result.texture = texture;
+    return result;
 }
 
 // this is really inefficient and is only for internal tools
@@ -591,7 +763,7 @@ render_object_t* push_circle(render_group_t* render_group,
                              v2 center,
                              f32 radius,
                              f32 z,
-                             u32 flags) {
+                             b32 parallax) {
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_CIRCLE;
@@ -599,7 +771,6 @@ render_object_t* push_circle(render_group_t* render_group,
     obj->render_circle.center = center;
     obj->render_circle.radius = radius;
     obj->z = z;
-    obj->flags = flags;
     return obj;
 }
 
@@ -622,6 +793,25 @@ render_object_t* push_rect(render_group_t* render_group,
     return obj;
 }
 
+render_object_t* push_rect_outline(render_group_t* render_group,
+                           color_t color,
+                           v2 center,
+                           v2 diagonal,
+                           f32 orientation,
+                           f32 z,
+                           b32 parallax) {
+    i32 i = render_group->objects.push_unassigned();
+    render_object_t* obj = render_group->objects.at(i);
+    obj->type = RENDER_TYPE_RECT_OUTLINE;
+    obj->render_rect.color = color;
+    obj->render_rect.center = center;
+    obj->render_rect.diagonal = diagonal;
+    obj->render_rect.orientation = orientation;
+    obj->render_rect.parallax = parallax;
+    obj->z = z;
+    return obj;
+}
+
 render_object_t* push_texture(render_group_t* render_group,
                               v2 center,
                               v2 hotspot,
@@ -635,7 +825,6 @@ render_object_t* push_texture(render_group_t* render_group,
     i32 i = render_group->objects.push_unassigned();
     render_object_t* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_TEXTURE;
-    obj->flags = 0;
     obj->render_texture.texture = texture;
     obj->render_texture.source_rect = source_rect;
     obj->render_texture.pixel_size = pixel_size;
@@ -696,8 +885,7 @@ void sort_render_objects(vec<render_object_t> objs) {
 void draw_gl_rect(gl_program_t* program,
                   camera_t camera,
                   render_rect_t rect,
-                  f32 z,
-                  u32 flags) {
+                  f32 z) {
     TIMED_FUNC();
     // our base rect is simply a square at the origin with sides of length 1.0f,
     // transform that square to get our draw rect
@@ -726,18 +914,17 @@ void draw_gl_rect(gl_program_t* program,
                 rect.color.g,
                 rect.color.b,
                 1.0f);
-    if (flags & RENDER_WIREFRAME) {
-        glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_INT, 0);
-    } else {
-        glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
-    }
+    // if (flags & RENDER_WIREFRAME) {
+    glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_INT, 0);
+    // } else {
+    //     glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
+    // }
 }
 
 void draw_gl_circle(gl_program_t* program,
                     camera_t camera,
                     render_circle_t circle,
-                    f32 z,
-                    u32 flags) {
+                    f32 z) {
     TIMED_FUNC();
     // our base rect is simply a square at the origin with sides of length 1.0f,
     // transform that square to get our draw rect
@@ -771,11 +958,11 @@ void draw_gl_circle(gl_program_t* program,
     i32 vertex_count = 0;
     glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &vertex_count);
 
-    if (flags & RENDER_WIREFRAME) {
-        glDrawArrays(GL_LINE_STRIP, 1, vertex_count  - 1);
-    } else {
+    // if (flags & RENDER_WIREFRAME) {
+    //     glDrawArrays(GL_LINE_STRIP, 1, vertex_count  - 1);
+    // } else {
         glDrawArrays(GL_TRIANGLE_FAN, 0, vertex_count);
-    }
+    // }
 }
 
 void draw_gl_texture(gl_program_t* program,
@@ -890,6 +1077,12 @@ void present_frame_buffer(gl_programs_t* programs,
 
     setup_gl_for_type(programs, RENDER_TYPE_TEXTURE);
 
+    glUniform4f(programs->programs[GL_PROG_TEXTURES].uniforms[GL_UNIFORM_LIGHTING],
+                1.0f,
+                1.0f,
+                1.0f,
+                1.0f);
+
     gl_program_t* program = &programs->programs[GL_PROG_TEXTURES];
 
     glBindFramebuffer(GL_FRAMEBUFFER, dest.id);
@@ -921,7 +1114,163 @@ void present_frame_buffer(gl_programs_t* programs,
 
 }
 
-void draw_render_group(gl_programs_t* programs,
+void draw_gradient(gl_programs_t* programs,
+                   v2 viewport,
+                   v2 start,
+                   v2 end,
+                   rgba_t start_color,
+                   rgba_t end_color) {
+
+    TIMED_FUNC();
+
+    i32* res = programs->i_res_ids;
+    u32* ures = programs->u_res_ids;
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glUseProgram(ures[RES_GRADIENT_PROG]);
+    glBindVertexArray(ures[RES_GRADIENT_VAO_RECT]);
+
+    glUniform2f(res[RES_GRADIENT_VIEWPORT], viewport.x, viewport.y);
+    glUniform2f(res[RES_GRADIENT_GRADIENT_START], start.x, start.y);
+    glUniform2f(res[RES_GRADIENT_GRADIENT_END], end.x, end.y);
+    glUniform4f(res[RES_GRADIENT_START_COLOR],
+                start_color.r, start_color.g, start_color.b, start_color.a);
+    glUniform4f(res[RES_GRADIENT_END_COLOR],
+                end_color.r, end_color.g, end_color.b, end_color.a);
+
+    glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
+}
+
+void draw_rect_particles(transient_state_t* transient_state,
+                                gl_programs_t* programs,
+                                camera_t camera,
+                                render_group_t* render_group,
+                                b32 solid) {
+    u32 type = solid ? RENDER_TYPE_RECT : RENDER_TYPE_RECT_OUTLINE;
+
+    f32 max_distance_sq = length_squared(2.0f * camera.to_top_right);
+    i32* res = programs->i_res_ids;
+    u32* ures = programs->u_res_ids;
+
+    i32 particle_count = 0;
+    v4* particle_center_data = transient_state->particle_center_data;
+    v2* particle_scaling_data = transient_state->particle_scaling_data;
+    rgba_t* particle_color_data = transient_state->particle_color_data;
+
+    glUseProgram(ures[RES_SOLID_PARTICLES_PROG]);
+    glUniform4f(res[RES_SOLID_PARTICLES_LIGHTING],
+                render_group->lighting.r,
+                render_group->lighting.g,
+                render_group->lighting.b,
+                render_group->lighting.a);
+
+    for (int i = 0; i < render_group->objects.count; ++i) {
+        render_object_t* obj = render_group->objects.at(i);
+
+        if (obj->type != type) {
+            continue;
+        }
+
+        f32 parallax = obj->parallax ? (1.0f - obj->z) : 1.0f;
+        if (length_squared(camera.center * parallax - obj->center) > max_distance_sq) {
+            continue;
+        }
+
+        assert_(particle_count < MAX_PARTICLES);
+        
+        particle_center_data[particle_count] = 
+            v4 {obj->center.x, obj->center.y, obj->z, parallax};
+        color_t color = obj->render_rect.color;
+        particle_color_data[particle_count] =
+            rgba_t {color.r,color.g,color.b,1.0f};
+        particle_scaling_data[particle_count] =
+            v2 {obj->render_rect.diagonal};
+
+        particle_count++;
+    }
+
+    if (solid) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    glUseProgram(ures[RES_SOLID_PARTICLES_PROG]);
+    glBindVertexArray(ures[RES_SOLID_PARTICLES_VAO_RECT]);
+
+    glBindBuffer(GL_ARRAY_BUFFER,
+                 ures[RES_SOLID_PARTICLES_CENTER_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER,
+                 MAX_PARTICLES * sizeof(*particle_center_data),
+                 0,
+                 GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    0,
+                    particle_count * sizeof(*particle_center_data),
+                    particle_center_data);
+
+    glBindBuffer(GL_ARRAY_BUFFER,
+                 ures[RES_SOLID_PARTICLES_SCALING_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER,
+                 MAX_PARTICLES * sizeof(*particle_scaling_data),
+                 0,
+                 GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    0,
+                    particle_count * sizeof(*particle_scaling_data),
+                    particle_scaling_data);
+
+    glBindBuffer(GL_ARRAY_BUFFER,
+                 ures[RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER]);
+    glBufferData(GL_ARRAY_BUFFER,
+                 MAX_PARTICLES * sizeof(*particle_color_data),
+                 0,
+                 GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    0,
+                    particle_count * sizeof(*particle_color_data),
+                    particle_color_data);
+
+    m4x4 view_transform = get_view_transform_4x4(camera);
+
+    glUniformMatrix4fv(res[RES_SOLID_PARTICLES_VIEW_TRANSFORM],
+                       1,
+                       GL_TRUE,
+                       view_transform.vals);
+
+    if (solid) {
+        glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, particle_count);
+    } else {
+        glDrawArraysInstanced(GL_LINE_LOOP, 0, 4, particle_count);
+    }
+}
+
+void
+draw_solid_rect_particles(transient_state_t* transient_state,
+                          gl_programs_t* programs,
+                          camera_t camera,
+                          render_group_t* render_group) {
+    draw_rect_particles(transient_state,
+                        programs,
+                        camera,
+                        render_group,
+                        true);
+}
+
+void
+draw_outlined_rect_particles(transient_state_t* transient_state,
+                          gl_programs_t* programs,
+                          camera_t camera,
+                          render_group_t* render_group) {
+    draw_rect_particles(transient_state,
+                        programs,
+                        camera,
+                        render_group,
+                        false);
+}
+
+void draw_render_group(transient_state_t* transient_state,
+                       gl_programs_t* programs,
                        camera_t camera,
                        render_group_t* render_group) {
     TIMED_FUNC();
@@ -936,10 +1285,12 @@ void draw_render_group(gl_programs_t* programs,
         RENDER_TYPE_CIRCLE_OUTLINE
     };
 
-    i32 particle_count = 0;
-    v4 particle_center_data[MAX_PARTICLES];
-    v2 particle_scaling_data[MAX_PARTICLES];
-    rgba_t particle_color_data[MAX_PARTICLES];
+    glUseProgram(programs->programs[GL_PROG_TEXTURES].id);
+    glUniform4f(programs->programs[GL_PROG_TEXTURES].uniforms[GL_UNIFORM_LIGHTING],
+                render_group->lighting.r,
+                render_group->lighting.g,
+                render_group->lighting.b,
+                render_group->lighting.a);
 
     for (int i = 0; i < ARRAY_SIZE(types); ++i) {
         setup_gl_for_type(programs, types[i]);
@@ -956,30 +1307,18 @@ void draw_render_group(gl_programs_t* programs,
             }
 
             switch (types[i]) {
-                case RENDER_TYPE_RECT_OUTLINE: 
-                case RENDER_TYPE_RECT: {
-                    particle_center_data[particle_count] = 
-                        v4 {obj->center.x, obj->center.y, obj->z, parallax};
-                    color_t color = obj->render_rect.color;
-                    particle_color_data[particle_count] =
-                        rgba_t {color.r,color.g,color.b,1.0f};
-                    particle_scaling_data[particle_count] =
-                        v2 {obj->render_rect.diagonal};
-
-                    particle_count++;
-                    // draw_gl_rect(&programs->programs[GL_PROG_SOLIDS],
-                    //              camera,
-                    //              obj->render_rect,
-                    //              obj->z,
-                    //              obj->flags);
+                case RENDER_TYPE_RECT_OUTLINE:{
+                    draw_gl_rect(&programs->programs[GL_PROG_SOLIDS],
+                                 camera,
+                                 obj->render_rect,
+                                 obj->z);
                 } break;
                 case RENDER_TYPE_CIRCLE_OUTLINE:
                 case RENDER_TYPE_CIRCLE: {
                     draw_gl_circle(&programs->programs[GL_PROG_SOLIDS],
                                    camera,
                                    obj->render_circle,
-                                   obj->z,
-                                   obj->flags);
+                                   obj->z);
                 } break;
                 case RENDER_TYPE_TEXTURE: {
                     draw_gl_texture(&programs->programs[GL_PROG_TEXTURES],
@@ -991,53 +1330,8 @@ void draw_render_group(gl_programs_t* programs,
         }
     }
 
-    gl_program_t* particles_program = &programs->programs[GL_PROG_SOLID_PARTICLES];
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glUseProgram(particles_program->id);
-    glBindVertexArray(particles_program->vaos[GL_VAO_RECT]);
-
-    glBindBuffer(GL_ARRAY_BUFFER,
-                 particles_program->dynamic_buffers[GL_DYNAMIC_CENTERS]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(*particle_center_data),
-                 0,
-                 GL_STREAM_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER,
-                    0,
-                    particle_count * sizeof(*particle_center_data),
-                    particle_center_data);
-
-    glBindBuffer(GL_ARRAY_BUFFER,
-                 particles_program->dynamic_buffers[GL_DYNAMIC_SCALING]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(*particle_scaling_data),
-                 0,
-                 GL_STREAM_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER,
-                    0,
-                    particle_count * sizeof(*particle_scaling_data),
-                    particle_scaling_data);
-
-    glBindBuffer(GL_ARRAY_BUFFER,
-                 particles_program->dynamic_buffers[GL_DYNAMIC_DRAW_COLOR]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(*particle_color_data),
-                 0,
-                 GL_STREAM_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER,
-                    0,
-                    particle_count * sizeof(*particle_color_data),
-                    particle_color_data);
-
-    m4x4 view_transform = get_view_transform_4x4(camera);
-
-    glUniformMatrix4fv(particles_program->uniforms[GL_UNIFORM_MAIN_TRANSFORM],
-                       1,
-                       GL_TRUE,
-                       view_transform.vals);
-
-    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, particle_count);
+    draw_solid_rect_particles(transient_state, programs, camera, render_group);
+    draw_outlined_rect_particles(transient_state, programs, camera, render_group);
 }
 
 void clear_render_group(render_group_t* render_group) {

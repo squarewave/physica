@@ -5,6 +5,11 @@
 #include "game_render.h"
 #include "physica_math.h"
 
+const rgba_t COLOR_GREEN = rgba_t {0.2f, 0.7f, 0.2f, 1.0f};
+const rgba_t COLOR_RED = rgba_t {0.7f, 0.2f, 0.2f, 1.0f};
+const rgba_t COLOR_ORANGE = rgba_t {0.6f, 0.3f, 0.2f, 1.0f};
+const rgba_t COLOR_BLUE = rgba_t {0.2f, 0.2f, 0.7f, 1.0f};
+
 __inline__ u64 rdtsc() {
     return __rdtsc();
     // u32 a;
@@ -30,7 +35,7 @@ struct debug_block_t {
 };
 
 struct debug_state_t {
-    glyph_spec_t monospace_font[96];
+    font_spec_t monospace_font;
     phy_body_t* selected;
 };
 
@@ -53,31 +58,28 @@ struct timed_block_t {
     }
 };
 
-void print_debug_log() {
-    char buffer[256];
+void print_debug_log();
 
-    OutputDebugStringA("\n\n");
-    for (int i = 0; i < max_debug_blocks; ++i) {
-        if (debug_blocks[i].id) {
-            sprintf(buffer, "%-32s %14lld cy,    %5d calls\n",
-                   debug_blocks[i].id,
-                   debug_blocks[i].total_cycles,
-                   debug_blocks[i].call_count);
-    		OutputDebugStringA(buffer);
-            debug_blocks[i].id = 0;
-            debug_blocks[i].total_cycles = 0;
-            debug_blocks[i].call_count = 0;
-        }
-	}
-}
+void debug_push_ui_text_f(game_state_t* game_state,
+                          window_description_t window,
+                          v2 bottom_left,
+                          rgba_t color,
+                          char* format,
+                          ...);
 
 void debug_init(game_state_t* game_state);
 
-void debug_update_and_render(game_state_t* game_state, f32 dt, game_input_t* game_input);
+void debug_update_and_render(game_state_t* game_state,
+                             f32 dt,
+                             window_description_t window,
+                             game_input_t* game_input);
 
 void debug_load_monospace_font(game_state_t* game_state);
 
-void debug_push_ui_text(game_state_t* game_state, v2 top_left, char* text);
+void debug_push_ui_text(game_state_t* game_state,
+                        window_description_t window,
+                        v2 top_left,
+                        char* text);
 
 void debug_draw_physics(game_state_t* game_state);
 

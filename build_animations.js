@@ -15,6 +15,7 @@ for (var i = dir.length - 1; i >= 0; i--) {
 '    {\n\
     animation_builder_t builder = ' + typename + '_builder();\n\
     animation_spec_t* spec = &animations.' + typename + ';\n\
+    spec->cycle_point = builder.cycle_point;\n\
     spec->frames.count = builder.frame_count;\n\
     spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);\n\
     tex2 texture = load_image(builder.bmp_filepath);\n\

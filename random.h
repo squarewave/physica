@@ -10025,6 +10025,10 @@ inline u32 random_u32(u32 min, u32 max) {
 	return (random_u32() % (max - min)) + min;
 }
 
+inline b32 random_b32() {
+    return (b32)(random_u32() % 2);
+}
+
 inline i32 random_i32(i32 min, i32 max) {
 	u32 val = random_u32();
 	return fabs(fmod(*((i32*)&val), (max - min))) + min;

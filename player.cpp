@@ -54,8 +54,8 @@ UPDATE_FUNC(PLAYER) {
 
     f32 gravity_orientation = atanv(entity->body->gravity_normal) + fPI_OVER_2;
 
-    f32 combined_l_r_trigger = game_input.analog_r_trigger.value -
-        game_input.analog_l_trigger.value;
+    f32 combined_l_r_trigger = game_input->analog_r_trigger.value -
+        game_input->analog_l_trigger.value;
 
     if (game_state->rotation_state.target_direction ==
         game_state->rotation_state.current_direction) {
@@ -105,14 +105,14 @@ UPDATE_FUNC(PLAYER) {
     b32 is_supported = r.body && r.depth < jump_min_distance;
 
     // left/right movement
-    if (game_input.joystick_l.position.x > direction_deadzone) {
+    if (game_input->joystick_l.position.x > direction_deadzone) {
     	moving = true;
     	if (!player->facing_right) {
 	    	player->facing_right = true;
 	    	direction_changed = true;
     	}
 
-        f32 ddx = player_move_factor * dt * game_input.joystick_l.position.x;
+        f32 ddx = player_move_factor * dt * game_input->joystick_l.position.x;
         f32 test_dx = fmin(max_vel, virtual_dx + ddx);
 
         if (virtual_dx < 0.0f) {
@@ -120,13 +120,13 @@ UPDATE_FUNC(PLAYER) {
                 virtual_dx = 0.0f;
             } else {
                 virtual_dx = fmin(max_vel, virtual_dx +
-                    player_move_factor * dt * game_input.joystick_l.position.x);
+                    player_move_factor * dt * game_input->joystick_l.position.x);
             }
         }
 
         virtual_dx = fmax(test_dx, old_virtual_dx);   
 
-    } else if (game_input.joystick_l.position.x < -direction_deadzone) {
+    } else if (game_input->joystick_l.position.x < -direction_deadzone) {
     	moving = true;
     	if (player->facing_right) {
 	    	player->facing_right = false;
@@ -138,24 +138,24 @@ UPDATE_FUNC(PLAYER) {
                 virtual_dx = 0.0f;
             } else {
                 virtual_dx = fmax(-max_vel, virtual_dx +
-                    player_move_factor * dt * game_input.joystick_l.position.x);
+                    player_move_factor * dt * game_input->joystick_l.position.x);
             }
         }
 
         virtual_dx = fmax(-max_vel, virtual_dx +
-            player_move_factor * dt * game_input.joystick_l.position.x);
+            player_move_factor * dt * game_input->joystick_l.position.x);
     } else if (is_supported) {
         virtual_dx = 0.0f;
     }
 
     // jump
-    if (game_input.button_a.ended_down) {
+    if (game_input->button_a.ended_down) {
         if (is_supported && virtual_dy < jump_velocity_threshold) {
             is_supported = false;
             virtual_dy = jump_speed;
         }
     } else if (virtual_dy > jump_falloff && 
-               game_input.button_a.transition_count > 0) {
+               game_input->button_a.transition_count > 0) {
         virtual_dy -= jump_falloff;
     }
 

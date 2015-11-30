@@ -14,6 +14,21 @@ animation_spec_t* get_animation(game_state_t* game_state, u32 flags) {
     animation_spec_t* spec;
 
     switch (flags) {
+        case LILGUY_MAYOR | LILGUY_RUNNING | LILGUY_LEFT_FACING: {
+            spec = &game_state->animations.lilguy_mayor_running_left;
+        } break;
+        case LILGUY_MAYOR | LILGUY_RUNNING: {
+            spec = &game_state->animations.lilguy_mayor_running_right;
+        } break;
+        case LILGUY_MAYOR | LILGUY_LEFT_FACING: {
+            spec = &game_state->animations.lilguy_mayor_standing_left;
+        } break;
+        case LILGUY_MAYOR: {
+            spec = &game_state->animations.lilguy_mayor_standing_right;
+        } break;
+        case LILGUY_RUNNING | LILGUY_LEFT_FACING: {
+            spec = &game_state->animations.lilguy_running_left;
+        } break;
         case LILGUY_RUNNING: {
             spec = &game_state->animations.lilguy_running_right;
         } break;
@@ -23,15 +38,13 @@ animation_spec_t* get_animation(game_state_t* game_state, u32 flags) {
         case 0: {
             spec = &game_state->animations.lilguy_standing_right;
         } break;
-        default: {
-            spec = &game_state->animations.lilguy_running_left;
-        } break;
     }
 
     return spec;
 }
 
-sim_entity_t* create_lilguy(game_state_t* game_state, v2 position) {
+sim_entity_t*
+create_lilguy(game_state_t* game_state, v2 position, u32 flags) {
 
     sim_entity_t* entity = create_fillet_block_entity(game_state,
                                                       LILGUY,
@@ -44,8 +57,6 @@ sim_entity_t* create_lilguy(game_state_t* game_state, v2 position) {
 
     entity->body->inv_moment = 0.0f;
     
-    u32 flags = 0;
-
     b32 left_facing = false;
     b32 running = false;
     if (random_b32()) {
@@ -134,5 +145,4 @@ UPDATE_FUNC(LILGUY) {
     if (state->flags != previous_flags) {
         reset_animation(animation, get_animation(game_state, state->flags));
     }
-
 }

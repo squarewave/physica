@@ -19,6 +19,10 @@
 #include "animations/lilguy_standing_left.h"
 #include "animations/lilguy_running_right.h"
 #include "animations/lilguy_running_left.h"
+#include "animations/lilguy_mayor_standing_right.h"
+#include "animations/lilguy_mayor_standing_left.h"
+#include "animations/lilguy_mayor_running_right.h"
+#include "animations/lilguy_mayor_running_left.h"
 
 struct animations_list_t {
     animation_spec_t may_walking_right;
@@ -40,6 +44,10 @@ struct animations_list_t {
     animation_spec_t lilguy_standing_left;
     animation_spec_t lilguy_running_right;
     animation_spec_t lilguy_running_left;
+    animation_spec_t lilguy_mayor_standing_right;
+    animation_spec_t lilguy_mayor_standing_left;
+    animation_spec_t lilguy_mayor_running_right;
+    animation_spec_t lilguy_mayor_running_left;
 };
 
 animations_list_t load_animations(memory_arena_t* arena) {
@@ -533,6 +541,114 @@ animations_list_t load_animations(memory_arena_t* arena) {
     {
     animation_builder_t builder = lilguy_running_left_builder();
     animation_spec_t* spec = &animations.lilguy_running_left;
+    spec->cycle_point = builder.cycle_point;
+    spec->frames.count = builder.frame_count;
+    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    tex2 texture = load_image(builder.bmp_filepath);
+    i32 frame_height = texture.height;
+    assert_(texture.width % builder.frame_count == 0);
+    i32 frame_width = texture.width / builder.frame_count;
+    v2 hotspot = builder.hotspot;
+
+    for (i32 i = 0; i < builder.frame_count; ++i) {
+        animation_frame_t frame = {0};
+        frame.duration = builder.frame_duration;
+        frame.texture = texture;
+        frame.source_rect.min_y = 0;
+        frame.source_rect.max_y = frame_height;
+        frame.source_rect.min_x = i * frame_width;
+        frame.source_rect.max_x = (i+1) * frame_width;
+        frame.pixel_size = VIRTUAL_PIXEL_SIZE;
+        frame.orientation = 0.0f;
+        frame.hotspot = hotspot;
+
+        spec->frames.set(i, frame);
+    }
+    }
+    {
+    animation_builder_t builder = lilguy_mayor_standing_right_builder();
+    animation_spec_t* spec = &animations.lilguy_mayor_standing_right;
+    spec->cycle_point = builder.cycle_point;
+    spec->frames.count = builder.frame_count;
+    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    tex2 texture = load_image(builder.bmp_filepath);
+    i32 frame_height = texture.height;
+    assert_(texture.width % builder.frame_count == 0);
+    i32 frame_width = texture.width / builder.frame_count;
+    v2 hotspot = builder.hotspot;
+
+    for (i32 i = 0; i < builder.frame_count; ++i) {
+        animation_frame_t frame = {0};
+        frame.duration = builder.frame_duration;
+        frame.texture = texture;
+        frame.source_rect.min_y = 0;
+        frame.source_rect.max_y = frame_height;
+        frame.source_rect.min_x = i * frame_width;
+        frame.source_rect.max_x = (i+1) * frame_width;
+        frame.pixel_size = VIRTUAL_PIXEL_SIZE;
+        frame.orientation = 0.0f;
+        frame.hotspot = hotspot;
+
+        spec->frames.set(i, frame);
+    }
+    }
+    {
+    animation_builder_t builder = lilguy_mayor_standing_left_builder();
+    animation_spec_t* spec = &animations.lilguy_mayor_standing_left;
+    spec->cycle_point = builder.cycle_point;
+    spec->frames.count = builder.frame_count;
+    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    tex2 texture = load_image(builder.bmp_filepath);
+    i32 frame_height = texture.height;
+    assert_(texture.width % builder.frame_count == 0);
+    i32 frame_width = texture.width / builder.frame_count;
+    v2 hotspot = builder.hotspot;
+
+    for (i32 i = 0; i < builder.frame_count; ++i) {
+        animation_frame_t frame = {0};
+        frame.duration = builder.frame_duration;
+        frame.texture = texture;
+        frame.source_rect.min_y = 0;
+        frame.source_rect.max_y = frame_height;
+        frame.source_rect.min_x = i * frame_width;
+        frame.source_rect.max_x = (i+1) * frame_width;
+        frame.pixel_size = VIRTUAL_PIXEL_SIZE;
+        frame.orientation = 0.0f;
+        frame.hotspot = hotspot;
+
+        spec->frames.set(i, frame);
+    }
+    }
+    {
+    animation_builder_t builder = lilguy_mayor_running_right_builder();
+    animation_spec_t* spec = &animations.lilguy_mayor_running_right;
+    spec->cycle_point = builder.cycle_point;
+    spec->frames.count = builder.frame_count;
+    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    tex2 texture = load_image(builder.bmp_filepath);
+    i32 frame_height = texture.height;
+    assert_(texture.width % builder.frame_count == 0);
+    i32 frame_width = texture.width / builder.frame_count;
+    v2 hotspot = builder.hotspot;
+
+    for (i32 i = 0; i < builder.frame_count; ++i) {
+        animation_frame_t frame = {0};
+        frame.duration = builder.frame_duration;
+        frame.texture = texture;
+        frame.source_rect.min_y = 0;
+        frame.source_rect.max_y = frame_height;
+        frame.source_rect.min_x = i * frame_width;
+        frame.source_rect.max_x = (i+1) * frame_width;
+        frame.pixel_size = VIRTUAL_PIXEL_SIZE;
+        frame.orientation = 0.0f;
+        frame.hotspot = hotspot;
+
+        spec->frames.set(i, frame);
+    }
+    }
+    {
+    animation_builder_t builder = lilguy_mayor_running_left_builder();
+    animation_spec_t* spec = &animations.lilguy_mayor_running_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
     spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);

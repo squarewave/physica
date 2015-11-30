@@ -41,6 +41,7 @@ enum render_type_T {
     RENDER_TYPE_CIRCLE,
     RENDER_TYPE_RECT_OUTLINE,
     RENDER_TYPE_CIRCLE_OUTLINE,
+    RENDER_TYPE_COLOR_PICKER,
 };
 
 enum render_flags_t {
@@ -56,6 +57,16 @@ struct render_rect_t {
     v2 diagonal;
     f32 orientation;
     color_t color;
+};
+
+struct render_color_picker_t {
+    // required:
+    u32 type;
+    v2 center;
+    b32 parallax;
+
+    v2 diagonal;
+    v3 hsv;
 };
 
 struct render_texture_t {
@@ -93,6 +104,7 @@ struct render_object_t {
           b32 parallax;
         };
         render_rect_t render_rect;
+        render_color_picker_t render_color_picker;
         render_texture_t render_texture;
         render_circle_t render_circle;
     };
@@ -158,6 +170,14 @@ enum gl_resouce_t {
     RES_GRADIENT_END_COLOR,
     RES_GRADIENT_GRADIENT_START,
     RES_GRADIENT_GRADIENT_END,
+
+    RES_COLOR_PICKER_PROG,
+    RES_COLOR_PICKER_VAO_RECT,
+    RES_COLOR_PICKER_VERTEX_MODELSPACE,
+    RES_COLOR_PICKER_HSV,
+    RES_COLOR_PICKER_MIN_P,
+    RES_COLOR_PICKER_MAX_P,
+    RES_COLOR_PICKER_TRANSFORM,
 
     RES_COUNT,
 };
@@ -261,9 +281,22 @@ render_object_t* push_rect(render_group_t* render_group,
                            color_t color,
                            v2 center,
                            v2 diagonal,
-                           f32 orientation,
-                           f32 z,
+                           f32 orientation = 0.0f,
+                           f32 z = 0.0f,
                            b32 parallax = false);
+
+render_object_t* push_rect(render_group_t* render_group,
+                           color_t color,
+                           rect r) {
+    return push_rect(render_group,
+                     color,
+                     0.5f * (r.min + r.max),
+                     r.max - r.min);
+}
+
+render_object_t* push_color_picker(render_group_t* render_group,
+                                   v3 hsv,
+                                   rect r);
 
 render_object_t* push_rect_outline(render_group_t* render_group,
                                    color_t color,
@@ -334,7 +367,6 @@ void draw_rectangle(window_description_t buffer,
                     rect_i clip_rect,
                     color_t color, i32 center_x, i32 center_y, u32 width, u32 height,
                     f32 orientation = 0.0f);
-
 
 void draw_rectangle(window_description_t buffer,
                     color_t color, i32 center_x, i32 center_y, u32 width, u32 height,

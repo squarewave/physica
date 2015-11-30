@@ -11,9 +11,6 @@ const f32 fPI = 3.14159265358979323846264338327950288f;
 const f32 f2PI = 2.0f * 3.14159265358979323846264338327950288f;
 const f32 fPI_OVER_2 = fPI / 2.0f;
 
-struct rect_i {
-    i32 min_x, min_y, max_x, max_y;
-};
 
 union v2i {
     struct {
@@ -29,6 +26,15 @@ union v2 {
     f32 e[2];
 };
 
+struct rect {
+    v2 min;
+    v2 max;
+};
+
+struct rect_i {
+    i32 min_x, min_y, max_x, max_y;
+};
+
 union v3i {
     struct {
         i32 x,y,z;
@@ -42,6 +48,9 @@ union v3 {
     };
     struct {
         f32 r,g,b;
+    };
+    struct {
+        f32 h,s,v;
     };
     f32 e[3];
 };
@@ -98,6 +107,10 @@ struct v6 {
     f32 vals[6];
 };
 
+inline b32 is_in_rect(v2 p, rect r) {
+    return p.x >= r.min.x && p.x <= r.max.x && p.y >= r.min.y && p.y <= r.max.y;
+}
+
 inline f32 are_opposite_signs(f32 lhs, f32 rhs) {
     return (lhs > 0.0f && rhs < 0.0f) || (lhs < 0.0f && rhs > 0.0f);
 }
@@ -152,6 +165,10 @@ inline u32 uround(f32 val) {
 }
 
 inline f32 fclamp(f32 val, f32 min, f32 max) {
+    return (val < min) ? min : ((val > max) ? max : val);
+}
+
+inline i32 iclamp(i32 val, i32 min, i32 max) {
     return (val < min) ? min : ((val > max) ? max : val);
 }
 

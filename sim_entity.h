@@ -23,7 +23,7 @@ enum entity_type {
 };
 
 #define UPDATE_FUNC(type) void update_##type(game_state_t* game_state,\
-                                             game_input_t game_input,\
+                                             game_input_t* game_input,\
                                              sim_entity_t* entity,\
                                              f32 dt)
 
@@ -64,6 +64,7 @@ struct turret_state_t {
 
 const u32 LILGUY_LEFT_FACING  = 0x01;
 const u32 LILGUY_RUNNING      = 0x02;
+const u32 LILGUY_MAYOR        = 0x04;
 
 struct lilguy_state_t {
     u32 flags;

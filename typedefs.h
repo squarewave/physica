@@ -62,10 +62,17 @@ struct vec {
   }
   inline T& operator[] (i32 index) { return this->values[index]; }
   inline T* at(i32 index) { return this->values + index; }
-  inline i32 push(T val) {
-    i32 result = this->count++;
+  inline T* push(T val) {
+    T* result = this->values + this->count++;
     assert_(this->count <= this->capacity);
-    this->values[result] = val;
+    *result = val;
+    return result;
+  }
+  inline T* push_many(i32 count) {
+    T* result = this->values + this->count;
+    this->count += count;
+    assert_(this->count <= this->capacity);
+    ZERO_ARRAY(result, count);
     return result;
   }
   inline T pop() {

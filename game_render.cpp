@@ -77,49 +77,56 @@ b32 load_program(u32* program_result,
 
     return true;
 }
-// enum gl_resouce_t {
-//     RES_SOLIDS_PROG,
-//     RES_SOLIDS_VAO_RECT,
-//     RES_SOLIDS_VAO_CIRCLE,
-//     RES_SOLIDS_VERTEX_MODELSPACE,
-//     RES_SOLIDS_DRAW_COLOR,
-//     RES_SOLIDS_TRANSFORM,
-//     RES_SOLIDS_LIGHTING,
+#if 0
+enum gl_resouce_t {
+    RES_SOLIDS_PROG,
+    RES_SOLIDS_VAO_RECT,
+    RES_SOLIDS_VAO_CIRCLE,
+    RES_SOLIDS_VERTEX_MODELSPACE,
+    RES_SOLIDS_DRAW_COLOR,
+    RES_SOLIDS_TRANSFORM,
+    RES_SOLIDS_LIGHTING,
 
-//     RES_TEXTURES_PROG,
-//     RES_TEXTURES_VAO_RECT,
-//     RES_TEXTURES_VERTEX_MODELSPACE,
-//     RES_TEXTURES_VERTEX_UV,
-//     RES_TEXTURES_TINT,
-//     RES_TEXTURES_TRANSFORM,
-//     RES_TEXTURES_UV_TRANSFORM,
-//     RES_TEXTURES_SAMPLER,
-//     RES_TEXTURES_LIGHTING,
+    RES_TEXTURES_PROG,
+    RES_TEXTURES_VAO_RECT,
+    RES_TEXTURES_VERTEX_MODELSPACE,
+    RES_TEXTURES_VERTEX_UV,
+    RES_TEXTURES_TINT,
+    RES_TEXTURES_TRANSFORM,
+    RES_TEXTURES_UV_TRANSFORM,
+    RES_TEXTURES_SAMPLER,
+    RES_TEXTURES_LIGHTING,
 
-//     RES_SOLID_PARTICLES_PROG,
-//     RES_SOLID_PARTICLES_VAO_RECT,
-//     RES_SOLID_PARTICLES_VERTEX_MODELSPACE,
-//     RES_SOLID_PARTICLES_CENTER,
-//     RES_SOLID_PARTICLES_SCALING,
-//     RES_SOLID_PARTICLES_DRAW_COLOR,
-//     RES_SOLID_PARTICLES_VIEW_TRANSFORM,
-//     RES_SOLID_PARTICLES_LIGHTING,
+    RES_SOLID_PARTICLES_PROG,
+    RES_SOLID_PARTICLES_VAO_RECT,
+    RES_SOLID_PARTICLES_VERTEX_MODELSPACE,
+    RES_SOLID_PARTICLES_CENTER,
+    RES_SOLID_PARTICLES_SCALING,
+    RES_SOLID_PARTICLES_DRAW_COLOR,
+    RES_SOLID_PARTICLES_VIEW_TRANSFORM,
+    RES_SOLID_PARTICLES_LIGHTING,
 
-//     RES_GRADIENT_PROG,
-//     RES_GRADIENT_VAO_RECT,
-//     RES_GRADIENT_VERTEX_MODELSPACE,
-//     RES_GRADIENT_VIEWPORT,
-//     RES_GRADIENT_START_COLOR,
-//     RES_GRADIENT_END_COLOR,
-//     RES_GRADIENT_GRADIENT_START,
-//     RES_GRADIENT_GRADIENT_END,
+    RES_GRADIENT_PROG,
+    RES_GRADIENT_VAO_RECT,
+    RES_GRADIENT_VERTEX_MODELSPACE,
+    RES_GRADIENT_VIEWPORT,
+    RES_GRADIENT_START_COLOR,
+    RES_GRADIENT_END_COLOR,
+    RES_GRADIENT_GRADIENT_START,
+    RES_GRADIENT_GRADIENT_END,
 
-//     RES_SOLID_PARTICLES_CENTER_BUFFER,
-//     RES_SOLID_PARTICLES_SCALING_BUFFER,
-//     RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER,
+    RES_SOLID_PARTICLES_CENTER_BUFFER,
+    RES_SOLID_PARTICLES_SCALING_BUFFER,
+    RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER,
 
-//     RES_COUNT,
-// };
+    RES_COLORED_VERTEX_PROG,
+    RES_COLORED_VERTEX_VAO_RECT,
+    RES_COLORED_VERTEX_VERTEX_MODELSPACE,
+    RES_COLORED_VERTEX_DRAW_COLOR,
+
+    RES_COUNT,
+};
+#endif
 
 gl_programs_t load_programs() {
     gl_programs_t result;
@@ -173,6 +180,58 @@ gl_programs_t load_programs() {
                               3, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(res[RES_GRADIENT_VERTEX_MODELSPACE]);
 
+        glGenBuffers(1, &ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     sizeof(index_data),
+                     index_data,
+                     GL_STATIC_DRAW);
+    }
+
+    /////////////////////////////////////////////////////////////
+    // colored vertex program
+    /////////////////////////////////////////////////////////////
+
+    {
+        if (!load_program(&ures[RES_COLOR_PICKER_PROG],
+                          "shaders/simple_vertex_shader.glsl",
+                          "shaders/color_picker_fragment_shader.glsl")) {
+            OutputDebugString("Error loading GL program");
+            assert_(false);
+        }
+
+        glGenVertexArrays(1,&ures[RES_COLOR_PICKER_VAO_RECT]);
+        glBindVertexArray(ures[RES_COLOR_PICKER_VAO_RECT]);
+
+        res[RES_COLOR_PICKER_HSV] =
+            glGetUniformLocation(ures[RES_COLOR_PICKER_PROG], "hsv");
+        res[RES_COLOR_PICKER_MIN_P] =
+            glGetUniformLocation(ures[RES_COLOR_PICKER_PROG], "min_p");
+        res[RES_COLOR_PICKER_MAX_P] =
+            glGetUniformLocation(ures[RES_COLOR_PICKER_PROG], "max_p");
+        res[RES_COLOR_PICKER_TRANSFORM] =
+            glGetUniformLocation(ures[RES_COLOR_PICKER_PROG], "transform");
+    
+        GLfloat vertex_data[] = {
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+             0.5f,  0.5f, 0.0f,
+            -0.5f,  0.5f, 0.0f
+        };
+        u32 index_data[] = { 0, 1, 2, 3 };
+    
+        u32 vbo;
+        u32 ibo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(vertex_data),
+                     vertex_data,
+                     GL_STATIC_DRAW);
+        glVertexAttribPointer(res[RES_COLOR_PICKER_VERTEX_MODELSPACE],
+                              3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(res[RES_COLOR_PICKER_VERTEX_MODELSPACE]);
+    
         glGenBuffers(1, &ibo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
@@ -793,6 +852,21 @@ render_object_t* push_rect(render_group_t* render_group,
     return obj;
 }
 
+render_object_t* push_color_picker(render_group_t* render_group,
+                                   v3 hsv,
+                                   rect r) {
+
+    i32 i = render_group->objects.push_unassigned();
+    render_object_t* obj = render_group->objects.at(i);
+    obj->type = RENDER_TYPE_COLOR_PICKER;
+    obj->render_color_picker.hsv = hsv;
+    obj->render_color_picker.center = 0.5f * (r.max + r.min);
+    obj->render_color_picker.diagonal = (r.max - r.min);
+    obj->parallax = 0.0f;
+    obj->z = 0.0f;
+    return obj;
+}
+
 render_object_t* push_rect_outline(render_group_t* render_group,
                            color_t color,
                            v2 center,
@@ -921,6 +995,48 @@ void draw_gl_rect(gl_program_t* program,
     // }
 }
 
+void draw_gl_color_picker(gl_programs_t* programs,
+                          camera_t camera,
+                          render_color_picker_t color_picker,
+                          f32 z) {
+    TIMED_FUNC();
+    // our base rect is simply a square at the origin with sides of length 1.0f,
+    // transform that square to get our draw rect
+
+    m4x4 model_rotate = identity_4x4();
+    m4x4 model_scale = identity_4x4();
+    m4x4 model_translate = identity_4x4();
+    //scale
+    model_scale.r1.c1 = color_picker.diagonal.x;
+    model_scale.r2.c2 = color_picker.diagonal.y;
+    // translate
+    model_translate.r1.c4 = color_picker.center.x;
+    model_translate.r2.c4 = color_picker.center.y;
+    model_translate.r3.c4 = z;
+
+    m4x4 model = model_translate * model_rotate * model_scale;
+    m4x4 view = get_view_transform_4x4(camera);
+    m4x4 transform = view * model;
+
+    m3x3 view_3 = get_view_transform_3x3(camera);
+
+    glUniformMatrix4fv(programs->i_res_ids[RES_COLOR_PICKER_TRANSFORM],
+                       1,
+                       GL_TRUE,
+                       transform.vals);
+
+    glUniform3f(programs->i_res_ids[RES_COLOR_PICKER_HSV],
+                color_picker.hsv.h,
+                color_picker.hsv.s,
+                color_picker.hsv.v);
+    v2 min_p = (color_picker.center - 0.5f * color_picker.diagonal);
+    v2 max_p = (color_picker.center + 0.5f * color_picker.diagonal);
+    glUniform2f(programs->i_res_ids[RES_COLOR_PICKER_MIN_P], min_p.x, min_p.y);
+    glUniform2f(programs->i_res_ids[RES_COLOR_PICKER_MAX_P], max_p.x, max_p.y);
+
+    glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
+}
+
 void draw_gl_circle(gl_program_t* program,
                     camera_t camera,
                     render_circle_t circle,
@@ -1034,11 +1150,6 @@ void setup_gl_for_type(gl_programs_t* programs,
                        u32 type) {
 
     switch (type) {
-        case RENDER_TYPE_RECT: {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glUseProgram(programs->programs[GL_PROG_SOLIDS].id);
-            glBindVertexArray(programs->programs[GL_PROG_SOLIDS].vaos[GL_VAO_RECT]);
-        } break;
         case RENDER_TYPE_CIRCLE: {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glUseProgram(programs->programs[GL_PROG_SOLIDS].id);
@@ -1049,15 +1160,15 @@ void setup_gl_for_type(gl_programs_t* programs,
             glBindVertexArray(programs->programs[GL_PROG_TEXTURES].vaos[GL_VAO_RECT]);
             glActiveTexture(GL_TEXTURE0);
         } break;
-        case RENDER_TYPE_RECT_OUTLINE: {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glUseProgram(programs->programs[GL_PROG_SOLIDS].id);
-            glBindVertexArray(programs->programs[GL_PROG_SOLIDS].vaos[GL_VAO_RECT]);
-        } break;
         case RENDER_TYPE_CIRCLE_OUTLINE: {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glUseProgram(programs->programs[GL_PROG_SOLIDS].id);
             glBindVertexArray(programs->programs[GL_PROG_SOLIDS].vaos[GL_VAO_CIRCLE]);
+        } break;
+        case RENDER_TYPE_COLOR_PICKER: {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glUseProgram(programs->u_res_ids[RES_COLOR_PICKER_PROG]);
+            glBindVertexArray(programs->u_res_ids[RES_COLOR_PICKER_VAO_RECT]);
         } break;
     }
 }
@@ -1278,11 +1389,10 @@ void draw_render_group(transient_state_t* transient_state,
     f32 max_distance_sq = length_squared(2.0f * camera.to_top_right);
 
     u32 types[] = {
-        RENDER_TYPE_RECT,
         RENDER_TYPE_CIRCLE,
         RENDER_TYPE_TEXTURE,
-        RENDER_TYPE_RECT_OUTLINE,
-        RENDER_TYPE_CIRCLE_OUTLINE
+        RENDER_TYPE_CIRCLE_OUTLINE,
+		RENDER_TYPE_COLOR_PICKER
     };
 
     glUseProgram(programs->programs[GL_PROG_TEXTURES].id);
@@ -1307,12 +1417,6 @@ void draw_render_group(transient_state_t* transient_state,
             }
 
             switch (types[i]) {
-                case RENDER_TYPE_RECT_OUTLINE:{
-                    draw_gl_rect(&programs->programs[GL_PROG_SOLIDS],
-                                 camera,
-                                 obj->render_rect,
-                                 obj->z);
-                } break;
                 case RENDER_TYPE_CIRCLE_OUTLINE:
                 case RENDER_TYPE_CIRCLE: {
                     draw_gl_circle(&programs->programs[GL_PROG_SOLIDS],
@@ -1325,6 +1429,12 @@ void draw_render_group(transient_state_t* transient_state,
                                     camera,
                                     obj->render_texture,
                                     obj->z);
+                } break;
+                case RENDER_TYPE_COLOR_PICKER: {
+                    draw_gl_color_picker(programs,
+                                         camera,
+                                         obj->render_color_picker,
+                                         obj->z);
                 } break;
             }
         }

@@ -1,7 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-const u32 FRAME_RATE = 30;
+const u32 FRAME_RATE = 60;
 const u32 FRAMES_PER_SECOND = 1.0f / (f32)FRAME_RATE;
 const u32 START_WIDTH = 1366;
 const u32 START_HEIGHT = 768;

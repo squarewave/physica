@@ -23,7 +23,7 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
     rgba_t lighting = (1.0f / 255.0f) * rgba_t {237.0f,222.0f,213.0f,255.0f};
     // rgba_t lighting = (1.0f / 255.0f) * rgba_t {255.0f,255.0f,255.0f,255.0f};
 
-    const i32 max_render_objects = 20000;
+    const i32 max_render_objects = 70000;
     game_state->main_render_group.objects.count = 0;
     game_state->main_render_group.objects.capacity = max_render_objects;
     game_state->main_render_group.objects.values =
@@ -32,23 +32,14 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
         create_frame_buffer(window.width, window.height);
     game_state->main_render_group.lighting = lighting;
 
-    const i32 max_background_objects = 60000;
-    game_state->background_render_group.objects.count = 0;
-    game_state->background_render_group.objects.capacity = max_background_objects;
-    game_state->background_render_group.objects.values =
-        PUSH_ARRAY(&game_state->render_arena, max_background_objects, render_object_t);
-    game_state->background_render_group.frame_buffer =
-        game_state->main_render_group.frame_buffer;
-    game_state->background_render_group.lighting = lighting;
-
-    const i32 max_ui_objects = 1000;
+    const i32 max_ui_objects = 10000;
     game_state->ui_render_group.objects.count = 0;
     game_state->ui_render_group.objects.capacity = max_ui_objects;
     game_state->ui_render_group.objects.values =
         PUSH_ARRAY(&game_state->render_arena, max_ui_objects, render_object_t);
     game_state->ui_render_group.frame_buffer =
         game_state->main_render_group.frame_buffer;
-    game_state->ui_render_group.lighting = lighting;
+    game_state->ui_render_group.lighting = to_rgba(0xffffffff);
 
 
     glClearColor(0.784f * lighting.r, 0.8745f * lighting.g, 0.925f * lighting.b, 1.0f);
@@ -99,17 +90,17 @@ setup_world(game_state_t *game_state) {
     "######################################################################################################"
     "######################################################################################################"
     "                MMMMMMMMMMMMMM########################################################################"
-    "                              # ######################################################################"
-    "                              # ######################################################################"
-    " s gggggggg           #         ######################################################################"
-    "#################  ##   ##   ## ######################################################################"
-    "#################MM##MMM##MMM## ######################################################################"
-    "############################### ######################################################################"
-    "############################### ######################################################################"
-    "#############>        ##MM##### ######################################################################"
-    "############## ####M  ##  ##    ######################################################################"
-    "############## ####M       #    ######################################################################"
-    "###################M           +######################################################################"
+    "                              # M#####################################################################"
+    "                              # M#####################################################################"
+    " s ggggggggm          #         M#####################################################################"
+    "#################  ##   ##   ## M#####################################################################"
+    "#################MM##MMM##MMM## M#####################################################################"
+    "############################### M#####################################################################"
+    "############################### M#####################################################################"
+    "#############>        ##MM##### M#####################################################################"
+    "############## ####M  ##  ##    M#####################################################################"
+    "############## ####M       #    M#####################################################################"
+    "###################M          + M#####################################################################"
     "####################MMMMMMMMMM########################################################################"
     "######################################################################################################"
     "######################################################################################################"
@@ -203,8 +194,11 @@ setup_world(game_state_t *game_state) {
                                                0);
                 } break;
                 case 'g': {
-                    create_lilguy(game_state, position);
-                }
+                    create_lilguy(game_state, position, 0);
+                } break;
+                case 'm': {
+                    create_lilguy(game_state, position, LILGUY_MAYOR);
+                } break;
             }
         }
     }
@@ -244,16 +238,13 @@ initialize_game_state(game_state_t* game_state, window_description_t window) {
         camera_height_meters * 0.5f
     };
     game_state->main_camera.orientation = 0.0f;
-
-    game_state->background_camera.to_top_right = v2 {
-        camera_height_meters * 0.5f * aspect_ratio,
-        camera_height_meters * 0.5f
-    };
+    game_state->main_camera.zoom.factor = 1.0f;
 
     v2 half_window_dim = v2 {(f32)window.width / 2.0f, (f32)window.height / 2.0f};
     game_state->ui_camera.center = half_window_dim;
     game_state->ui_camera.to_top_right = half_window_dim;
     game_state->ui_camera.orientation = 0.0f;
+    game_state->ui_camera.zoom.factor = 1.0f;
 
     game_state->physics_state = phy_init(&game_state->world_arena);
 
@@ -271,7 +262,6 @@ initialize_game_state(game_state_t* game_state, window_description_t window) {
 
     create_background(game_state, &game_state->background);
 
-    debug_init(game_state);
 
     game_state->initialized = true;
 }
@@ -282,92 +272,92 @@ game_update_and_render(platform_services_t platform,
                        transient_state_t* transient_state,
                        f32 dt,
                        window_description_t window,
-                       game_input_t game_input) {
+                       game_input_t* game_input,
+                       tools_state_t* tools_state) {
 
     TIMED_FUNC();
 
     if (!game_state->initialized) {
         initialize_game_state(game_state, window);
 
-        i32 index = add_animation(&game_state->main_animation_group,
-                      &game_state->animations.lilguy_standing_right,
-                      0.0f);
-
-
+        tools_init(tools_state);
     }
 
-    clear_hashmap(&game_state->collision_map);
+    if (!game_state->paused) {
+        clear_hashmap(&game_state->collision_map);
 
-    phy_set_gravity(&game_state->physics_state, 
-                    game_state->gravity_magnitude * game_state->gravity_normal);
+        phy_set_gravity(&game_state->physics_state, 
+                        game_state->gravity_magnitude * game_state->gravity_normal);
 
-    phy_update(&game_state->physics_state, &game_state->collision_map, dt);
+        phy_update(&game_state->physics_state, &game_state->collision_map, dt);
 
-    for (int i = 0; i < game_state->entities.size; ++i) {
-        sim_entity_t* entity = game_state->entities.try_get(i);
+        for (int i = 0; i < game_state->entities.size; ++i) {
+			TIMED_BLOCK(update_entities);
+            sim_entity_t* entity = game_state->entities.try_get(i);
 
-        if (!entity) {
-            continue;
+            if (!entity) {
+                continue;
+            }
+
+            #define __UPDATE_CASE(type) case type: {\
+                update_##type(game_state, game_input, entity, dt);\
+            } break
+
+            switch (entity->type) {
+                __UPDATE_CASE(PLAYER);
+                __UPDATE_CASE(TILE);
+                __UPDATE_CASE(TURRET);
+                __UPDATE_CASE(TURRET_SHOT);
+                __UPDATE_CASE(SPIKES);
+                __UPDATE_CASE(LILGUY);
+            }
         }
 
-        #define __UPDATE_CASE(type) case type: {\
-            update_##type(game_state, game_input, entity, dt);\
-        } break
+        i32 target_direction = game_state->rotation_state.target_direction;
+        i32 current_direction = game_state->rotation_state.current_direction;
+        if (target_direction != current_direction) {
+            v2 base_normal;
+            switch (current_direction) {
+                case DIR_DOWN:  { base_normal = v2 {0.0f, -1.0f}; } break;
+                case DIR_LEFT:  { base_normal = v2 {-1.0f, 0.0f}; } break;
+                case DIR_UP:    { base_normal = v2 {0.0f, 1.0f}; } break;
+                case DIR_RIGHT: { base_normal = v2 {1.0f, 0.0f}; } break;
+            }
+            
+            game_state->rotation_state.progress += (1.0f / TIME_TO_ROTATE) * dt;
+            game_state->rotation_state.progress = fmin(1.0f,
+                                                       game_state->rotation_state.progress);
 
-        switch (entity->type) {
-            __UPDATE_CASE(PLAYER);
-            __UPDATE_CASE(TILE);
-            __UPDATE_CASE(TURRET);
-            __UPDATE_CASE(TURRET_SHOT);
-            __UPDATE_CASE(SPIKES);
-            __UPDATE_CASE(LILGUY);
+            f32 progess_with_easing =
+                ((cos(game_state->rotation_state.progress * fPI) * -0.5f) + 0.5f)
+                * fPI_OVER_2;
+            if (target_direction == ((current_direction + 1) % 4)) { // clockwise
+                game_state->player->body->gravity_normal =
+                    rotate(base_normal, -progess_with_easing);
+            } else {
+                assert_(target_direction == (current_direction ? (current_direction - 1) : 3));
+                game_state->player->body->gravity_normal =
+                    rotate(base_normal, progess_with_easing);
+            }
+
+            if (game_state->rotation_state.progress == 1.0f) {
+                game_state->rotation_state.current_direction = target_direction;
+            }
         }
+
+        tools_update_and_render(game_state, tools_state, dt, window, game_input);
+        // tools_update_and_render(game_state, dt, window, &game_input);
+
+        update_background(&game_state->background,
+                          &game_state->main_render_group,
+                          game_state->main_camera,
+                          dt);
+
+        update_animations(&game_state->main_animation_group,
+                          &game_state->main_render_group,
+                          dt);
+
     }
-
-    i32 target_direction = game_state->rotation_state.target_direction;
-    i32 current_direction = game_state->rotation_state.current_direction;
-    if (target_direction != current_direction) {
-        v2 base_normal;
-        switch (current_direction) {
-            case DIR_DOWN:  { base_normal = v2 {0.0f, -1.0f}; } break;
-            case DIR_LEFT:  { base_normal = v2 {-1.0f, 0.0f}; } break;
-            case DIR_UP:    { base_normal = v2 {0.0f, 1.0f}; } break;
-            case DIR_RIGHT: { base_normal = v2 {1.0f, 0.0f}; } break;
-        }
-        
-        game_state->rotation_state.progress += (1.0f / TIME_TO_ROTATE) * dt;
-        game_state->rotation_state.progress = fmin(1.0f, game_state->rotation_state.progress);
-
-        f32 progess_with_easing =
-            ((cos(game_state->rotation_state.progress * fPI) * -0.5f) + 0.5f)
-            * fPI_OVER_2;
-        if (target_direction == ((current_direction + 1) % 4)) { // clockwise
-            game_state->player->body->gravity_normal =
-                rotate(base_normal, -progess_with_easing);
-        } else {
-            assert_(target_direction == (current_direction ? (current_direction - 1) : 3));
-            game_state->player->body->gravity_normal =
-                rotate(base_normal, progess_with_easing);
-        }
-
-        if (game_state->rotation_state.progress == 1.0f) {
-            game_state->rotation_state.current_direction = target_direction;
-        }
-    }
-
-    debug_update_and_render(game_state, dt, window, &game_input);
-
-    game_state->background_camera.center = game_state->main_camera.center;
-    game_state->background_camera.orientation = game_state->main_camera.orientation;
-
-    update_background(&game_state->background,
-                      &game_state->background_render_group,
-                      game_state->background_camera,
-                      dt);
-
-    update_animations(&game_state->main_animation_group,
-                      &game_state->main_render_group,
-                      dt);
 
     setup_frame_buffer(game_state->main_render_group.frame_buffer);
 
@@ -390,10 +380,6 @@ game_update_and_render(platform_services_t platform,
 
     draw_render_group(transient_state,
                       &game_state->gl_programs,
-                      game_state->background_camera,
-                      &game_state->background_render_group);
-    draw_render_group(transient_state,
-                      &game_state->gl_programs,
                       game_state->main_camera,
                       &game_state->main_render_group);
     draw_render_group(transient_state,
@@ -401,11 +387,17 @@ game_update_and_render(platform_services_t platform,
                       game_state->ui_camera,
                       &game_state->ui_render_group);
 
-    clear_render_group(&game_state->background_render_group);
-    clear_render_group(&game_state->main_render_group);
-    clear_render_group(&game_state->ui_render_group);
-
     present_frame_buffer(&game_state->gl_programs,
                          game_state->main_render_group.frame_buffer,
                          default_frame_buffer(window.width, window.height));
+
+
+    if (was_pressed(game_input->keyboard.p)) {
+        game_state->paused = !game_state->paused;
+    }
+    
+    if (!game_state->paused) {
+        clear_render_group(&game_state->main_render_group);
+        clear_render_group(&game_state->ui_render_group);
+    }
 }

@@ -5,22 +5,62 @@
 #include "game.h"
 #include "stb_truetype.h"
 
-void print_debug_log() {
-    char buffer[256];
+const f32 LINE_HEIGHT = 16.0f;
 
-    OutputDebugStringA("\n\n");
-    for (int i = 0; i < max_debug_blocks; ++i) {
+void process_debug_log(tools_state_t* tools_state) {
+    char* buffer = tools_state->debug_state.performance_log;
+
+    for (int i = 0; i < max_debug_counter; ++i) {
+        debug_block_t block = debug_blocks[i];
+
+        i32 j = i;
+
+        while(j > 0 && debug_blocks[j-1].total_cycles < block.total_cycles) {
+            debug_blocks[j] = debug_blocks[j-1];
+            j--;
+        }
+
+        debug_blocks[j] = block;
+    }
+
+    const i32 MAX_BARS = 20;
+    f64 max_cycles = (f64)debug_blocks[0].total_cycles;
+
+    for (int i = 0; i < max_debug_counter; ++i) {
         if (debug_blocks[i].id) {
-            sprintf(buffer, "%-32s %14lld cy,    %5d calls\n",
-                   debug_blocks[i].id,
-                   debug_blocks[i].total_cycles,
-                   debug_blocks[i].call_count);
-            OutputDebugStringA(buffer);
-            debug_blocks[i].id = 0;
-            debug_blocks[i].total_cycles = 0;
-            debug_blocks[i].call_count = 0;
+            buffer += sprintf(buffer, "%-32s %14lld cy,    %5d calls ",
+                              debug_blocks[i].id,
+                              debug_blocks[i].total_cycles,
+                              debug_blocks[i].call_count);
+
+            i32 bar_count = (i32)(((f64)debug_blocks[i].total_cycles / (f64)max_cycles)
+                                        * (f64)MAX_BARS);
+            for (int j = 0; j < bar_count; ++j) {
+                *buffer = '|';
+                buffer++;
+            }
+
+            *buffer = '\n';
+            buffer++;
+
+            assert_(buffer - tools_state->debug_state.performance_log <
+                    ARRAY_SIZE(tools_state->debug_state.performance_log));
+
         }
     }
+
+    for (int i = 0; i < max_debug_counter; ++i) {
+        debug_blocks[i].id = 0;
+        debug_blocks[i].total_cycles = 0;
+        debug_blocks[i].call_count = 0;
+    }
+
+
+    *buffer = 0;
+    buffer++;
+
+    assert_(buffer - tools_state->debug_state.performance_log <
+            ARRAY_SIZE(tools_state->debug_state.performance_log));
 }
 
 inline f32
@@ -29,13 +69,14 @@ debug_get_seconds_elapsed(u64 old, u64 current) {
 }
 
 void
-debug_load_monospace_font(game_state_t* game_state) {
-    game_state->debug_state.monospace_font =
-        load_font("C:/Windows/fonts/arial.ttf", 20.0f);
+debug_load_monospace_font(tools_state_t* tools_state) {
+    tools_state->debug_state.monospace_font =
+        load_font("C:/Windows/fonts/consola.ttf", LINE_HEIGHT);
 }
 
 void
 debug_push_ui_text(game_state_t* game_state,
+                   tools_state_t* tools_state,
                    window_description_t window,
                    v2 bottom_left,
                    rgba_t color,
@@ -46,11 +87,14 @@ debug_push_ui_text(game_state_t* game_state,
 
     bottom_left.y = (f32)window.height - bottom_left.y - 1;
 
-    font_spec_t* font = &game_state->debug_state.monospace_font;
+    font_spec_t* font = &tools_state->debug_state.monospace_font;
     tex2 texture = font->texture;
 
     while (*text) {
-        if (*text >= 32 && *text < 128) {
+        if (*text == '\n') {
+            bottom_left.y += LINE_HEIGHT;
+            bottom_left.x = original_pos.x;
+        } else if (*text >= 32 && *text < 128) {
             stbtt_aligned_quad q;
             stbtt_GetBakedQuad(font->baked_chars,
                                font->texture.width,
@@ -124,6 +168,7 @@ debug_push_ui_text(game_state_t* game_state,
 }
 
 void debug_push_ui_text_f(game_state_t* game_state,
+                          tools_state_t* tools_state,
                           window_description_t window,
                           v2 bottom_left,
                           rgba_t color,
@@ -134,7 +179,7 @@ void debug_push_ui_text_f(game_state_t* game_state,
     va_list args;
     va_start(args, format);
     vsnprintf(buffer, ARRAY_SIZE(buffer), format, args);
-    debug_push_ui_text(game_state, window, bottom_left, color, buffer); 
+    debug_push_ui_text(game_state, tools_state, window, bottom_left, color, buffer); 
     va_end(args);
 }
 
@@ -232,11 +277,12 @@ debug_draw_hulls(game_state_t* game_state) {
     }
 }
 
-void debug_init(game_state_t* game_state) {
-    debug_load_monospace_font(game_state);
+void debug_init(tools_state_t* tools_state) {
+    debug_load_monospace_font(tools_state);
 }
 
 void debug_update_and_render(game_state_t* game_state,
+                             tools_state_t* tools_state,
                              f32 dt,
                              window_description_t window,
                              game_input_t* game_input) {
@@ -244,54 +290,64 @@ void debug_update_and_render(game_state_t* game_state,
     persist u64 last_counter = SDL_GetPerformanceCounter();
     f32 actual_dt = debug_get_seconds_elapsed(last_counter, SDL_GetPerformanceCounter());
     last_counter = SDL_GetPerformanceCounter();
-    if (true) {
+
+    if (tools_state->debug_state.show_performance) {
         rgba_t color;
 
         f32 fps = 1.0f / actual_dt;
 
         if (fps > (0.9f * FRAMES_PER_SECOND)) {
-            color = COLOR_GREEN;
+            color = RGBA_GREEN;
         } else if (fps > (0.75f * FRAMES_PER_SECOND)) {
-            color = COLOR_ORANGE;
+            color = RGBA_ORANGE;
         } else {
-            color = COLOR_RED;
+            color = RGBA_RED;
         }
         
         debug_push_ui_text_f(game_state,
+                             tools_state,
                              window,
-                             v2 {20.0f, 20.0f},
+                             v2 {8.0f, (f32)window.height - 20.0f},
                              color,
                              "%3.1f fps", fps);
+
+        debug_push_ui_text(game_state,
+                           tools_state,
+                           window,
+                           v2 {8.0f, (f32)window.height - 40.0f},
+                           RGBA_BLACK,
+                           tools_state->debug_state.performance_log);
     }
 
-    if (game_input->mouse.left_click.transition_count &&
-        game_input->mouse.left_click.ended_down) {
-        m3x3 inverse_view_transform = get_inverse_view_transform_3x3(game_state->main_camera);
-        v2 world_position = inverse_view_transform * game_input->mouse.normalized_position;
-        game_state->debug_state.selected = pick_body(&game_state->physics_state,
-                                                     world_position);
-    }
-    
-    if (game_state->debug_state.selected) {
-        push_circle(&game_state->main_render_group,
-                    color_t {0.4f, 1.0f, 0.4f},
-                    game_state->debug_state.selected->position,
-                    2.0f * VIRTUAL_PIXEL_SIZE,
-                    0.0f,
-                    0);
-
-        debug_push_ui_text_f(game_state,
-                             window,
-                             v2 {0.0f, 0.0f},
-                             COLOR_RED,
-                             "%lld", game_state->debug_state.selected->entity.id);
-    }
-
-    if (false) {
+    if (tools_state->debug_state.draw_wireframes) {
         debug_draw_hulls(game_state);
+        
+        if (game_input->mouse.left_click.transition_count &&
+            game_input->mouse.left_click.ended_down) {
+            m3x3 inverse_view_transform = get_inverse_view_transform_3x3(game_state->main_camera);
+            v2 world_position = inverse_view_transform * game_input->mouse.normalized_position;
+            tools_state->debug_state.selected = pick_body(&game_state->physics_state,
+                                                         world_position);
+        }
+        
+        if (tools_state->debug_state.selected) {
+            push_circle(&game_state->main_render_group,
+                        color_t {0.4f, 1.0f, 0.4f},
+                        tools_state->debug_state.selected->position,
+                        2.0f * VIRTUAL_PIXEL_SIZE,
+                        0.0f,
+                        0);
+
+            debug_push_ui_text_f(game_state,
+                                 tools_state,
+                                 window,
+                                 v2 {0.0f, 0.0f},
+                                 RGBA_RED,
+                                 "%lld", tools_state->debug_state.selected->entity.id);
+        }
     }
 
-    if (false) {
+    if (tools_state->debug_state.draw_aabb_tree) {
         debug_draw_aabb_tree(game_state);
     }
 }

@@ -16,6 +16,7 @@
 #include "background.cpp"
 #include "bogger.cpp"
 #include "game_debug.cpp"
+#include "game_tools.cpp"
 #include "enemies.cpp"
 #include "npcs.cpp"
 

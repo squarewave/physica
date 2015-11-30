@@ -12,7 +12,7 @@ phy_state_t
 phy_init(memory_arena_t* memory) {
     phy_state_t result;
 
-    result.time_step = 1.0f / 120.0f;
+    result.time_step = 1.0f / 240.0f;
 
     result.bodies.init(memory, 4000);
     result.previous_velocities.init(memory, 4000);

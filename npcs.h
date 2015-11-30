@@ -3,7 +3,8 @@
 
 #include "sim_entity.h"
 
-sim_entity_t* create_lilguy(game_state_t* game_state, v2 position);
+sim_entity_t* create_lilguy(game_state_t* game_state,
+                            v2 position, u32 flags);
 
 UPDATE_FUNC(LILGUY);
 

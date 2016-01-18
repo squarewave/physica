@@ -1,10 +1,12 @@
 #version 330 core
  
 in vec2 uv;
-out vec4 color;
+layout(location = 0) out vec4 color;
+layout(location = 1) out int texture_id_out;
  
 uniform vec4 tint;
 uniform vec4 lighting;
+uniform int texture_id_in;
 uniform sampler2D texture_sampler;
  
 void main() {
@@ -19,4 +21,6 @@ void main() {
                  lighting.g * tinted.g,
                  lighting.b * tinted.b,
                  tinted.a);
+
+    texture_id_out = texture_id_in;
 }

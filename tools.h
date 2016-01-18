@@ -1,7 +1,7 @@
 #ifndef GAME_TOOLS_H_
 #define GAME_TOOLS_H_
 
-#include "game_debug.h"
+#include "debug.h"
 
 struct game_state_t;
 struct game_input_t;
@@ -57,6 +57,8 @@ struct tools_state_t {
     ui_element_t* root_element;
     ui_element_t* active_element;
     ui_element_t* hover_element;
+
+    i32 selected_render_item;
 };
 
 void tools_init(tools_state_t* tools_state);

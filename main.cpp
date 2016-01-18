@@ -6,7 +6,7 @@
 // trying this out:
 // http://buffered.io/posts/the-magic-of-unity-builds/
 #include "win32sdl_platform.cpp"
-#include "game_render.cpp"
+#include "renderer.cpp"
 #include "hashmap.cpp"
 #include "physica.cpp"
 #include "game.cpp"
@@ -15,8 +15,8 @@
 #include "sim_entity.cpp"
 #include "background.cpp"
 #include "bogger.cpp"
-#include "game_debug.cpp"
-#include "game_tools.cpp"
+#include "debug.cpp"
+#include "tools.cpp"
 #include "enemies.cpp"
 #include "npcs.cpp"
 

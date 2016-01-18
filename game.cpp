@@ -4,7 +4,7 @@
 
 #include <cfloat>
 #include "game.h"
-#include "game_render.h"
+#include "renderer.h"
 #include "physica.h"
 #include "player.h"
 #include "tile.h"
@@ -252,6 +252,12 @@ initialize_game_state(game_state_t* game_state, window_description_t window) {
     game_state->entities.allocate(&game_state->world_arena, entity_capacity);
     game_state->next_entity_id = 1L;
 
+    const i32 entity_map_capacity = 8000;
+    game_state->entity_map.pairs.values = PUSH_ARRAY(&game_state->world_arena,
+                                                        entity_map_capacity,
+                                                        hashpair<sim_entity_t*>);
+    game_state->entity_map.pairs.count = entity_map_capacity;
+
     const i32 collision_capacity = 2000;
     game_state->collision_map.pairs.values = PUSH_ARRAY(&game_state->world_arena,
                                                         collision_capacity,
@@ -283,7 +289,7 @@ game_update_and_render(platform_services_t platform,
         tools_init(tools_state);
     }
 
-    if (!game_state->paused) {
+    if (!game_state->paused || game_state->advance_one_frame) {
         clear_hashmap(&game_state->collision_map);
 
         phy_set_gravity(&game_state->physics_state, 
@@ -345,8 +351,6 @@ game_update_and_render(platform_services_t platform,
             }
         }
 
-        tools_update_and_render(game_state, tools_state, dt, window, game_input);
-        // tools_update_and_render(game_state, dt, window, &game_input);
 
         update_background(&game_state->background,
                           &game_state->main_render_group,
@@ -359,6 +363,7 @@ game_update_and_render(platform_services_t platform,
 
     }
 
+    tools_update_and_render(game_state, tools_state, dt, window, game_input);
     setup_frame_buffer(game_state->main_render_group.frame_buffer);
 
     v2 viewport = v2 {
@@ -395,9 +400,15 @@ game_update_and_render(platform_services_t platform,
     if (was_pressed(game_input->keyboard.p)) {
         game_state->paused = !game_state->paused;
     }
-    
-    if (!game_state->paused) {
-        clear_render_group(&game_state->main_render_group);
-        clear_render_group(&game_state->ui_render_group);
+
+    game_state->advance_one_frame = false;
+    if (was_pressed(game_input->keyboard.f)) {
+        game_state->advance_one_frame = true;
     }
+    
+    if (!game_state->paused || game_state->advance_one_frame) {
+        clear_render_group(&game_state->main_render_group);
+    }
+    
+    clear_render_group(&game_state->ui_render_group);
 }

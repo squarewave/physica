@@ -331,12 +331,18 @@ void debug_update_and_render(game_state_t* game_state,
         }
         
         if (tools_state->debug_state.selected) {
+
+            sim_entity_t* entity =
+                get_hash_item_value(&game_state->entity_map,
+                                    tools_state->debug_state.selected->entity.id);
+
             push_circle(&game_state->main_render_group,
                         color_t {0.4f, 1.0f, 0.4f},
-                        tools_state->debug_state.selected->position,
+                        entity->body->position,
                         2.0f * VIRTUAL_PIXEL_SIZE,
                         0.0f,
                         0);
+
 
             debug_push_ui_text_f(game_state,
                                  tools_state,

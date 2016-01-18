@@ -4,7 +4,7 @@
 
 #include <assert.h>
 #include "physica_math.h"
-#include "game_render.h"
+#include "renderer.h"
 #include "intrinsics.h"
 #include "game.h"
 #include "gl/gl.h"
@@ -96,6 +96,7 @@ enum gl_resouce_t {
     RES_TEXTURES_UV_TRANSFORM,
     RES_TEXTURES_SAMPLER,
     RES_TEXTURES_LIGHTING,
+    RES_TEXTURES_TEXTURE_ID,
 
     RES_SOLID_PARTICLES_PROG,
     RES_SOLID_PARTICLES_VAO_RECT,
@@ -338,6 +339,87 @@ gl_programs_t load_programs() {
 
 
     /////////////////////////////////////////////////////////////
+    // texture program
+    /////////////////////////////////////////////////////////////
+    {
+        if (!load_program(&ures[RES_TEXTURES_PROG],
+                          "shaders/texture_vertex_shader.glsl",
+                          "shaders/texture_fragment_shader.glsl")) {
+            OutputDebugString("Error loading GL program");
+            assert_(false); 
+        }
+
+        glGenVertexArrays(1,&ures[RES_TEXTURES_VAO_RECT]);
+        glBindVertexArray(ures[RES_TEXTURES_VAO_RECT]);
+        
+        res[RES_TEXTURES_VERTEX_MODELSPACE] =
+            glGetAttribLocation(ures[RES_TEXTURES_PROG], "vertex_modelspace");
+        res[RES_TEXTURES_VERTEX_UV] =
+            glGetAttribLocation(ures[RES_TEXTURES_PROG], "vertex_uv");
+        res[RES_TEXTURES_TRANSFORM] =
+            glGetUniformLocation(ures[RES_TEXTURES_PROG], "texture_transform");
+        res[RES_TEXTURES_UV_TRANSFORM] =
+            glGetUniformLocation(ures[RES_TEXTURES_PROG], "uv_transform");
+        res[RES_TEXTURES_SAMPLER] =
+            glGetUniformLocation(ures[RES_TEXTURES_PROG], "texture_sampler");
+        res[RES_TEXTURES_TINT] =
+            glGetUniformLocation(ures[RES_TEXTURES_PROG], "tint");
+        res[RES_TEXTURES_LIGHTING] =
+            glGetUniformLocation(ures[RES_TEXTURES_PROG], "lighting");
+        res[RES_TEXTURES_TEXTURE_ID] =
+            glGetUniformLocation(ures[RES_TEXTURES_PROG], "texture_id_in");
+
+
+        GLfloat vertex_data[] = {
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+             0.5f,  0.5f, 0.0f,
+            -0.5f,  0.5f, 0.0f
+        };
+
+        GLfloat uv_data[] = {
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f
+        };
+
+        u32 index_data[] = { 0, 1, 2, 3 };
+
+        u32 vbo;
+        u32 uv_vbo;
+        u32 ibo;
+
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(vertex_data),
+                     vertex_data,
+                     GL_STATIC_DRAW);
+        glEnableVertexAttribArray(res[RES_TEXTURES_VERTEX_MODELSPACE]);
+        glVertexAttribPointer(res[RES_TEXTURES_VERTEX_MODELSPACE],
+                              3, GL_FLOAT, GL_FALSE, 0, 0);
+
+        glGenBuffers(1, &uv_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, uv_vbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(uv_data),
+                     uv_data,
+                     GL_STATIC_DRAW);
+        glEnableVertexAttribArray(res[RES_TEXTURES_VERTEX_UV]);
+        glVertexAttribPointer(res[RES_TEXTURES_VERTEX_UV],
+                              2, GL_FLOAT, GL_FALSE, 0, 0);
+
+        glGenBuffers(1, &ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                     sizeof(index_data),
+                     index_data,
+                     GL_STATIC_DRAW);
+
+    }
+
+    /////////////////////////////////////////////////////////////
     // solids program
     /////////////////////////////////////////////////////////////
 
@@ -428,88 +510,6 @@ gl_programs_t load_programs() {
 
     result.programs[GL_PROG_SOLIDS] = solids_program;
 
-
-    /////////////////////////////////////////////////////////////
-    // texture program
-    /////////////////////////////////////////////////////////////
-
-    gl_program_t texture_program;
-
-    glGenVertexArrays(1,&texture_program.vaos[GL_VAO_RECT]);
-    glBindVertexArray(texture_program.vaos[GL_VAO_RECT]);
-
-    if (!load_program(&texture_program.id,
-                      "shaders/texture_vertex_shader.glsl",
-                      "shaders/texture_fragment_shader.glsl")) {
-        OutputDebugString("Error loading GL program");
-        assert_(false); 
-    }
-    
-    texture_program.attribs[GL_ATTRIB_VERTEX_MODELSPACE] =
-        glGetAttribLocation(texture_program.id, "vertex_modelspace");
-    texture_program.attribs[GL_ATTRIB_VERTEX_UV] =
-        glGetAttribLocation(texture_program.id, "vertex_uv");
-
-    GLfloat texture_vertex_data[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f
-    };
-
-    GLfloat texture_uv_data[] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f
-    };
-
-    u32 texture_index_data[] = { 0, 1, 2, 3 };
-
-    u32 texture_vbo;
-    u32 texture_uv_vbo;
-    u32 texture_ibo;
-
-    glGenBuffers(1, &texture_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, texture_vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(texture_vertex_data),
-                 texture_vertex_data,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(texture_program.attribs[GL_ATTRIB_VERTEX_MODELSPACE]);
-    glVertexAttribPointer(texture_program.attribs[GL_ATTRIB_VERTEX_MODELSPACE],
-                          3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glGenBuffers(1, &texture_uv_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, texture_uv_vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(texture_uv_data),
-                 texture_uv_data,
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(texture_program.attribs[GL_ATTRIB_VERTEX_UV]);
-    glVertexAttribPointer(texture_program.attribs[GL_ATTRIB_VERTEX_UV],
-                          2, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glGenBuffers(1, &texture_ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texture_ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(texture_index_data),
-                 texture_index_data,
-                 GL_STATIC_DRAW);
-
-    texture_program.uniforms[GL_UNIFORM_MAIN_TRANSFORM] =
-        glGetUniformLocation(texture_program.id, "texture_transform");
-    texture_program.uniforms[GL_UNIFORM_UV_TRANSFORM] =
-        glGetUniformLocation(texture_program.id, "uv_transform");
-    texture_program.uniforms[GL_UNIFORM_SAMPLER] =
-        glGetUniformLocation(texture_program.id, "texture_sampler");
-    texture_program.uniforms[GL_UNIFORM_DRAW_COLOR] =
-        glGetUniformLocation(texture_program.id, "tint");
-    texture_program.uniforms[GL_UNIFORM_LIGHTING] =
-        glGetUniformLocation(texture_program.id, "lighting");
-
-    result.programs[GL_PROG_TEXTURES] = texture_program;
-
     return result;
 }
 
@@ -532,6 +532,32 @@ frame_buffer_t create_frame_buffer(i32 width, i32 height) {
 
     glGenFramebuffers(1, &result.id);
     glBindFramebuffer(GL_FRAMEBUFFER, result.id);
+
+    u32 texture_id_map;
+    glGenRenderbuffers(1, &texture_id_map);
+    glBindRenderbuffer(GL_RENDERBUFFER, texture_id_map);
+    glRenderbufferStorage(GL_RENDERBUFFER,
+                          GL_DEPTH_COMPONENT,
+                          width,
+                          height);
+    glBindTexture(GL_TEXTURE_2D, texture_id_map);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_R32I,
+                 width,
+                 height,
+                 0,
+                 GL_RED_INTEGER,
+                 GL_UNSIGNED_INT,
+                 0);
+        
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER,
+                           GL_COLOR_ATTACHMENT1,
+                           GL_TEXTURE_2D,
+                           texture_id_map,
+                           0);
 
     glGenTextures(1, &result.texture);
     glBindTexture(GL_TEXTURE_2D, result.texture);
@@ -1081,11 +1107,15 @@ void draw_gl_circle(gl_program_t* program,
     // }
 }
 
-void draw_gl_texture(gl_program_t* program,
+void draw_gl_texture(gl_programs_t* programs,
                      camera_t camera,
                      render_texture_t texture,
-                     f32 z) {
+                     f32 z,
+                     i32 render_item_index) {
     TIMED_FUNC();
+
+    i32* res = programs->i_res_ids;
+    u32* ures = programs->u_res_ids;
 
     f32 src_width = (f32)(texture.source_rect.max_x - texture.source_rect.min_x); 
     f32 src_height = (f32)(texture.source_rect.max_y - texture.source_rect.min_y);
@@ -1127,19 +1157,20 @@ void draw_gl_texture(gl_program_t* program,
     uv_transform.r2.c3 = texture.source_rect.min_y / (f32)texture.texture.height;
 
     glBindTexture(GL_TEXTURE_2D, texture.texture.texture_id);
-    glUniform1i(program->uniforms[GL_UNIFORM_SAMPLER], 0);
+    glUniform1i(res[RES_TEXTURES_SAMPLER], 0);
+    glUniform1i(res[RES_TEXTURES_TEXTURE_ID], render_item_index);
 
-    glUniform4f(program->uniforms[GL_UNIFORM_DRAW_COLOR],
+    glUniform4f(res[RES_TEXTURES_TINT],
                 texture.tint.r,
                 texture.tint.g,
                 texture.tint.b,
                 texture.tint.a);
 
-    glUniformMatrix4fv(program->uniforms[GL_UNIFORM_MAIN_TRANSFORM],
+    glUniformMatrix4fv(res[RES_TEXTURES_TRANSFORM],
                        1,
                        GL_TRUE,
                        transform.vals);
-    glUniformMatrix3fv(program->uniforms[GL_UNIFORM_UV_TRANSFORM],
+    glUniformMatrix3fv(res[RES_TEXTURES_UV_TRANSFORM],
                        1,
                        GL_TRUE,
                        uv_transform.vals);
@@ -1149,15 +1180,19 @@ void draw_gl_texture(gl_program_t* program,
 void setup_gl_for_type(gl_programs_t* programs,
                        u32 type) {
 
+    i32* res = programs->i_res_ids;
+    u32* ures = programs->u_res_ids;
+
     switch (type) {
         case RENDER_TYPE_CIRCLE: {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glUseProgram(programs->programs[GL_PROG_SOLIDS].id);
+            glBindVertexArray(programs->programs[GL_PROG_SOLIDS].vaos[GL_VAO_CIRCLE]);
         } break;
         case RENDER_TYPE_TEXTURE: {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glUseProgram(programs->programs[GL_PROG_TEXTURES].id);
-            glBindVertexArray(programs->programs[GL_PROG_TEXTURES].vaos[GL_VAO_RECT]);
+            glUseProgram(ures[RES_TEXTURES_PROG]);
+            glBindVertexArray(ures[RES_TEXTURES_VAO_RECT]);
             glActiveTexture(GL_TEXTURE0);
         } break;
         case RENDER_TYPE_CIRCLE_OUTLINE: {
@@ -1167,8 +1202,8 @@ void setup_gl_for_type(gl_programs_t* programs,
         } break;
         case RENDER_TYPE_COLOR_PICKER: {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glUseProgram(programs->u_res_ids[RES_COLOR_PICKER_PROG]);
-            glBindVertexArray(programs->u_res_ids[RES_COLOR_PICKER_VAO_RECT]);
+            glUseProgram(ures[RES_COLOR_PICKER_PROG]);
+            glBindVertexArray(ures[RES_COLOR_PICKER_VAO_RECT]);
         } break;
     }
 }
@@ -1186,37 +1221,38 @@ void present_frame_buffer(gl_programs_t* programs,
                           frame_buffer_t dest) {
     TIMED_FUNC();
 
+    i32* res = programs->i_res_ids;
+    u32* ures = programs->u_res_ids;
+
     setup_gl_for_type(programs, RENDER_TYPE_TEXTURE);
 
-    glUniform4f(programs->programs[GL_PROG_TEXTURES].uniforms[GL_UNIFORM_LIGHTING],
+    glUniform4f(res[RES_TEXTURES_LIGHTING],
                 1.0f,
                 1.0f,
                 1.0f,
                 1.0f);
-
-    gl_program_t* program = &programs->programs[GL_PROG_TEXTURES];
 
     glBindFramebuffer(GL_FRAMEBUFFER, dest.id);
     glViewport(0,0,dest.width, dest.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBindTexture(GL_TEXTURE_2D, source.texture);
-    glUniform1i(program->uniforms[GL_UNIFORM_SAMPLER], 0);
+    glUniform1i(res[RES_TEXTURES_SAMPLER], 0);
 
     m4x4 transform = identity_4x4();
     transform.r1.c1 = 2.0f;
     transform.r2.c2 = 2.0f;
     m3x3 uv_transform = identity_3x3();
-    glUniformMatrix4fv(program->uniforms[GL_UNIFORM_MAIN_TRANSFORM],
+    glUniformMatrix4fv(res[RES_TEXTURES_TRANSFORM],
                        1,
                        GL_TRUE,
                        transform.vals);
-    glUniformMatrix3fv(program->uniforms[GL_UNIFORM_UV_TRANSFORM],
+    glUniformMatrix3fv(res[RES_TEXTURES_UV_TRANSFORM],
                        1,
                        GL_TRUE,
                        uv_transform.vals);
 
-    glUniform4f(program->uniforms[GL_UNIFORM_DRAW_COLOR],
+    glUniform4f(res[RES_TEXTURES_TINT],
                 0.0f,
                 0.0f,
                 0.0f,
@@ -1260,6 +1296,7 @@ void draw_rect_particles(transient_state_t* transient_state,
     u32 type = solid ? RENDER_TYPE_RECT : RENDER_TYPE_RECT_OUTLINE;
 
     f32 max_distance_sq = length_squared(2.0f * camera.to_top_right);
+
     i32* res = programs->i_res_ids;
     u32* ures = programs->u_res_ids;
 
@@ -1386,6 +1423,12 @@ void draw_render_group(transient_state_t* transient_state,
                        render_group_t* render_group) {
     TIMED_FUNC();
 
+    const GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(ARRAY_SIZE(buffers), buffers);
+    
+    i32* res = programs->i_res_ids;
+    u32* ures = programs->u_res_ids;
+
     f32 max_distance_sq = length_squared(2.0f * camera.to_top_right);
 
     u32 types[] = {
@@ -1395,8 +1438,8 @@ void draw_render_group(transient_state_t* transient_state,
 		RENDER_TYPE_COLOR_PICKER
     };
 
-    glUseProgram(programs->programs[GL_PROG_TEXTURES].id);
-    glUniform4f(programs->programs[GL_PROG_TEXTURES].uniforms[GL_UNIFORM_LIGHTING],
+    glUseProgram(ures[RES_TEXTURES_PROG]);
+    glUniform4f(res[RES_TEXTURES_LIGHTING],
                 render_group->lighting.r,
                 render_group->lighting.g,
                 render_group->lighting.b,
@@ -1425,10 +1468,11 @@ void draw_render_group(transient_state_t* transient_state,
                                    obj->z);
                 } break;
                 case RENDER_TYPE_TEXTURE: {
-                    draw_gl_texture(&programs->programs[GL_PROG_TEXTURES],
+                    draw_gl_texture(programs,
                                     camera,
                                     obj->render_texture,
-                                    obj->z);
+                                    obj->z,
+                                    j);
                 } break;
                 case RENDER_TYPE_COLOR_PICKER: {
                     draw_gl_color_picker(programs,

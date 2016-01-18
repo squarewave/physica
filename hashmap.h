@@ -87,13 +87,18 @@ inline T* get_hash_item(hashmap<T>* hm, u64 k) {
     }
 }
 
-inline void set_hash_item(hashmap_t* hm, u64 k, void* val) {
-    u32 i = _find_slot(hm, k);
-    hm->pairs[i].key = k;
-    hm->pairs[i].val = val;
-    hm->count++;
-    assert_(hm->count < (hm->capacity / 2));
+template<class T>
+inline T get_hash_item_value(hashmap<T>* hm, u64 k) {
+    return *get_hash_item(hm, k);
 }
+
+// inline void set_hash_item(hashmap_t* hm, u64 k, void* val) {
+//     u32 i = _find_slot(hm, k);
+//     hm->pairs[i].key = k;
+//     hm->pairs[i].val = val;
+//     hm->count++;
+//     assert_(hm->count < (hm->capacity / 2));
+// }
 
 template<class T>
 inline T* set_hash_item(hashmap<T>* hm, u64 k, T val) {
@@ -148,7 +153,7 @@ inline void remove_hash_item(hashmap<T>* hm, u64 k) {
         u32 l = 0;
         do {
             j++;
-            j %= hm->capacity;
+            j %= hm->pairs.count;
             if (!_slot_occupied(hm, j)) {
                 loop = (b32) false;
                 break;
@@ -160,7 +165,6 @@ inline void remove_hash_item(hashmap<T>* hm, u64 k) {
         hm->pairs[i] = hm->pairs[j];
         i = j;
     }
-    hm->count--;
 }
 
 template <class T>

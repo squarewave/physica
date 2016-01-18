@@ -6,7 +6,7 @@
 #include "physica.h"
 #include "float.h"
 #include "game.h"
-#include "game_render.h"
+#include "renderer.h"
 
 phy_state_t
 phy_init(memory_arena_t* memory) {

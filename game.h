@@ -7,9 +7,9 @@
 
 #include "typedefs.h"
 #include "constants.h"
-#include "game_debug.h"
-#include "game_render.h"
-#include "game_tools.h"
+#include "debug.h"
+#include "renderer.h"
+#include "tools.h"
 #include "physica_math.h"
 #include "sim_entity.h"
 #include "hashmap.h"
@@ -58,6 +58,7 @@ struct game_state_t {
     i64 next_entity_id;
     iterable_pool<sim_entity_t> entities;
     hashmap<entity_ties_t> collision_map;
+    hashmap<sim_entity_t*> entity_map;
 
     f32 spatial_partition_width;
     u32 spatial_partition_grid_width;
@@ -109,6 +110,7 @@ struct game_state_t {
     rotation_state_t rotation_state;
 
     b32 paused;
+    b32 advance_one_frame;
 };
 
 struct transient_state_t {

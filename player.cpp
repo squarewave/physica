@@ -44,13 +44,21 @@ UPDATE_FUNC(PLAYER) {
 
     const f32 player_move_factor = 20.0f;
     const f32 direction_deadzone = 0.1f;
-    const f32 max_vel = 3.5f;
+    const f32 max_vel = 8.0f * VIRTUAL_PIXEL_SIZE * 12.0f;
     const f32 jump_speed = 7.0f;
     const f32 jump_falloff = 3.5f;
     const f32 jump_velocity_threshold = 0.25f;
     const f32 jump_min_distance = (0.5f * player_height) + 0.1f;
     const f32 jump_raycast_threshold = player_width / 2;
     const f32 camera_move_factor = 0.4f;
+
+    static f32 p_x = entity->body->position.x;
+    f32 dx = entity->body->position.x - p_x;
+    p_x = entity->body->position.x;
+
+    char buffer[256];
+    sprintf(buffer, "%f\n", dx);
+    OutputDebugString(buffer);
 
     f32 gravity_orientation = atanv(entity->body->gravity_normal) + fPI_OVER_2;
 

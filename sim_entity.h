@@ -115,6 +115,9 @@ create_fillet_block_entity(game_state_t* game_state,
                     f32 orientation,
                     u32 flags);
 
+sim_entity_t*
+add_entity(game_state_t* game_state);
+
 void
 remove_entity(game_state_t* game_state, sim_entity_t* entity);
 

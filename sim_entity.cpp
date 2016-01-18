@@ -8,7 +8,7 @@ create_block_entity(game_state_t* game_state,
                     f32 mass,
                     f32 orientation,
                     u32 flags) {
-    sim_entity_t* entity = game_state->entities.acquire();
+    sim_entity_t* entity = add_entity(game_state);
 
 	phy_body_t* body = phy_add_block(&game_state->physics_state,
                                      position,
@@ -18,7 +18,7 @@ create_block_entity(game_state_t* game_state,
 
 	body->flags = flags;
     body->position = position;
-    body->entity.id = entity->id = game_state->next_entity_id++;
+    body->entity.id = entity->id;
     body->entity.type = entity->type = type;
 
     entity->body = body;
@@ -34,7 +34,7 @@ create_fillet_block_entity(game_state_t* game_state,
                            f32 mass,
                            f32 orientation,
                            u32 flags) {
-    sim_entity_t* entity = game_state->entities.acquire();
+    sim_entity_t* entity = add_entity(game_state);
 
     assert_(fillet < diagonal.x / 2.0f);
     assert_(fillet < diagonal.y / 2.0f);
@@ -48,16 +48,25 @@ create_fillet_block_entity(game_state_t* game_state,
 
 	body->flags = flags;
     body->position = position;
-    body->entity.id = entity->id = game_state->next_entity_id++;
+    body->entity.id = entity->id;
     body->entity.type = entity->type = type;
 
     entity->body = body;
     return entity;
 }
 
+sim_entity_t*
+add_entity(game_state_t* game_state) {
+    sim_entity_t* entity = game_state->entities.acquire();
+    entity->id = game_state->next_entity_id++;
+    set_hash_item(&game_state->entity_map, entity->id, entity);
+    return entity;
+}
+
 void
 remove_entity(game_state_t* game_state, sim_entity_t* entity) {
 	phy_remove_body(&game_state->physics_state,
-	                entity->body);	
+	                entity->body);
+    remove_hash_item(&game_state->entity_map, entity->id);
     game_state->entities.free(entity);
 }

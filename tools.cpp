@@ -55,6 +55,8 @@ void tools_init(tools_state_t* tools_state) {
     color_picker->parent = draggable;
     color_picker->offset = v2 {4.0f, 4.0f};
     color_picker->size = v2 {200.0f, 180.0f};
+
+    tools_state->selected_render_item = -1;
 }
 
 inline f32
@@ -245,6 +247,10 @@ void tools_update_and_render(game_state_t* game_state,
                     }
                 } break;
             }
+        } else {
+            if (tools_state->selected_render_item >= 0) {
+                
+            }
         }
     }
 
@@ -275,9 +281,30 @@ void tools_update_and_render(game_state_t* game_state,
                         tools_state->active_element->offset + delta;
                 } break;
             }
+        } else {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER,
+                              game_state->main_render_group.frame_buffer.id);
+            glReadBuffer(GL_COLOR_ATTACHMENT1);
+            glReadPixels((i32)mouse_position.x,
+                         (i32)mouse_position.y,
+                         1,
+                         1,
+                         GL_RED_INTEGER,
+                         GL_INT,
+                         &tools_state->selected_render_item);
         }
 
         tools_state->active_element = 0;
+    }
+
+    if (tools_state->selected_render_item >= 0) {
+        debug_push_ui_text_f(game_state,
+                             tools_state,
+                             window,
+                             v2 {60.0f,60.0f},
+                             RGBA_BLACK,
+                             "%d",
+                             tools_state->selected_render_item);
     }
 
     debug_update_and_render(game_state,

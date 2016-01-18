@@ -5,7 +5,9 @@ uniform vec2 gradient_start;
 uniform vec2 gradient_end;
 uniform vec4 start_color;
 uniform vec4 end_color;
-out vec4 color;
+    
+layout(location = 0) out vec4 color;
+layout(location = 1) out int texture_id_out;
 
 void main() {
     vec2 coord = vec2(2.0 * gl_FragCoord.x / viewport.x - 1.0,
@@ -19,5 +21,6 @@ void main() {
     float ratio = clamp(delta_magnitude / gradient_magnitude, 0.0, 1.0);
 
     color = ratio * end_color + (1.0 - ratio) * start_color;
+    texture_id_out = -1;
     // color = vec4(ratio,ratio,ratio,1.0f);
 }

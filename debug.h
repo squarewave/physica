@@ -2,7 +2,7 @@
 #define PHYSICA_GAME_DEBUG_H
 #include <intrin.h>
 #include <string.h>
-#include "game_render.h"
+#include "renderer.h"
 #include "physica_math.h"
 
 const rgba_t RGBA_GREEN = rgba_t {0.2f, 0.7f, 0.2f, 1.0f};

@@ -59,7 +59,7 @@ sim_entity_t*
 add_entity(game_state_t* game_state) {
     sim_entity_t* entity = game_state->entities.acquire();
     entity->id = game_state->next_entity_id++;
-    set_hash_item(&game_state->entity_map, entity->id, entity);
+    set_hash_item(&game_state->entity_map, (u64)entity->id, entity);
     return entity;
 }
 
@@ -67,6 +67,6 @@ void
 remove_entity(game_state_t* game_state, sim_entity_t* entity) {
 	phy_remove_body(&game_state->physics_state,
 	                entity->body);
-    remove_hash_item(&game_state->entity_map, entity->id);
+    remove_hash_item(&game_state->entity_map, (u64)entity->id);
     game_state->entities.free(entity);
 }

@@ -1,5 +1,5 @@
-#ifndef BACKGROUND_H__
-#define BACKGROUND_H__
+#ifndef BACKGROUND_H_
+#define BACKGROUND_H_
 
 struct mote_attractor_t {
     v2 position;
@@ -38,4 +38,4 @@ void update_background(background_t* background,
                        camera_t camera,
                        f32 dt);
 
-#endif /* end of include guard: BACKGROUND_H__ */
+#endif /* end of include guard: BACKGROUND_H_ */

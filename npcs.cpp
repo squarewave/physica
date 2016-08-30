@@ -11,7 +11,7 @@ const f32 LILGUY_Z = 0.1f;
 const f32 LILGUY_AVERAGE_STATE_CHANGE_SECONDS = 1.0f;
 
 animation_spec_t* get_animation(game_state_t* game_state, u32 flags) {
-    animation_spec_t* spec;
+    animation_spec_t* spec = 0;
 
     switch (flags) {
         case LILGUY_MAYOR | LILGUY_RUNNING | LILGUY_LEFT_FACING: {

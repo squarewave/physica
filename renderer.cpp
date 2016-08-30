@@ -5,9 +5,9 @@
 #include <assert.h>
 #include "physica_math.h"
 #include "renderer.h"
-#include "intrinsics.h"
+#include "game_intrinsics.h"
 #include "game.h"
-#include "gl/gl.h"
+#include "GL/gl.h"
 #include "camera.h"
 #include "stb_truetype.h"
 #include "stb_image.h"
@@ -20,7 +20,7 @@ i32 check_shader_status(u32 item_id, GLenum status_id) {
         glGetShaderiv(item_id, GL_INFO_LOG_LENGTH, &info_log_length);
         char* buffer = (char*)alloca(info_log_length);
         glGetShaderInfoLog(item_id, info_log_length, NULL, buffer);
-        OutputDebugString(buffer);
+        platform_debug_print(buffer);
     }
 
     return result;
@@ -34,7 +34,7 @@ i32 check_program_status(u32 item_id, GLenum status_id) {
         glGetProgramiv(item_id, GL_INFO_LOG_LENGTH, &info_log_length);
         char* buffer = (char*)alloca(info_log_length);
         glGetProgramInfoLog(item_id, info_log_length, NULL, buffer);
-        OutputDebugString(buffer);
+        platform_debug_print(buffer);
     }
 
     return result;
@@ -142,7 +142,7 @@ gl_programs_t load_programs() {
         if (!load_program(&ures[RES_GRADIENT_PROG],
                           "shaders/passthrough_vertex_shader.glsl",
                           "shaders/gradient_fragment_shader.glsl")) {
-            OutputDebugString("Error loading GL program");
+            platform_debug_print("Error loading GL program");
             assert_(false);
         }
 
@@ -197,7 +197,7 @@ gl_programs_t load_programs() {
         if (!load_program(&ures[RES_COLOR_PICKER_PROG],
                           "shaders/simple_vertex_shader.glsl",
                           "shaders/color_picker_fragment_shader.glsl")) {
-            OutputDebugString("Error loading GL program");
+            platform_debug_print("Error loading GL program");
             assert_(false);
         }
 
@@ -249,7 +249,7 @@ gl_programs_t load_programs() {
         if (!load_program(&ures[RES_SOLID_PARTICLES_PROG],
                           "shaders/simple_particle_vertex_shader.glsl",
                           "shaders/simple_particle_fragment_shader.glsl")) {
-            OutputDebugString("Error loading GL program");
+            platform_debug_print("Error loading GL program");
             assert_(false);
         }
 
@@ -345,7 +345,7 @@ gl_programs_t load_programs() {
         if (!load_program(&ures[RES_TEXTURES_PROG],
                           "shaders/texture_vertex_shader.glsl",
                           "shaders/texture_fragment_shader.glsl")) {
-            OutputDebugString("Error loading GL program");
+            platform_debug_print("Error loading GL program");
             assert_(false); 
         }
 
@@ -430,7 +430,7 @@ gl_programs_t load_programs() {
     if (!load_program(&solids_program.id,
                       "shaders/simple_vertex_shader.glsl",
                       "shaders/simple_fragment_shader.glsl")) {
-        OutputDebugString("Error loading GL program");
+        platform_debug_print("Error loading GL program");
         assert_(false);
     }
     solids_program.attribs[GL_ATTRIB_VERTEX_MODELSPACE] =
@@ -476,12 +476,13 @@ gl_programs_t load_programs() {
     circle_vertex_data[1] = 0.0f;
     circle_vertex_data[2] = 0.0f;
 
-    f32 angle = f2PI / ((f32)ARRAY_SIZE(circle_index_data) - 2); 
-    for (int i = 1; i < ARRAY_SIZE(circle_index_data); ++i) {
+    i32 len = (i32)ARRAY_SIZE(circle_index_data);
+    f32 angle = f2PI / ((f32)len - 2); 
+    for (int i = 1; i < len; ++i) {
         circle_vertex_data[i*3] = sin(angle * (f32)(i-1));
         circle_vertex_data[i*3 + 1] = cos(angle * (f32)(i-1));
         circle_vertex_data[i*3 + 2] = 0.0f;
-        circle_index_data[i] = i;
+        circle_index_data[i] = (u32)i;
     }
 
     glGenBuffers(1, &circle_vbo);
@@ -643,7 +644,6 @@ font_spec_t load_font(char* font_file_name, f32 pixel_height) {
     font_spec_t result;
 
     tex2 texture;
-    stbtt_fontinfo font;
 
     platform_read_entire_file_result_t file =
         platform_read_entire_file(font_file_name);
@@ -651,9 +651,9 @@ font_spec_t load_font(char* font_file_name, f32 pixel_height) {
     texture.width = 1024;
     texture.height = 1024;
     texture.pitch = 1024;
-    texture.pixels = (u32*)malloc(texture.width * texture.height * sizeof(u32));
+    texture.pixels = (u32*)malloc((size_t)texture.width * (size_t)texture.height * sizeof(u32));
 
-    u8* bitmap = (u8*)malloc(texture.width * texture.height * sizeof(u8));
+    u8* bitmap = (u8*)malloc((size_t)texture.width * (size_t)texture.height * sizeof(u8));
 
     stbtt_BakeFontBitmap(file.contents,
                          0,
@@ -736,7 +736,7 @@ glyph_spec_t load_glyph(char* font_file_name, char c, f32 pixel_height) {
     texture.width = width;
     texture.height = height;
     texture.pitch = width;
-    texture.pixels = (u32*)malloc(width * height * sizeof(u32));
+    texture.pixels = (u32*)malloc((size_t)width * (size_t)height * sizeof(u32));
 
     for (i32 i = 0; i < height; ++i) {
         for (i32 j = 0; j < width; ++j) {
@@ -781,20 +781,20 @@ tex2 load_bmp(char* filename, i32 scaling) {
         assert_(header->width > 0);
         assert_(header->height > 0);
 
-        result.width = (u32) header->width * scaling;
+        result.width = header->width * scaling;
         result.pitch = result.width;
-        result.height = (u32) header->height * scaling;
-        result.pixels = (u32*)malloc(result.width * result.height * sizeof(u32));
+        result.height = header->height * scaling;
+        result.pixels = (u32*)malloc((size_t)result.width * (size_t)result.height * sizeof(u32));
 
         u32 red_mask = header->red_mask;
         u32 blue_mask = header->blue_mask;
         u32 green_mask = header->green_mask;
         u32 alpha_mask = ~(red_mask | green_mask | blue_mask);
 
-        u32 red_shift = find_least_significant_set_bit(red_mask);
-        u32 green_shift = find_least_significant_set_bit(green_mask);
-        u32 blue_shift = find_least_significant_set_bit(blue_mask);
-        u32 alpha_shift = find_least_significant_set_bit(alpha_mask);
+        i32 red_shift = find_least_significant_set_bit(red_mask);
+        i32 green_shift = find_least_significant_set_bit(green_mask);
+        i32 blue_shift = find_least_significant_set_bit(blue_mask);
+        i32 alpha_shift = find_least_significant_set_bit(alpha_mask);
 
         assert_(red_shift >= 0);
         assert_(green_shift >= 0);
@@ -1044,8 +1044,6 @@ void draw_gl_color_picker(gl_programs_t* programs,
     m4x4 view = get_view_transform_4x4(camera);
     m4x4 transform = view * model;
 
-    m3x3 view_3 = get_view_transform_3x3(camera);
-
     glUniformMatrix4fv(programs->i_res_ids[RES_COLOR_PICKER_TRANSFORM],
                        1,
                        GL_TRUE,
@@ -1115,7 +1113,6 @@ void draw_gl_texture(gl_programs_t* programs,
     TIMED_FUNC();
 
     i32* res = programs->i_res_ids;
-    u32* ures = programs->u_res_ids;
 
     f32 src_width = (f32)(texture.source_rect.max_x - texture.source_rect.min_x); 
     f32 src_height = (f32)(texture.source_rect.max_y - texture.source_rect.min_y);
@@ -1180,7 +1177,7 @@ void draw_gl_texture(gl_programs_t* programs,
 void setup_gl_for_type(gl_programs_t* programs,
                        u32 type) {
 
-    i32* res = programs->i_res_ids;
+    // i32* res = programs->i_res_ids;
     u32* ures = programs->u_res_ids;
 
     switch (type) {
@@ -1222,7 +1219,6 @@ void present_frame_buffer(gl_programs_t* programs,
     TIMED_FUNC();
 
     i32* res = programs->i_res_ids;
-    u32* ures = programs->u_res_ids;
 
     setup_gl_for_type(programs, RENDER_TYPE_TEXTURE);
 
@@ -1349,34 +1345,34 @@ void draw_rect_particles(transient_state_t* transient_state,
     glBindBuffer(GL_ARRAY_BUFFER,
                  ures[RES_SOLID_PARTICLES_CENTER_BUFFER]);
     glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(*particle_center_data),
+                 MAX_PARTICLES * (i32)sizeof(*particle_center_data),
                  0,
                  GL_STREAM_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER,
                     0,
-                    particle_count * sizeof(*particle_center_data),
+                    particle_count * (i32)sizeof(*particle_center_data),
                     particle_center_data);
 
     glBindBuffer(GL_ARRAY_BUFFER,
                  ures[RES_SOLID_PARTICLES_SCALING_BUFFER]);
     glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(*particle_scaling_data),
+                 MAX_PARTICLES * (i32)sizeof(*particle_scaling_data),
                  0,
                  GL_STREAM_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER,
                     0,
-                    particle_count * sizeof(*particle_scaling_data),
+                    particle_count * (i32)sizeof(*particle_scaling_data),
                     particle_scaling_data);
 
     glBindBuffer(GL_ARRAY_BUFFER,
                  ures[RES_SOLID_PARTICLES_DRAW_COLOR_BUFFER]);
     glBufferData(GL_ARRAY_BUFFER,
-                 MAX_PARTICLES * sizeof(*particle_color_data),
+                 MAX_PARTICLES * (i32)sizeof(*particle_color_data),
                  0,
                  GL_STREAM_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER,
                     0,
-                    particle_count * sizeof(*particle_color_data),
+                    particle_count * (i32)sizeof(*particle_color_data),
                     particle_color_data);
 
     m4x4 view_transform = get_view_transform_4x4(camera);
@@ -1445,7 +1441,8 @@ void draw_render_group(transient_state_t* transient_state,
                 render_group->lighting.b,
                 render_group->lighting.a);
 
-    for (int i = 0; i < ARRAY_SIZE(types); ++i) {
+    i32 len = (i32)ARRAY_SIZE(types);
+    for (int i = 0; i < len; ++i) {
         setup_gl_for_type(programs, types[i]);
         for (int j = 0; j < render_group->objects.count; ++j) {
             render_object_t* obj = render_group->objects.at(j);

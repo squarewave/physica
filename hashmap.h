@@ -6,6 +6,7 @@
 #define PHYSICA_HASHMAP_H
 
 #include "typedefs.h"
+#include "limits.h"
 
 struct hash_pair_t {
     void* val;
@@ -29,6 +30,18 @@ struct hashmap {
     array<hashpair<T>> pairs;
 };
 
+inline u64 i64_bits_to_u64(i64 val) {
+    union { i64 i; u64 u; } c;
+    c.i = val;
+    return c.u;
+}
+
+inline i64 u64_bits_to_i64(u64 val) {
+    union { i64 i; u64 u; } c;
+    c.u = val;
+    return c.i;
+}
+
 inline u64 _rotl64(u64 val, u32 degree) {
     return (val << degree) | (val >> (64 - degree));
 }
@@ -43,12 +56,12 @@ inline u32 _get_hashed_key(u64 h) {
     return (u32)h;
 }
 
-inline b32 _slot_occupied(hashmap_t* hm, u32 slot) {
+inline b32 _slot_occupied(hashmap_t* hm, i32 slot) {
     return hm->pairs[slot].val != 0;
 }
 
-inline u32 _find_slot(hashmap_t* hm, u64 k) {
-    u32 i = _get_hashed_key(k) % hm->capacity;
+inline i32 _find_slot(hashmap_t* hm, u64 k) {
+    i32 i = (i32)(_get_hashed_key(k) % hm->capacity);
     while (_slot_occupied(hm,i) && hm->pairs[i].key != k) {
         ++i;
         i %= hm->capacity;
@@ -57,28 +70,33 @@ inline u32 _find_slot(hashmap_t* hm, u64 k) {
 }
 
 inline void* get_hash_item(hashmap_t* hm, u64 k) {
-    u32 i = _find_slot(hm, k);
+    i32 i = _find_slot(hm, k);
     return hm->pairs[i].val;
 }
 
+inline void* get_hash_item(hashmap_t* hm, i64 k) {
+    return get_hash_item(hm, i64_bits_to_u64(k));
+}
+
 template<class T>
-inline b32 _slot_occupied(hashmap<T>* hm, u32 slot) {
+inline b32 _slot_occupied(hashmap<T>* hm, i32 slot) {
     return hm->pairs[slot].key != 0;
 }
 
 template<class T>
-inline u32 _find_slot(hashmap<T>* hm, u64 k) {
-    u32 i = _get_hashed_key(k) % hm->pairs.count;
-    while (_slot_occupied(hm,i) && hm->pairs[i].key != k) {
+inline i32 _find_slot(hashmap<T>* hm, u64 k) {
+    u32 i = _get_hashed_key(k) % (u32)hm->pairs.count;
+    while (_slot_occupied(hm,(i32)i) && hm->pairs[(i32)i].key != k) {
         ++i;
-        i %= hm->pairs.count;
+        i %= (u32)hm->pairs.count;
     }
-    return i;
+    assert_(i <= INT_MAX);
+    return (i32)i;
 }
 
 template<class T>
 inline T* get_hash_item(hashmap<T>* hm, u64 k) {
-    u32 i = _find_slot(hm, k);
+    i32 i = _find_slot(hm, k);
     hashpair<T>* pair = hm->pairs.at(i);
     if (pair->key) {
         return &pair->val;
@@ -88,12 +106,22 @@ inline T* get_hash_item(hashmap<T>* hm, u64 k) {
 }
 
 template<class T>
+inline T* get_hash_item(hashmap<T>* hm, i64 k) {
+    return get_hash_item(hm, i64_bits_to_u64(k));
+}
+
+template<class T>
 inline T get_hash_item_value(hashmap<T>* hm, u64 k) {
     return *get_hash_item(hm, k);
 }
 
+template<class T>
+inline T get_hash_item_value(hashmap<T>* hm, i64 k) {
+    return *get_hash_item(hm, k);
+}
+
 // inline void set_hash_item(hashmap_t* hm, u64 k, void* val) {
-//     u32 i = _find_slot(hm, k);
+//     i32 i = _find_slot(hm, k);
 //     hm->pairs[i].key = k;
 //     hm->pairs[i].val = val;
 //     hm->count++;
@@ -103,25 +131,29 @@ inline T get_hash_item_value(hashmap<T>* hm, u64 k) {
 template<class T>
 inline T* set_hash_item(hashmap<T>* hm, u64 k, T val) {
     assert_(k);
-    u32 i = _find_slot(hm, k);
-    u64 old_k =hm->pairs.at(i)->key;
+    i32 i = _find_slot(hm, k);
     hm->pairs.at(i)->key = k;
     hm->pairs.at(i)->val = val;
     return &hm->pairs.at(i)->val;
 }
 
+template<class T>
+inline T* set_hash_item(hashmap<T>* hm, i64 k, T val) {
+    return set_hash_item(hm, i64_bits_to_u64(k), val);
+}
+
 inline void remove_hash_item(hashmap_t* hm, u64 k) {
-    u32 i = _find_slot(hm, k);
+    i32 i = _find_slot(hm, k);
     if (!_slot_occupied(hm, i)) {
         return;
     }
-    u32 j = i;
+    i32 j = i;
     b32 loop = (b32) true;
     while (loop) {
         hm->pairs[i].key = 0;
         hm->pairs[i].val = {0};
 
-        u32 l = 0;
+        i32 l = 0;
         do {
             j++;
             j %= hm->capacity;
@@ -130,7 +162,8 @@ inline void remove_hash_item(hashmap_t* hm, u64 k) {
                 break;
             }
 
-            l = _get_hashed_key(hm->pairs[j].key);
+            u32 l_key = _get_hashed_key(hm->pairs[j].key);
+            l = (i32)(l_key % hm->capacity);
         } while((i <= j) ? ((i< l)&&(l <=j)) : (i< l)||(l <=j));
 
         hm->pairs[i] = hm->pairs[j];
@@ -139,18 +172,22 @@ inline void remove_hash_item(hashmap_t* hm, u64 k) {
     hm->count--;
 }
 
+inline void remove_hash_item(hashmap_t* hm, i64 k) {
+    remove_hash_item(hm, i64_bits_to_u64(k));
+}
+
 template <class T>
 inline void remove_hash_item(hashmap<T>* hm, u64 k) {
-    u32 i = _find_slot(hm, k);
+    i32 i = _find_slot(hm, k);
     if (!_slot_occupied(hm, i)) {
         return;
     }
-    u32 j = i;
+    i32 j = i;
     b32 loop = (b32) true;
     while (loop) {
         hm->pairs.at(i)->val = 0;
 
-        u32 l = 0;
+        i32 l = 0;
         do {
             j++;
             j %= hm->pairs.count;
@@ -159,12 +196,18 @@ inline void remove_hash_item(hashmap<T>* hm, u64 k) {
                 break;
             }
 
-            l = _get_hashed_key(hm->pairs.at(j)->key);
+            u32 l_key = _get_hashed_key(hm->pairs[j].key);
+            l = (i32)(l_key % (u32)hm->pairs.count);
         } while((i <= j) ? ((i< l)&&(l <=j)) : (i< l)||(l <=j));
 
         hm->pairs[i] = hm->pairs[j];
         i = j;
     }
+}
+
+template <class T>
+inline void remove_hash_item(hashmap<T>* hm, i64 k) {
+    remove_hash_item(hm, i64_bits_to_u64(k));
 }
 
 template <class T>

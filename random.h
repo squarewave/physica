@@ -10031,7 +10031,7 @@ inline b32 random_b32() {
 
 inline i32 random_i32(i32 min, i32 max) {
 	u32 val = random_u32();
-	return fabs(fmod(*((i32*)&val), (max - min))) + min;
+	return (i32)fabs(fmod(*((i32*)&val), (max - min))) + min;
 }
 
 inline f32 random_f32(f32 min, f32 max) {

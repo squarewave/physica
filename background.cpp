@@ -115,8 +115,8 @@ void create_background(game_state_t* game_state,
         floaty->source_rect = rect_i {0,0,floaty->texture.width, floaty->texture.height};
 
         floaty->z = random_f32(0.0f, 1.0f);
-        f32 z = scale(floaty->z, MIN_FLOATY_Z, MAX_FLOATY_Z);
-        f32 parallax = 1.0f - z;
+        // f32 z = scale(floaty->z, MIN_FLOATY_Z, MAX_FLOATY_Z);
+        // f32 parallax = 1.0f - z;
         f32 min_x = -FLOATY_AREA_RADIUS_X;
         f32 max_x = FLOATY_AREA_RADIUS_X;
         f32 min_y = -FLOATY_AREA_RADIUS_Y;
@@ -137,8 +137,8 @@ void create_background(game_state_t* game_state,
         mote->color = palette[random_i32(0, ARRAY_SIZE(palette))];
 
         mote->z = random_f32(0.0f, 1.0f);
-        f32 z = scale(mote->z, MIN_MOTE_Z, MAX_MOTE_Z);
-        f32 parallax = 1.0f - z;
+        // f32 z = scale(mote->z, MIN_MOTE_Z, MAX_MOTE_Z);
+        // f32 parallax = 1.0f - z;
         f32 min_x = -MOTE_AREA_RADIUS_X;
         f32 max_x = MOTE_AREA_RADIUS_X;
         f32 min_y = -MOTE_AREA_RADIUS_Y;
@@ -170,7 +170,7 @@ void update_background(background_t* background,
                        f32 dt) {
     TIMED_FUNC();
 
-    u32 u32_background_color = from_rgb(background->background_color);
+    // u32 u32_background_color = from_rgb(background->background_color);
 
     m3x3 inverse_view = get_inverse_view_transform_3x3(camera);
 

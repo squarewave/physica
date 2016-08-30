@@ -17,7 +17,7 @@ for (var i = dir.length - 1; i >= 0; i--) {
     animation_spec_t* spec = &animations.' + typename + ';\n\
     spec->cycle_point = builder.cycle_point;\n\
     spec->frames.count = builder.frame_count;\n\
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);\n\
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);\n\
     tex2 texture = load_image(builder.bmp_filepath);\n\
     i32 frame_height = texture.height;\n\
     assert_(texture.width % builder.frame_count == 0);\n\
@@ -49,6 +49,6 @@ var source = "#ifndef ANIMATIONS_H_\n#define ANIMATIONS_H_\n" +
     'animations_list_t load_animations(memory_arena_t* arena) {\n\
     animations_list_t animations = {0};\n' +
     method_body + '    return animations;\n}\n' +
-    '#endif';
+    '#endif\n';
 
 fs.writeFileSync('animations.h', source, 'utf8');

@@ -1,5 +1,5 @@
-#ifndef ANIMATION_H__
-#define ANIMATION_H__
+#ifndef ANIMATION_H_
+#define ANIMATION_H_
 
 const i32 MAX_FRAMES = 128;
 struct frame_builder_t {
@@ -21,7 +21,7 @@ struct animation_builder_t {
     i32 frame_count = -1;\
     i32 cycle_point = 0;\
     f32 frame_duration = -1.0f;\
-    v2 hotspot = {0};\
+    v2 hotspot = (v2){0};\
 \
     body\
 \
@@ -140,4 +140,4 @@ update_animations(animation_group_t* animation_group,
 	}
 }
 
-#endif /* end of include guard: ANIMATION_H__ */
+#endif /* end of include guard: ANIMATION_H_ */

@@ -60,7 +60,7 @@ void tools_init(tools_state_t* tools_state) {
 }
 
 inline f32
-get_factor(u32 zoom_level) {
+get_factor(i32 zoom_level) {
     switch(zoom_level) {
         case -6: { return 0.03125f; }
         case -5: { return 0.0625f; }

@@ -5,12 +5,13 @@
 #ifndef PHYSICA_TYPEDEFS_H
 #define PHYSICA_TYPEDEFS_H
 
+#include <assert.h>
 #include <stdint.h>
 
-#ifdef assert
-#undef assert
-#endif
-#define assert_(exp) exp || (*((i32*)0) = 0)
+// #ifdef assert
+// #undef assert
+// #endif
+#define assert_(exp) assert(exp)
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -32,7 +33,7 @@ struct memory_arena_t {
     u8* base;
 };
 
-void* _push_size(memory_arena_t* arena, u32 size) {
+void* _push_size(memory_arena_t* arena, size_t size) {
     assert_(arena->used + size <= arena->size);
     u8* result = arena->base + arena->used;
     arena->used += size;
@@ -45,9 +46,9 @@ const i32 LARGE_STACK_SIZE = 1024 * 32;
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 #define PUSH_STRUCT(arena, type) (type *)_push_size(arena, sizeof(type))
-#define PUSH_ARRAY(arena, count, type) (type *)_push_size(arena, count * sizeof(type))
-#define ZERO_STRUCT(instance) ZeroMemory(&(instance), sizeof(instance))
-#define ZERO_ARRAY(instance, count) ZeroMemory(instance, (count) * sizeof(*instance))
+#define PUSH_ARRAY(arena, count, type) (type *)_push_size(arena, ((size_t)count) * sizeof(type))
+#define ZERO_STRUCT(instance) memset(&(instance), 0, sizeof(instance))
+#define ZERO_ARRAY(instance, count) memset(instance, 0, ((size_t)count) * sizeof(*instance))
 
 template <class T>
 struct vec {
@@ -55,10 +56,10 @@ struct vec {
   i32 count;
   i32 capacity;
 
-  inline void init(memory_arena_t* memory, i32 capacity) {
-    this->capacity = capacity;
+  inline void init(memory_arena_t* memory, i32 cap) {
+    this->capacity = cap;
     this->count = 0;
-    this->values = PUSH_ARRAY(memory, capacity, T);
+    this->values = PUSH_ARRAY(memory, cap, T);
   }
   inline T& operator[] (i32 index) { return this->values[index]; }
   inline T* at(i32 index) { return this->values + index; }
@@ -68,11 +69,11 @@ struct vec {
     *result = val;
     return result;
   }
-  inline T* push_many(i32 count) {
+  inline T* push_many(i32 cnt) {
     T* result = this->values + this->count;
-    this->count += count;
+    this->count += cnt;
     assert_(this->count <= this->capacity);
-    ZERO_ARRAY(result, count);
+    ZERO_ARRAY(result, cnt);
     return result;
   }
   inline T pop() {
@@ -93,9 +94,9 @@ struct array {
   T *values;
   i32 count;
 
-  inline void init(memory_arena_t* memory, i32 count) {
-    this->count = count;
-    this->values = PUSH_ARRAY(memory, count, T);
+  inline void init(memory_arena_t* memory, i32 cnt) {
+    this->count = cnt;
+    this->values = PUSH_ARRAY(memory, cnt, T);
   }
   inline T operator[](i32 index) { return this->values[index]; }
   inline T *at(i32 index) { return this->values + index; }
@@ -133,11 +134,11 @@ struct pool {
   i32 size;
   i32 capacity;
 
-  inline void init(memory_arena_t* memory, i32 capacity) {
-    this->capacity = capacity;
+  inline void init(memory_arena_t* memory, i32 cap) {
+    this->capacity = cap;
     this->size = 0;
-    this->values = PUSH_ARRAY(memory, capacity, T);
-    this->freed.init(memory, capacity);
+    this->values = PUSH_ARRAY(memory, cap, T);
+    this->freed.init(memory, cap);
   }
 
   inline T*
@@ -148,7 +149,7 @@ struct pool {
       ZERO_ARRAY(result, 1);
     } else {
       result = values + size++;
-      assert_(size <= capacity);
+      assert_(size <= this->capacity);
     }
     return result;
   }
@@ -172,7 +173,7 @@ struct pool {
 
           memmove(freed.values + start,
                   freed.values + start + count,
-                  (freed.count - (start + count)) * sizeof(i32));
+                  (size_t)(freed.count - (start + count)) * sizeof(i32));
           freed.count -= count;
 
           found = true;
@@ -225,11 +226,11 @@ struct iterable_pool {
   i32 size;
   i32 capacity;
 
-  inline void init(memory_arena_t* memory, i32 capacity) {
-    this->capacity = capacity;
+  inline void init(memory_arena_t* memory, i32 cap) {
+    this->capacity = cap;
     this->size = 0;
-    this->values = PUSH_ARRAY(memory, capacity, pool_obj<T>);
-    this->freed.init(memory, capacity);
+    this->values = PUSH_ARRAY(memory, cap, pool_obj<T>);
+    this->freed.init(memory, cap);
   }
 
   inline T*
@@ -240,7 +241,7 @@ struct iterable_pool {
       ZERO_STRUCT(result->obj);
     } else {
       result = values + size++;
-      assert_(size <= capacity);
+      assert_(size <= this->capacity);
     }
     result->freed = false;
 
@@ -318,11 +319,12 @@ struct iterable_pool {
   }
 
   inline void
-  allocate(memory_arena_t* memory, i32 capacity) {
-    this->capacity = capacity;
-    values = (pool_obj<T> *)_push_size(memory, capacity * sizeof(pool_obj<T>));
-    freed.capacity = capacity / 2;
-    freed.values = (i32 *)_push_size(memory, freed.capacity * sizeof(i32));
+  allocate(memory_arena_t* memory, i32 cap) {
+    this->capacity = cap;
+    values = (pool_obj<T> *)_push_size(memory, (size_t)cap * sizeof(pool_obj<T>));
+    freed.capacity = cap / 2;
+    freed.values = (i32 *)_push_size(memory,
+      ((size_t)freed.capacity) * sizeof(i32));
   }
 };
 

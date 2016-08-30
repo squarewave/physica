@@ -29,7 +29,7 @@ struct font_spec_t {
 };
 
 struct window_description_t {
-    u32 width, height;
+    i32 width, height;
 };
 
 typedef v3 color_t;

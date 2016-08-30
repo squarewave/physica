@@ -222,6 +222,10 @@ distribute, and modify this file as you see fit.
 
 */
 
+#pragma clang system_header
+
+
+
 #ifndef STBI_INCLUDE_STB_IMAGE_H
 #define STBI_INCLUDE_STB_IMAGE_H
 

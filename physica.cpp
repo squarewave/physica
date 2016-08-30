@@ -488,7 +488,7 @@ phy_body_t* pick_body(phy_state_t* state, v2 p) {
     stack[stack_index++] = tree->root;
 
     while (stack_index > 0) {
-        assert(stack_index < ARRAY_SIZE(stack));
+        assert((size_t)stack_index < ARRAY_SIZE(stack));
 
         phy_aabb_tree_node_t* node = tree->nodes.at(stack[--stack_index]);
 
@@ -525,7 +525,7 @@ ray_body_intersect_t ray_cast(phy_state_t* state,
     stack[stack_index++] = tree->root;
 
     while (stack_index > 0) {
-        assert(stack_index < ARRAY_SIZE(stack));
+        assert((size_t)stack_index < ARRAY_SIZE(stack));
         phy_aabb_tree_node_t* node = tree->nodes.at(stack[--stack_index]);
         ray_intersect_t r = ray_aabb_intersect(p, d, node->fat_aabb);
         if (!r.intersecting || (result.body && result.depth < r.depth)) {
@@ -575,7 +575,7 @@ ray_cast_from_body(phy_state_t* state,
         stack[stack_index++] = tree->root;
 
         while (stack_index > 0) {
-            assert(stack_index < ARRAY_SIZE(stack));
+            assert((size_t)stack_index < ARRAY_SIZE(stack));
             phy_aabb_tree_node_t* node = tree->nodes.at(stack[--stack_index]);
             ray_intersect_t r = ray_aabb_intersect(p, d, node->fat_aabb);
             if (!r.intersecting || (result.body && result.depth < r.depth)) {
@@ -933,17 +933,16 @@ do_gjk(phy_hull_t* a, phy_hull_t* b, phy_support_result_t* simplex) {
 
 phy_edge_t
 find_closest_edge_to_origin(phy_support_result_t* polytope,
-                            u32 vertex_count) {
+                            i32 vertex_count) {
     phy_edge_t result = {0};
     result.depth = FLT_MAX;
     result.normal = {0};
-    u32 polytope_index = 0;
     for (int i = 0; i < vertex_count; ++i) {
-        u32 next = (i + 1) % vertex_count;
+        i32 next = (i + 1) % vertex_count;
         v2 a = polytope[i].p;
         v2 b = polytope[next].p;
 
-        assert_(!(a.x == b.x && a.y == b.y));
+        assert_(!(fequals(a.x, b.x) && fequals(a.y, b.y)));
 
         v2 e = b - a;
         v2 n = triple(e, a, e);
@@ -964,10 +963,10 @@ find_closest_edge_to_origin(phy_support_result_t* polytope,
 
 inline void
 insert_into_polytope(phy_support_result_t* polytope,
-                     u32* vertex_count,
-                     u32 index,
+                     i32* vertex_count,
+                     i32 index,
                      phy_support_result_t vertex) {
-    for (int i = *vertex_count; i > index; --i) {
+    for (i32 i = *vertex_count; i > index; --i) {
         polytope[i] = polytope[i - 1];
     }
     polytope[index] = vertex;
@@ -990,7 +989,7 @@ do_epa(phy_hull_t* a,
        phy_edge_t* result) {
 
     reorder_simplex(polytope);
-    u32 vertex_count = 3;
+    i32 vertex_count = 3;
     const f32 threshold = 0.001f;
 
     for (int i = 0; i < 20; i++) {
@@ -1013,13 +1012,6 @@ do_epa(phy_hull_t* a,
                                  support);
         }
     }
-
-    char buffer[1024 * 4];
-    i32 buffer_index = 0;
-    for (i32 i = 0; i < vertex_count; i++) {
-        buffer_index += sprintf(buffer + buffer_index, "%f,%f\n", polytope[i].p.x, polytope[i].p.y);
-    }
-
     assert_(false);
     return false;
 }
@@ -1431,9 +1423,9 @@ solve_velocity_constraints(phy_state_t* state, f32 dt) {
                                    cross(ra, omega_a);
 
             f32 bf = -(baumgarte / dt) *
-                     fmax(c->depth - penetration_slop, 0) +
+                     (f32)fmax(c->depth - penetration_slop, 0) +
                      restitution *
-                     fmin(dot(relative_velocity, n) + restitution_slop, 0);
+                     (f32)fmin(dot(relative_velocity, n) + restitution_slop, 0);
 
             v6 jacobian = {
                     -n.x, -n.y, -flt_cross(ra, n),

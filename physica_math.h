@@ -321,10 +321,6 @@ inline v4 operator-(v4 lhs, v4 rhs) {
     return result;
 }
 
-inline f32 abs(f32 val) {
-    return (val > 0) ? val : -val;
-}
-
 inline b32 fequals(f32 lhs, f32 rhs) {
     const f32 epsilon = 0.00001f;
     return (abs(lhs - rhs) < epsilon);
@@ -344,7 +340,7 @@ inline f32 length(v2 val) {
 
 inline v2 normalize(v2 val) {
     f32 l = length(val);
-    return !fequals(l, 0.0f) ? (1.0f / l) * val : v2{0};
+    return !fequals(l, 0.0f) ? (1.0f / l) * val : (v2){0};
 }
 
 inline f32 length_squared(v3 val) {
@@ -357,11 +353,17 @@ inline f32 length(v3 val) {
 
 inline v3 normalize(v3 val) {
     f32 l = length(val);
-    return !fequals(l, 0.0f) ? (1.0f / l) * val : v3{0};
+    return !fequals(l, 0.0f) ? (1.0f / l) * val : (v3){0};
 }
 
 inline f32 atanv(v2 val) {
     return atan2(val.y, val.x);
+}
+
+#ifdef OS_WINDOWS
+
+inline f32 abs(f32 val) {
+    return (val > 0) ? val : -val;
 }
 
 inline f32 atan2(f32 y, f32 x) {
@@ -376,6 +378,8 @@ inline f32 cos(f32 val) {
     return cos((f64)val);
 }
 
+#endif
+
 inline f32 scale(f32 normalized, f32 min, f32 max) {
     return (max - min) * normalized + min;
 }
@@ -388,7 +392,7 @@ inline v2 operator* (m2x2 lhs, v2 rhs) {
 }
 
 inline m2x2 get_rotation_matrix(f32 theta) {
-    return m2x2 {{cos(theta), -sin(theta)}, {sin(theta), cos(theta)}};
+    return (m2x2){{cos(theta), -sin(theta)}, {sin(theta), cos(theta)}};
 }
 
 inline v2 rotate(v2 val, f32 theta) {
@@ -397,8 +401,8 @@ inline v2 rotate(v2 val, f32 theta) {
 }
 
 inline v2 v2_from_theta(f32 theta) {
-    m2x2 r = m2x2 {{cos(theta), -sin(theta)}, {sin(theta), cos(theta)}};
-    return r * (v2 {1,0});
+    m2x2 r = (m2x2){{cos(theta), -sin(theta)}, {sin(theta), cos(theta)}};
+    return r * ((v2){1,0});
 }
 
 inline v3 v3_from_ints(i32 x, i32 y, i32 z = 1) {
@@ -479,7 +483,7 @@ inline v4 operator* (m4x4 lhs, v4 rhs) {
 }
 
 inline v2 perp(v2 val) {
-    return v2 {-val.y, val.x};
+    return (v2){-val.y, val.x};
 }
 
 inline f32 flt_cross(v2 lhs, v2 rhs) {
@@ -487,11 +491,11 @@ inline f32 flt_cross(v2 lhs, v2 rhs) {
 }
 
 inline v2 cross(v2 lhs, f32 rhs) {
-    return v2 {lhs.y * rhs, -lhs.x * rhs};
+    return (v2){lhs.y * rhs, -lhs.x * rhs};
 }
 
 inline v3 cross(v3 lhs, v3 rhs) {
-    return v3 {
+    return (v3){
             lhs.y * rhs.z - lhs.z * rhs.y,
             lhs.z * rhs.x - lhs.x * rhs.z,
             lhs.x * rhs.y - lhs.y * rhs.x
@@ -499,40 +503,40 @@ inline v3 cross(v3 lhs, v3 rhs) {
 }
 
 inline v3 to_v3(v2 val) {
-    return v3 {val.x, val.y, 1.0f};
+    return (v3){val.x, val.y, 1.0f};
 }
 
 inline v2 to_v2(v3 val) {
-    return v2 {val.x, val.y};
+    return (v2){val.x, val.y};
 }
 
 inline v2 triple(v2 a, v2 b, v2 c) {
     f32 w = b.x * c.y - b.y * c.x;
-    return v2 { a.y * w, -a.x * w };
+    return (v2){ a.y * w, -a.x * w };
 }
 
 inline m3x3 get_translation_matrix(v2 val) {
     m3x3 result = {{0}};
-    result.r1 = {1,0,val.x};
-    result.r2 = {0,1,val.y};
-    result.r3 = {0,0,1};
+    result.r1 = (row3_t){1,0,val.x};
+    result.r2 = (row3_t){0,1,val.y};
+    result.r3 = (row3_t){0,0,1};
     return result;
 }
 
 inline m3x3 get_rotation_matrix_3x3(f32 theta) {
     m3x3 result;
-    result.r1 = {cos(theta), -sin(theta), 0.0f};
-    result.r2 = {sin(theta), cos(theta), 0.0f};
-    result.r3 = {0.0f, 0.0f, 1.0f};
+    result.r1 = (row3_t){cos(theta), -sin(theta), 0.0f};
+    result.r2 = (row3_t){sin(theta), cos(theta), 0.0f};
+    result.r3 = (row3_t){0.0f, 0.0f, 1.0f};
     return result;
 }
 
 inline m4x4 get_rotation_matrix_4x4(f32 theta) {
     m4x4 result;
-    result.r1 = {cos(theta), -sin(theta), 0.0f, 0.0f};
-    result.r2 = {sin(theta), cos(theta), 0.0f, 0.0f};
-    result.r3 = {0.0f, 0.0f, 1.0f, 0.0f};
-    result.r4 = {0.0f, 0.0f, 0.0f, 1.0f};
+    result.r1 = (row4_t){cos(theta), -sin(theta), 0.0f, 0.0f};
+    result.r2 = (row4_t){sin(theta), cos(theta), 0.0f, 0.0f};
+    result.r3 = (row4_t){0.0f, 0.0f, 1.0f, 0.0f};
+    result.r4 = (row4_t){0.0f, 0.0f, 0.0f, 1.0f};
     return result;
 }
 
@@ -545,18 +549,18 @@ inline v2 operator* (m3x3 lhs, v2 rhs) {
 
 inline m3x3 identity_3x3(){
     m3x3 result;
-    result.r1 = {1,0,0};
-    result.r2 = {0,1,0};
-    result.r3 = {0,0,1};
+    result.r1 = (row3_t){1,0,0};
+    result.r2 = (row3_t){0,1,0};
+    result.r3 = (row3_t){0,0,1};
     return result;
 }
 
 inline m4x4 identity_4x4(){
     m4x4 result;
-    result.r1 = {1,0,0,0};
-    result.r2 = {0,1,0,0};
-    result.r3 = {0,0,1,0};
-    result.r4 = {0,0,0,1};
+    result.r1 = (row4_t){1,0,0,0};
+    result.r2 = (row4_t){0,1,0,0};
+    result.r3 = (row4_t){0,0,1,0};
+    result.r4 = (row4_t){0,0,0,1};
     return result;
 }
 

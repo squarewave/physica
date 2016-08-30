@@ -28,7 +28,7 @@ void process_debug_log(tools_state_t* tools_state) {
 
     for (int i = 0; i < max_debug_counter; ++i) {
         if (debug_blocks[i].id) {
-            buffer += sprintf(buffer, "%-32s %14lld cy,    %5d calls ",
+            buffer += sprintf(buffer, "%-32s %14ld cy,    %5d calls ",
                               debug_blocks[i].id,
                               debug_blocks[i].total_cycles,
                               debug_blocks[i].call_count);
@@ -44,7 +44,7 @@ void process_debug_log(tools_state_t* tools_state) {
             buffer++;
 
             assert_(buffer - tools_state->debug_state.performance_log <
-                    ARRAY_SIZE(tools_state->debug_state.performance_log));
+                    (i64)ARRAY_SIZE(tools_state->debug_state.performance_log));
 
         }
     }
@@ -60,7 +60,7 @@ void process_debug_log(tools_state_t* tools_state) {
     buffer++;
 
     assert_(buffer - tools_state->debug_state.performance_log <
-            ARRAY_SIZE(tools_state->debug_state.performance_log));
+            (i64)ARRAY_SIZE(tools_state->debug_state.performance_log));
 }
 
 inline f32
@@ -71,7 +71,7 @@ debug_get_seconds_elapsed(u64 old, u64 current) {
 void
 debug_load_monospace_font(tools_state_t* tools_state) {
     tools_state->debug_state.monospace_font =
-        load_font("C:/Windows/fonts/consola.ttf", LINE_HEIGHT);
+        load_font("assets/SourceCodePro-Regular.ttf", LINE_HEIGHT);
 }
 
 void
@@ -94,7 +94,7 @@ debug_push_ui_text(game_state_t* game_state,
         if (*text == '\n') {
             bottom_left.y += LINE_HEIGHT;
             bottom_left.x = original_pos.x;
-        } else if (*text >= 32 && *text < 128) {
+        } else if (*text >= 32) {
             stbtt_aligned_quad q;
             stbtt_GetBakedQuad(font->baked_chars,
                                font->texture.width,
@@ -173,7 +173,8 @@ void debug_push_ui_text_f(game_state_t* game_state,
                           v2 bottom_left,
                           rgba_t color,
                           char* format,
-                          ...) {
+                          ...)
+{
     TIMED_FUNC();
     char buffer[512];
     va_list args;
@@ -192,7 +193,7 @@ void debug_draw_aabb_tree(game_state_t* game_state) {
     stack[stack_index++] = tree->root;
 
     while (stack_index > 0) {
-        assert(stack_index < ARRAY_SIZE(stack));
+        assert_(stack_index < (i32)ARRAY_SIZE(stack));
 
         phy_aabb_tree_node_t* node = tree->nodes.at(stack[--stack_index]);
 
@@ -247,10 +248,10 @@ debug_draw_hulls(game_state_t* game_state) {
                               v2 {hull->width, hull->height},
                               hull->orientation,
                               0.0f);
-                    f32 fillet = hull->fillet;
-                    f32 inner_width = hull->width / 2.0f - fillet;
-                    f32 inner_height = hull->height / 2.0f - fillet;
-                    m2x2 rotation = get_rotation_matrix(hull->orientation);
+                    // f32 fillet = hull->fillet;
+                    // f32 inner_width = hull->width / 2.0f - fillet;
+                    // f32 inner_height = hull->height / 2.0f - fillet;
+                    // m2x2 rotation = get_rotation_matrix(hull->orientation);
                     // push_circle(&game_state->main_render_group,
                     //             color_t {0.9f, 0.2f, 0.2f},
                     //             hull->position + rotation * v2 {inner_width, inner_height},
@@ -296,9 +297,9 @@ void debug_update_and_render(game_state_t* game_state,
 
         f32 fps = 1.0f / actual_dt;
 
-        if (fps > (0.9f * FRAMES_PER_SECOND)) {
+        if (fps > (0.9f * (f32)FRAME_RATE)) {
             color = RGBA_GREEN;
-        } else if (fps > (0.75f * FRAMES_PER_SECOND)) {
+        } else if (fps > (0.75f * (f32)FRAME_RATE)) {
             color = RGBA_ORANGE;
         } else {
             color = RGBA_RED;
@@ -309,7 +310,7 @@ void debug_update_and_render(game_state_t* game_state,
                              window,
                              v2 {8.0f, (f32)window.height - 20.0f},
                              color,
-                             "%3.1f fps", fps);
+                             "%3.1f fps", (f64)fps);
 
         debug_push_ui_text(game_state,
                            tools_state,
@@ -349,7 +350,7 @@ void debug_update_and_render(game_state_t* game_state,
                                  window,
                                  v2 {0.0f, 0.0f},
                                  RGBA_RED,
-                                 "%lld", tools_state->debug_state.selected->entity.id);
+                                 "%ld", tools_state->debug_state.selected->entity.id);
         }
     }
 

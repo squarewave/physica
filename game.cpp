@@ -120,7 +120,7 @@ setup_world(game_state_t *game_state) {
     "######################################################################################################";
 
     i32 tile_map_width = i32(strchr(tile_map, '*') - tile_map + 1);
-    i32 tile_map_height = strlen(tile_map) / tile_map_width;
+    i32 tile_map_height = ((i32)strlen(tile_map)) / tile_map_width;
 
     for (int y = 0; y < tile_map_height; ++y) {
         for (int x = 0; x < tile_map_width; ++x) {
@@ -131,7 +131,6 @@ setup_world(game_state_t *game_state) {
             };
 
             char c = tile_map[y * tile_map_width + x];
-            v2 turret_direction;
             switch(c) {
                 case '#': {
                     tile_info_t info;
@@ -213,7 +212,7 @@ setup_world(game_state_t *game_state) {
 
 void
 initialize_game_state(game_state_t* game_state, window_description_t window) {
-    i64 memory_index = 0;
+    // i64 memory_index = 0;
     u8* memory_location = (u8*)game_state + sizeof(game_state_t);
 
     #define __MAKE_ARENA(arena, count) do {\
@@ -309,6 +308,9 @@ game_update_and_render(platform_services_t platform,
                 update_##type(game_state, game_input, entity, dt);\
             } break
 
+            #define __EMPTY_CASE(type) case type: {\
+            } break
+
             switch (entity->type) {
                 __UPDATE_CASE(PLAYER);
                 __UPDATE_CASE(TILE);
@@ -316,6 +318,10 @@ game_update_and_render(platform_services_t platform,
                 __UPDATE_CASE(TURRET_SHOT);
                 __UPDATE_CASE(SPIKES);
                 __UPDATE_CASE(LILGUY);
+                __EMPTY_CASE(BOGGER);
+                __EMPTY_CASE(BOGGER_BALL);
+                __EMPTY_CASE(WIZ_BUZZ);
+                __EMPTY_CASE(SAVE_POINT);
             }
         }
 

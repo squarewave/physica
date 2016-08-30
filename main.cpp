@@ -5,7 +5,11 @@
 
 // trying this out:
 // http://buffered.io/posts/the-magic-of-unity-builds/
-#include "win32sdl_platform.cpp"
+#ifdef OS_WINDOWS
+    #include "win32sdl_platform.cpp"
+#else
+    #include "linuxsdl_platform.cpp"
+#endif
 #include "renderer.cpp"
 #include "hashmap.cpp"
 #include "physica.cpp"

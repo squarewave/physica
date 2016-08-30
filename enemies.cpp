@@ -24,13 +24,13 @@ sim_entity_t* create_turret(game_state_t* game_state, v2 position, v2 direction)
 }
 
 UPDATE_FUNC(TURRET) {
-    const f32 turret_speed = 3.0f;
+    // const f32 turret_speed = 3.0f;
     const f32 turret_shoot_delay = 2.0f;
 
     turret_state_t* state = &entity->turret_state;
     state->shoot_timer += dt;
 
-    f32 gravity_orientation = atanv(game_state->gravity_normal) + fPI_OVER_2;
+    // f32 gravity_orientation = atanv(game_state->gravity_normal) + fPI_OVER_2;
 
     if (state->shoot_timer > turret_shoot_delay) {
         state->shoot_timer = 0.0f;
@@ -67,7 +67,8 @@ sim_entity_t* create_turret_shot(game_state_t* game_state, v2 position, v2 direc
 }
 
 UPDATE_FUNC(TURRET_SHOT) {
-    entity_ties_t* collision = get_hash_item(&game_state->collision_map, entity->id);
+    entity_ties_t* collision = get_hash_item(&game_state->collision_map,
+      entity->id);
     if (collision && collision->type != TURRET) {
         if (collision->type == PLAYER) {
             kill_player(game_state);

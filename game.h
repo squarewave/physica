@@ -18,8 +18,8 @@
 #include "animations.h"
 
 struct platform_read_entire_file_result_t {
-    u8* contents;
-    u32 content_size;
+    unsigned char* contents;
+    i32 content_size;
 };
 
 struct spatial_partition_t {

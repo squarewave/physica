@@ -69,7 +69,7 @@ struct phy_edge_t {
     i32 a;
     i32 b;
     f32 depth;
-    u32 polytope_index;
+    i32 polytope_index;
 };
 
 struct phy_support_result_t {

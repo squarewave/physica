@@ -57,7 +57,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_walking_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -84,7 +84,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_walking_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -111,7 +111,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_standing_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -138,7 +138,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_standing_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -165,7 +165,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_running_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -192,7 +192,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_running_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -219,7 +219,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_jumping_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -246,7 +246,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.may_jumping_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -273,7 +273,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.martin_tie_adjust;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -300,7 +300,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.martin_standing_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -327,7 +327,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.martin_standing_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -354,7 +354,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.martin_running_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -381,7 +381,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.martin_running_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -408,7 +408,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.martin_jumping_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -435,7 +435,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.martin_jumping_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -462,7 +462,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_standing_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -489,7 +489,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_standing_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -516,7 +516,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_running_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -543,7 +543,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_running_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -570,7 +570,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_mayor_standing_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -597,7 +597,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_mayor_standing_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -624,7 +624,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_mayor_running_right;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);
@@ -651,7 +651,7 @@ animations_list_t load_animations(memory_arena_t* arena) {
     animation_spec_t* spec = &animations.lilguy_mayor_running_left;
     spec->cycle_point = builder.cycle_point;
     spec->frames.count = builder.frame_count;
-    spec->frames.values = PUSH_ARRAY(arena, builder.frame_count, animation_frame_t);
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);
     tex2 texture = load_image(builder.bmp_filepath);
     i32 frame_height = texture.height;
     assert_(texture.width % builder.frame_count == 0);

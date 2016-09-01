@@ -1,4 +1,4 @@
 # physica
 
 
-![gameplay video](https://gph.is/2bJ18Cq)
+![gameplay video](https://raw.githubusercontent.com/SquareWave/physica/master/demo/giphy.gif)

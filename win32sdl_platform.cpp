@@ -2,6 +2,9 @@
 // Created by doug on 4/16/15.
 //
 
+#pragma comment(lib, "SDL2main.lib")
+#pragma comment(lib, "SDL2.lib")
+
 #include <math.h>
 #include <time.h>
 #include <signal.h>
@@ -18,6 +21,9 @@
 #include "game.h"
 #include "win32sdl_platform.h"
 
+void platform_debug_print(char* str) {
+    OutputDebugString(str);
+}
 
 void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* data) {
     i32 next_write_index = (queue->write_index + 1) % TASK_QUEUE_MAX_ENTRIES;

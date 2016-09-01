@@ -368,7 +368,9 @@ int main(int arg, char **argv)
 }
 #endif
 
+#ifndef _WIN32
 #pragma clang system_header
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////////

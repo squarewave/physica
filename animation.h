@@ -21,7 +21,7 @@ struct animation_builder_t {
     i32 frame_count = -1;\
     i32 cycle_point = 0;\
     f32 frame_duration = -1.0f;\
-    v2 hotspot = (v2){0};\
+    v2 hotspot = v2 {0};\
 \
     body\
 \

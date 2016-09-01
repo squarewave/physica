@@ -1,22 +1,23 @@
 #ifndef PHYSICA_GAME_DEBUG_H
 #define PHYSICA_GAME_DEBUG_H
-#include <x86intrin.h>
+
 #include <string.h>
+#include "game_intrinsics.h"
 #include "renderer.h"
 #include "physica_math.h"
 
-const rgba_t RGBA_GREEN = (rgba_t) {0.2f, 0.7f, 0.2f, 1.0f};
-const rgba_t RGBA_RED = (rgba_t) {0.7f, 0.2f, 0.2f, 1.0f};
-const rgba_t RGBA_ORANGE = (rgba_t) {0.6f, 0.5f, 0.2f, 1.0f};
-const rgba_t RGBA_WHITE = (rgba_t) {1.0f, 1.0f, 1.0f, 1.0f};
-const rgba_t RGBA_BLACK = (rgba_t) {0.0f, 0.0f, 0.0f, 1.0f};
-const rgba_t RGBA_BLUE = (rgba_t) {0.2f, 0.2f, 0.7f, 1.0f};
-const color_t COLOR_GREEN = (color_t) {0.2f, 0.7f, 0.2f};
-const color_t COLOR_RED = (color_t) {0.7f, 0.2f, 0.2f};
-const color_t COLOR_ORANGE = (color_t) {0.6f, 0.5f, 0.2f};
-const color_t COLOR_WHITE = (color_t) {1.0f, 1.0f, 1.0f};
-const color_t COLOR_BLACK = (color_t) {0.0f, 0.0f, 0.0f};
-const color_t COLOR_BLUE = (color_t) {0.2f, 0.2f, 0.7f};
+const rgba_t RGBA_GREEN = rgba_t {0.2f, 0.7f, 0.2f, 1.0f};
+const rgba_t RGBA_RED = rgba_t {0.7f, 0.2f, 0.2f, 1.0f};
+const rgba_t RGBA_ORANGE = rgba_t {0.6f, 0.5f, 0.2f, 1.0f};
+const rgba_t RGBA_WHITE = rgba_t {1.0f, 1.0f, 1.0f, 1.0f};
+const rgba_t RGBA_BLACK = rgba_t {0.0f, 0.0f, 0.0f, 1.0f};
+const rgba_t RGBA_BLUE = rgba_t {0.2f, 0.2f, 0.7f, 1.0f};
+const color_t COLOR_GREEN = color_t {0.2f, 0.7f, 0.2f};
+const color_t COLOR_RED = color_t {0.7f, 0.2f, 0.2f};
+const color_t COLOR_ORANGE = color_t {0.6f, 0.5f, 0.2f};
+const color_t COLOR_WHITE = color_t {1.0f, 1.0f, 1.0f};
+const color_t COLOR_BLACK = color_t {0.0f, 0.0f, 0.0f};
+const color_t COLOR_BLUE = color_t {0.2f, 0.2f, 0.7f};
 
 __inline__ u64 rdtsc() {
     return __rdtsc();
@@ -111,6 +112,9 @@ void debug_push_ui_text_f(game_state_t* game_state,
                           rgba_t color,
                           char* format,
                           ...)
-__attribute__ ((format (printf, 6, 7)));
+#ifndef _WIN32
+__attribute__ ((format (printf, 6, 7)))
+#endif
+;
 
 #endif

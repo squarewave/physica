@@ -96,4 +96,6 @@ struct platform_services_t {
     wait_on_queue_func* wait_on_queue;
 };
 
+void platform_debug_print(char* str);
+
 #endif //PHYSICA_SDL_PLATFORM_H

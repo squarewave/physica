@@ -28,7 +28,7 @@ void process_debug_log(tools_state_t* tools_state) {
 
     for (int i = 0; i < max_debug_counter; ++i) {
         if (debug_blocks[i].id) {
-            buffer += sprintf(buffer, "%-32s %14ld cy,    %5d calls ",
+            buffer += sprintf(buffer, "%-32s %14I64u cy,    %5d calls ",
                               debug_blocks[i].id,
                               debug_blocks[i].total_cycles,
                               debug_blocks[i].call_count);

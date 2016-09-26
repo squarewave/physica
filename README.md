@@ -8,7 +8,9 @@ object-oriented solutions to problems.
 ## "Features"
 
 - Goofy gravity control
+
 ![gravity video](https://raw.githubusercontent.com/SquareWave/physica/master/demo/gravity.gif)
 
 - Rigid body physics
+
 ![physics video](https://raw.githubusercontent.com/SquareWave/physica/master/demo/physics.gif)

@@ -573,7 +573,7 @@ STBIDEF int   stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const ch
 
 
 #include <stdarg.h>
-#include <stddef.h> // ptrdiff_t on osx
+#include <stddef.h> // ptrdiff_ on osx
 #include <stdlib.h>
 #include <string.h>
 
@@ -609,10 +609,10 @@ typedef unsigned int   stbi__uint32;
 typedef   signed int   stbi__int32;
 #else
 #include <stdint.h>
-typedef uint16_t stbi__uint16;
-typedef int16_t  stbi__int16;
-typedef uint32_t stbi__uint32;
-typedef int32_t  stbi__int32;
+typedef uint16_ stbi__uint16;
+typedef int16_  stbi__int16;
+typedef uint32_ stbi__uint32;
+typedef int32_  stbi__int32;
 #endif
 
 // should produce compiler error if size is wrong
@@ -2216,42 +2216,42 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
 // results to the generic C version.
 static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
 {
-   int16x8_t row0, row1, row2, row3, row4, row5, row6, row7;
+   int16x8_ row0, row1, row2, row3, row4, row5, row6, row7;
 
-   int16x4_t rot0_0 = vdup_n_s16(stbi__f2f(0.5411961f));
-   int16x4_t rot0_1 = vdup_n_s16(stbi__f2f(-1.847759065f));
-   int16x4_t rot0_2 = vdup_n_s16(stbi__f2f( 0.765366865f));
-   int16x4_t rot1_0 = vdup_n_s16(stbi__f2f( 1.175875602f));
-   int16x4_t rot1_1 = vdup_n_s16(stbi__f2f(-0.899976223f));
-   int16x4_t rot1_2 = vdup_n_s16(stbi__f2f(-2.562915447f));
-   int16x4_t rot2_0 = vdup_n_s16(stbi__f2f(-1.961570560f));
-   int16x4_t rot2_1 = vdup_n_s16(stbi__f2f(-0.390180644f));
-   int16x4_t rot3_0 = vdup_n_s16(stbi__f2f( 0.298631336f));
-   int16x4_t rot3_1 = vdup_n_s16(stbi__f2f( 2.053119869f));
-   int16x4_t rot3_2 = vdup_n_s16(stbi__f2f( 3.072711026f));
-   int16x4_t rot3_3 = vdup_n_s16(stbi__f2f( 1.501321110f));
+   int16x4_ rot0_0 = vdup_n_s16(stbi__f2f(0.5411961f));
+   int16x4_ rot0_1 = vdup_n_s16(stbi__f2f(-1.847759065f));
+   int16x4_ rot0_2 = vdup_n_s16(stbi__f2f( 0.765366865f));
+   int16x4_ rot1_0 = vdup_n_s16(stbi__f2f( 1.175875602f));
+   int16x4_ rot1_1 = vdup_n_s16(stbi__f2f(-0.899976223f));
+   int16x4_ rot1_2 = vdup_n_s16(stbi__f2f(-2.562915447f));
+   int16x4_ rot2_0 = vdup_n_s16(stbi__f2f(-1.961570560f));
+   int16x4_ rot2_1 = vdup_n_s16(stbi__f2f(-0.390180644f));
+   int16x4_ rot3_0 = vdup_n_s16(stbi__f2f( 0.298631336f));
+   int16x4_ rot3_1 = vdup_n_s16(stbi__f2f( 2.053119869f));
+   int16x4_ rot3_2 = vdup_n_s16(stbi__f2f( 3.072711026f));
+   int16x4_ rot3_3 = vdup_n_s16(stbi__f2f( 1.501321110f));
 
 #define dct_long_mul(out, inq, coeff) \
-   int32x4_t out##_l = vmull_s16(vget_low_s16(inq), coeff); \
-   int32x4_t out##_h = vmull_s16(vget_high_s16(inq), coeff)
+   int32x4_ out##_l = vmull_s16(vget_low_s16(inq), coeff); \
+   int32x4_ out##_h = vmull_s16(vget_high_s16(inq), coeff)
 
 #define dct_long_mac(out, acc, inq, coeff) \
-   int32x4_t out##_l = vmlal_s16(acc##_l, vget_low_s16(inq), coeff); \
-   int32x4_t out##_h = vmlal_s16(acc##_h, vget_high_s16(inq), coeff)
+   int32x4_ out##_l = vmlal_s16(acc##_l, vget_low_s16(inq), coeff); \
+   int32x4_ out##_h = vmlal_s16(acc##_h, vget_high_s16(inq), coeff)
 
 #define dct_widen(out, inq) \
-   int32x4_t out##_l = vshll_n_s16(vget_low_s16(inq), 12); \
-   int32x4_t out##_h = vshll_n_s16(vget_high_s16(inq), 12)
+   int32x4_ out##_l = vshll_n_s16(vget_low_s16(inq), 12); \
+   int32x4_ out##_h = vshll_n_s16(vget_high_s16(inq), 12)
 
 // wide add
 #define dct_wadd(out, a, b) \
-   int32x4_t out##_l = vaddq_s32(a##_l, b##_l); \
-   int32x4_t out##_h = vaddq_s32(a##_h, b##_h)
+   int32x4_ out##_l = vaddq_s32(a##_l, b##_l); \
+   int32x4_ out##_h = vaddq_s32(a##_h, b##_h)
 
 // wide sub
 #define dct_wsub(out, a, b) \
-   int32x4_t out##_l = vsubq_s32(a##_l, b##_l); \
-   int32x4_t out##_h = vsubq_s32(a##_h, b##_h)
+   int32x4_ out##_l = vsubq_s32(a##_l, b##_l); \
+   int32x4_ out##_h = vsubq_s32(a##_h, b##_h)
 
 // butterfly a/b, then shift using "shiftop" by "s" and pack
 #define dct_bfly32o(out0,out1, a,b,shiftop,s) \
@@ -2265,12 +2265,12 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
 #define dct_pass(shiftop, shift) \
    { \
       /* even part */ \
-      int16x8_t sum26 = vaddq_s16(row2, row6); \
+      int16x8_ sum26 = vaddq_s16(row2, row6); \
       dct_long_mul(p1e, sum26, rot0_0); \
       dct_long_mac(t2e, p1e, row6, rot0_1); \
       dct_long_mac(t3e, p1e, row2, rot0_2); \
-      int16x8_t sum04 = vaddq_s16(row0, row4); \
-      int16x8_t dif04 = vsubq_s16(row0, row4); \
+      int16x8_ sum04 = vaddq_s16(row0, row4); \
+      int16x8_ dif04 = vsubq_s16(row0, row4); \
       dct_widen(t0e, sum04); \
       dct_widen(t1e, dif04); \
       dct_wadd(x0, t0e, t3e); \
@@ -2278,11 +2278,11 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
       dct_wadd(x1, t1e, t2e); \
       dct_wsub(x2, t1e, t2e); \
       /* odd part */ \
-      int16x8_t sum15 = vaddq_s16(row1, row5); \
-      int16x8_t sum17 = vaddq_s16(row1, row7); \
-      int16x8_t sum35 = vaddq_s16(row3, row5); \
-      int16x8_t sum37 = vaddq_s16(row3, row7); \
-      int16x8_t sumodd = vaddq_s16(sum17, sum35); \
+      int16x8_ sum15 = vaddq_s16(row1, row5); \
+      int16x8_ sum17 = vaddq_s16(row1, row7); \
+      int16x8_ sum35 = vaddq_s16(row3, row5); \
+      int16x8_ sum37 = vaddq_s16(row3, row7); \
+      int16x8_ sumodd = vaddq_s16(sum17, sum35); \
       dct_long_mul(p5o, sumodd, rot1_0); \
       dct_long_mac(p1o, p5o, sum17, rot1_1); \
       dct_long_mac(p2o, p5o, sum35, rot1_2); \
@@ -2322,9 +2322,9 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
    {
 // these three map to a single VTRN.16, VTRN.32, and VSWP, respectively.
 // whether compilers actually get this is another story, sadly.
-#define dct_trn16(x, y) { int16x8x2_t t = vtrnq_s16(x, y); x = t.val[0]; y = t.val[1]; }
-#define dct_trn32(x, y) { int32x4x2_t t = vtrnq_s32(vreinterpretq_s32_s16(x), vreinterpretq_s32_s16(y)); x = vreinterpretq_s16_s32(t.val[0]); y = vreinterpretq_s16_s32(t.val[1]); }
-#define dct_trn64(x, y) { int16x8_t x0 = x; int16x8_t y0 = y; x = vcombine_s16(vget_low_s16(x0), vget_low_s16(y0)); y = vcombine_s16(vget_high_s16(x0), vget_high_s16(y0)); }
+#define dct_trn16(x, y) { int16x8x2_ t = vtrnq_s16(x, y); x = t.val[0]; y = t.val[1]; }
+#define dct_trn32(x, y) { int32x4x2_ t = vtrnq_s32(vreinterpretq_s32_s16(x), vreinterpretq_s32_s16(y)); x = vreinterpretq_s16_s32(t.val[0]); y = vreinterpretq_s16_s32(t.val[1]); }
+#define dct_trn64(x, y) { int16x8_ x0 = x; int16x8_ y0 = y; x = vcombine_s16(vget_low_s16(x0), vget_low_s16(y0)); y = vcombine_s16(vget_high_s16(x0), vget_high_s16(y0)); }
 
       // pass 1
       dct_trn16(row0, row1); // a0b0a2b2a4b4a6b6
@@ -2357,19 +2357,19 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
 
    {
       // pack and round
-      uint8x8_t p0 = vqrshrun_n_s16(row0, 1);
-      uint8x8_t p1 = vqrshrun_n_s16(row1, 1);
-      uint8x8_t p2 = vqrshrun_n_s16(row2, 1);
-      uint8x8_t p3 = vqrshrun_n_s16(row3, 1);
-      uint8x8_t p4 = vqrshrun_n_s16(row4, 1);
-      uint8x8_t p5 = vqrshrun_n_s16(row5, 1);
-      uint8x8_t p6 = vqrshrun_n_s16(row6, 1);
-      uint8x8_t p7 = vqrshrun_n_s16(row7, 1);
+      uint8x8_ p0 = vqrshrun_n_s16(row0, 1);
+      uint8x8_ p1 = vqrshrun_n_s16(row1, 1);
+      uint8x8_ p2 = vqrshrun_n_s16(row2, 1);
+      uint8x8_ p3 = vqrshrun_n_s16(row3, 1);
+      uint8x8_ p4 = vqrshrun_n_s16(row4, 1);
+      uint8x8_ p5 = vqrshrun_n_s16(row5, 1);
+      uint8x8_ p6 = vqrshrun_n_s16(row6, 1);
+      uint8x8_ p7 = vqrshrun_n_s16(row7, 1);
 
       // again, these can translate into one instruction, but often don't.
-#define dct_trn8_8(x, y) { uint8x8x2_t t = vtrn_u8(x, y); x = t.val[0]; y = t.val[1]; }
-#define dct_trn8_16(x, y) { uint16x4x2_t t = vtrn_u16(vreinterpret_u16_u8(x), vreinterpret_u16_u8(y)); x = vreinterpret_u8_u16(t.val[0]); y = vreinterpret_u8_u16(t.val[1]); }
-#define dct_trn8_32(x, y) { uint32x2x2_t t = vtrn_u32(vreinterpret_u32_u8(x), vreinterpret_u32_u8(y)); x = vreinterpret_u8_u32(t.val[0]); y = vreinterpret_u8_u32(t.val[1]); }
+#define dct_trn8_8(x, y) { uint8x8x2_ t = vtrn_u8(x, y); x = t.val[0]; y = t.val[1]; }
+#define dct_trn8_16(x, y) { uint16x4x2_ t = vtrn_u16(vreinterpret_u16_u8(x), vreinterpret_u16_u8(y)); x = vreinterpret_u8_u16(t.val[0]); y = vreinterpret_u8_u16(t.val[1]); }
+#define dct_trn8_32(x, y) { uint32x2x2_ t = vtrn_u32(vreinterpret_u32_u8(x), vreinterpret_u32_u8(y)); x = vreinterpret_u8_u32(t.val[0]); y = vreinterpret_u8_u32(t.val[1]); }
 
       // sadly can't use interleaved stores here since we only write
       // 8 bytes to each scan line!
@@ -2998,34 +2998,34 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
 #elif defined(STBI_NEON)
       // load and perform the vertical filtering pass
       // this uses 3*x + y = 4*x + (y - x)
-      uint8x8_t farb  = vld1_u8(in_far + i);
-      uint8x8_t nearb = vld1_u8(in_near + i);
-      int16x8_t diff  = vreinterpretq_s16_u16(vsubl_u8(farb, nearb));
-      int16x8_t nears = vreinterpretq_s16_u16(vshll_n_u8(nearb, 2));
-      int16x8_t curr  = vaddq_s16(nears, diff); // current row
+      uint8x8_ farb  = vld1_u8(in_far + i);
+      uint8x8_ nearb = vld1_u8(in_near + i);
+      int16x8_ diff  = vreinterpretq_s16_u16(vsubl_u8(farb, nearb));
+      int16x8_ nears = vreinterpretq_s16_u16(vshll_n_u8(nearb, 2));
+      int16x8_ curr  = vaddq_s16(nears, diff); // current row
 
       // horizontal filter works the same based on shifted vers of current
       // row. "prev" is current row shifted right by 1 pixel; we need to
       // insert the previous pixel value (from t1).
       // "next" is current row shifted left by 1 pixel, with first pixel
       // of next block of 8 pixels added in.
-      int16x8_t prv0 = vextq_s16(curr, curr, 7);
-      int16x8_t nxt0 = vextq_s16(curr, curr, 1);
-      int16x8_t prev = vsetq_lane_s16(t1, prv0, 0);
-      int16x8_t next = vsetq_lane_s16(3*in_near[i+8] + in_far[i+8], nxt0, 7);
+      int16x8_ prv0 = vextq_s16(curr, curr, 7);
+      int16x8_ nxt0 = vextq_s16(curr, curr, 1);
+      int16x8_ prev = vsetq_lane_s16(t1, prv0, 0);
+      int16x8_ next = vsetq_lane_s16(3*in_near[i+8] + in_far[i+8], nxt0, 7);
 
       // horizontal filter, polyphase implementation since it's convenient:
       // even pixels = 3*cur + prev = cur*4 + (prev - cur)
       // odd  pixels = 3*cur + next = cur*4 + (next - cur)
       // note the shared term.
-      int16x8_t curs = vshlq_n_s16(curr, 2);
-      int16x8_t prvd = vsubq_s16(prev, curr);
-      int16x8_t nxtd = vsubq_s16(next, curr);
-      int16x8_t even = vaddq_s16(curs, prvd);
-      int16x8_t odd  = vaddq_s16(curs, nxtd);
+      int16x8_ curs = vshlq_n_s16(curr, 2);
+      int16x8_ prvd = vsubq_s16(prev, curr);
+      int16x8_ nxtd = vsubq_s16(next, curr);
+      int16x8_ even = vaddq_s16(curs, prvd);
+      int16x8_ odd  = vaddq_s16(curs, nxtd);
 
       // undo scaling and round, then store with even/odd phases interleaved
-      uint8x8x2_t o;
+      uint8x8x2_ o;
       o.val[0] = vqrshrun_n_s16(even, 4);
       o.val[1] = vqrshrun_n_s16(odd,  4);
       vst2_u8(out + i*2, o);
@@ -3192,36 +3192,36 @@ static void stbi__YCbCr_to_RGB_simd(stbi_uc *out, stbi_uc const *y, stbi_uc cons
    // in this version, step=3 support would be easy to add. but is there demand?
    if (step == 4) {
       // this is a fairly straightforward implementation and not super-optimized.
-      uint8x8_t signflip = vdup_n_u8(0x80);
-      int16x8_t cr_const0 = vdupq_n_s16(   (short) ( 1.40200f*4096.0f+0.5f));
-      int16x8_t cr_const1 = vdupq_n_s16( - (short) ( 0.71414f*4096.0f+0.5f));
-      int16x8_t cb_const0 = vdupq_n_s16( - (short) ( 0.34414f*4096.0f+0.5f));
-      int16x8_t cb_const1 = vdupq_n_s16(   (short) ( 1.77200f*4096.0f+0.5f));
+      uint8x8_ signflip = vdup_n_u8(0x80);
+      int16x8_ cr_const0 = vdupq_n_s16(   (short) ( 1.40200f*4096.0f+0.5f));
+      int16x8_ cr_const1 = vdupq_n_s16( - (short) ( 0.71414f*4096.0f+0.5f));
+      int16x8_ cb_const0 = vdupq_n_s16( - (short) ( 0.34414f*4096.0f+0.5f));
+      int16x8_ cb_const1 = vdupq_n_s16(   (short) ( 1.77200f*4096.0f+0.5f));
 
       for (; i+7 < count; i += 8) {
          // load
-         uint8x8_t y_bytes  = vld1_u8(y + i);
-         uint8x8_t cr_bytes = vld1_u8(pcr + i);
-         uint8x8_t cb_bytes = vld1_u8(pcb + i);
-         int8x8_t cr_biased = vreinterpret_s8_u8(vsub_u8(cr_bytes, signflip));
-         int8x8_t cb_biased = vreinterpret_s8_u8(vsub_u8(cb_bytes, signflip));
+         uint8x8_ y_bytes  = vld1_u8(y + i);
+         uint8x8_ cr_bytes = vld1_u8(pcr + i);
+         uint8x8_ cb_bytes = vld1_u8(pcb + i);
+         int8x8_ cr_biased = vreinterpret_s8_u8(vsub_u8(cr_bytes, signflip));
+         int8x8_ cb_biased = vreinterpret_s8_u8(vsub_u8(cb_bytes, signflip));
 
          // expand to s16
-         int16x8_t yws = vreinterpretq_s16_u16(vshll_n_u8(y_bytes, 4));
-         int16x8_t crw = vshll_n_s8(cr_biased, 7);
-         int16x8_t cbw = vshll_n_s8(cb_biased, 7);
+         int16x8_ yws = vreinterpretq_s16_u16(vshll_n_u8(y_bytes, 4));
+         int16x8_ crw = vshll_n_s8(cr_biased, 7);
+         int16x8_ cbw = vshll_n_s8(cb_biased, 7);
 
          // color transform
-         int16x8_t cr0 = vqdmulhq_s16(crw, cr_const0);
-         int16x8_t cb0 = vqdmulhq_s16(cbw, cb_const0);
-         int16x8_t cr1 = vqdmulhq_s16(crw, cr_const1);
-         int16x8_t cb1 = vqdmulhq_s16(cbw, cb_const1);
-         int16x8_t rws = vaddq_s16(yws, cr0);
-         int16x8_t gws = vaddq_s16(vaddq_s16(yws, cb0), cr1);
-         int16x8_t bws = vaddq_s16(yws, cb1);
+         int16x8_ cr0 = vqdmulhq_s16(crw, cr_const0);
+         int16x8_ cb0 = vqdmulhq_s16(cbw, cb_const0);
+         int16x8_ cr1 = vqdmulhq_s16(crw, cr_const1);
+         int16x8_ cb1 = vqdmulhq_s16(cbw, cb_const1);
+         int16x8_ rws = vaddq_s16(yws, cr0);
+         int16x8_ gws = vaddq_s16(vaddq_s16(yws, cb0), cr1);
+         int16x8_ bws = vaddq_s16(yws, cb1);
 
          // undo scaling, round, convert to byte
-         uint8x8x4_t o;
+         uint8x8x4_ o;
          o.val[0] = vqrshrun_n_s16(rws, 4);
          o.val[1] = vqrshrun_n_s16(gws, 4);
          o.val[2] = vqrshrun_n_s16(bws, 4);

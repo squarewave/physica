@@ -16,26 +16,26 @@ struct tex2 {
     u32* pixels;
 };
 
-struct glyph_spec_t {
+struct glyph_spec_ {
     tex2 texture;
     v2 hotspot;
     f32 advance_width;
     f32 left_side_bearing;
 };
 
-struct font_spec_t {
+struct font_spec_ {
     tex2 texture;
     stbtt_bakedchar baked_chars[96];
 };
 
-struct window_description_t {
+struct window_description_ {
     i32 width, height;
 };
 
-typedef v3 color_t;
-typedef v4 rgba_t;
+typedef v3 color_;
+typedef v4 rgba_;
 
-enum render_type_T {
+enum render_type_ {
     RENDER_TYPE_RECT,
     RENDER_TYPE_TEXTURE,
     RENDER_TYPE_CIRCLE,
@@ -44,11 +44,11 @@ enum render_type_T {
     RENDER_TYPE_COLOR_PICKER,
 };
 
-enum render_flags_t {
+enum render_flags_ {
     RENDER_WIREFRAME = 0x1,
 };
 
-struct render_rect_t {
+struct render_rect_ {
     // required:
     u32 type;
     v2 center;
@@ -56,10 +56,10 @@ struct render_rect_t {
 
     v2 diagonal;
     f32 orientation;
-    color_t color;
+    color_ color;
 };
 
-struct render_color_picker_t {
+struct render_color_picker_ {
     // required:
     u32 type;
     v2 center;
@@ -69,14 +69,14 @@ struct render_color_picker_t {
     v3 hsv;
 };
 
-struct render_texture_t {
+struct render_texture_ {
     // required:
     u32 type;
     v2 center;
     b32 parallax;
 
 
-    rgba_t tint;
+    rgba_ tint;
     tex2 texture;
     v2 hotspot;
     rect_i source_rect;
@@ -84,7 +84,7 @@ struct render_texture_t {
     f32 orientation;
 };
 
-struct render_circle_t {
+struct render_circle_ {
     // required:
     u32 type;
     v2 center;
@@ -92,10 +92,10 @@ struct render_circle_t {
 
     
     f32 radius;
-    color_t color;
+    color_ color;
 };
 
-struct render_object_t {
+struct render_object_ {
     f32 z;
     union {
         struct {
@@ -103,35 +103,35 @@ struct render_object_t {
           v2 center;
           b32 parallax;
         };
-        render_rect_t render_rect;
-        render_color_picker_t render_color_picker;
-        render_texture_t render_texture;
-        render_circle_t render_circle;
+        render_rect_ render_rect;
+        render_color_picker_ render_color_picker;
+        render_texture_ render_texture;
+        render_circle_ render_circle;
     };
 };
 
-struct frame_buffer_t {
+struct frame_buffer_ {
     u32 id;
     u32 texture;
     i32 width;
     i32 height;
 };
 
-struct render_group_t {
-    frame_buffer_t frame_buffer;
-    rgba_t lighting;
-    vec<render_object_t> objects;
+struct render_group_ {
+    frame_buffer_ frame_buffer;
+    rgba_ lighting;
+    vec<render_object_> objects;
 };
 
-struct render_task_t {
-    window_description_t buffer;
-    camera_t camera;
-    render_group_t* render_group;
+struct render_task_ {
+    window_description_ buffer;
+    camera_ camera;
+    render_group_* render_group;
     rect_i clip_rect;
 };
 
 
-enum gl_resouce_t {
+enum gl_resouce_ {
     RES_SOLIDS_PROG,
     RES_SOLIDS_VAO_RECT,
     RES_SOLIDS_VAO_CIRCLE,
@@ -183,7 +183,7 @@ enum gl_resouce_t {
     RES_COUNT,
 };
 
-enum gl_program_id_t {
+enum gl_program_id_ {
     GL_PROG_SOLIDS,
     GL_PROG_TEXTURES,
     GL_PROG_SOLID_PARTICLES,
@@ -191,13 +191,13 @@ enum gl_program_id_t {
     GL_PROG_COUNT,
 };
 
-enum gl_vao_id_t {
+enum gl_vao_id_ {
     GL_VAO_RECT,
     GL_VAO_CIRCLE,
     GL_VAO_COUNT,
 };
 
-enum gl_attrib_id_t {
+enum gl_attrib_id_ {
     GL_ATTRIB_VERTEX_MODELSPACE,
     GL_ATTRIB_VERTEX_UV,
 
@@ -208,7 +208,7 @@ enum gl_attrib_id_t {
     GL_ATTRIB_COUNT,
 };
 
-enum gl_uniform_id_t {
+enum gl_uniform_id_ {
     GL_UNIFORM_MAIN_TRANSFORM,
     GL_UNIFORM_UV_TRANSFORM,
 
@@ -221,7 +221,7 @@ enum gl_uniform_id_t {
     GL_UNIFORM_COUNT,
 };
 
-enum gl_dynamic_vbo_id_t {
+enum gl_dynamic_vbo_id_ {
     GL_DYNAMIC_CENTERS,
     GL_DYNAMIC_SCALING,
     GL_DYNAMIC_DRAW_COLOR,
@@ -229,7 +229,7 @@ enum gl_dynamic_vbo_id_t {
     GL_DYNAMIC_BUFFER_COUNT,
 };
 
-struct gl_program_t {
+struct gl_program_ {
     u32 id;
     u32 vaos[GL_VAO_COUNT];
     u32 dynamic_buffers[GL_DYNAMIC_BUFFER_COUNT];
@@ -237,16 +237,16 @@ struct gl_program_t {
     i32 uniforms[GL_UNIFORM_COUNT];
 };
 
-struct gl_programs_t {
+struct gl_programs_ {
     union {
         i32 i_res_ids[RES_COUNT];
         u32 u_res_ids[RES_COUNT];
     };
-    gl_program_t programs[GL_PROG_COUNT];
+    gl_program_ programs[GL_PROG_COUNT];
 };
 
 #pragma pack(push, 1)
-struct bitmap_header_t {
+struct bitmap_header_ {
     u16 file_type;
     u32 file_size;
     u16 reserved_1;
@@ -270,24 +270,24 @@ struct bitmap_header_t {
 #pragma pack(pop)
 
 
-gl_programs_t load_programs();
+gl_programs_ load_programs();
 
-frame_buffer_t default_frame_buffer(i32 width, i32 height);
-frame_buffer_t create_frame_buffer(i32 width, i32 height);
+frame_buffer_ default_frame_buffer(i32 width, i32 height);
+frame_buffer_ create_frame_buffer(i32 width, i32 height);
 
 tex2 load_image(char* filename);
 tex2 load_bmp(char* filename, i32 scaling);
 
-render_object_t* push_rect(render_group_t* render_group,
-                           color_t color,
+render_object_* push_rect(render_group_* render_group,
+                           color_ color,
                            v2 center,
                            v2 diagonal,
                            f32 orientation = 0.0f,
                            f32 z = 0.0f,
                            b32 parallax = false);
 
-render_object_t* push_rect(render_group_t* render_group,
-                           color_t color,
+render_object_* push_rect(render_group_* render_group,
+                           color_ color,
                            rect r) {
     return push_rect(render_group,
                      color,
@@ -295,46 +295,46 @@ render_object_t* push_rect(render_group_t* render_group,
                      r.max - r.min);
 }
 
-render_object_t* push_color_picker(render_group_t* render_group,
+render_object_* push_color_picker(render_group_* render_group,
                                    v3 hsv,
                                    rect r);
 
-render_object_t* push_rect_outline(render_group_t* render_group,
-                                   color_t color,
+render_object_* push_rect_outline(render_group_* render_group,
+                                   color_ color,
                                    v2 center,
                                    v2 diagonal,
                                    f32 orientation,
                                    f32 z,
                                    b32 parallax = false);
 
-render_object_t* push_circle(render_group_t* render_group,
-                             color_t color,
+render_object_* push_circle(render_group_* render_group,
+                             color_ color,
                              v2 center,
                              f32 radius,
                              f32 z,
                              b32 parallax = false);
 
-render_object_t* push_texture(render_group_t* render_group,
+render_object_* push_texture(render_group_* render_group,
                               v2 center,
                               v2 hotspot,
                               f32 pixel_size,
                               tex2 texture,
                               rect_i source_rect,
-                              rgba_t tint,
+                              rgba_ tint,
                               f32 orientation,
                               f32 z,
                               b32 parallax = false);
 
-struct transient_state_t;
+struct transient_state_;
 
-void draw_render_group(transient_state_t* transient_state,
-                       gl_programs_t* programs,
-                       camera_t camera,
-                       render_group_t* render_group);
+void draw_render_group(transient_state_* transient_state,
+                       gl_programs_* programs,
+                       camera_ camera,
+                       render_group_* render_group);
 
-void clear_render_group(render_group_t render_group);
+void clear_render_group(render_group_ render_group);
 
-void draw_bmp(window_description_t buffer,
+void draw_bmp(window_description_ buffer,
               rect_i clip_rect,
               tex2 bitmap,
               v2 center,
@@ -350,7 +350,7 @@ void draw_bmp(tex2 dest,
               u32 source_width, u32 source_height,
               f32 source_hotspot_x, f32 source_hotspot_y, f32 orientation);
 
-void draw_bmp(window_description_t buffer,
+void draw_bmp(window_description_ buffer,
               tex2 bitmap,
               i32 dest_hotspot_x, i32 dest_hotspot_y,
               f32 source_pixel_size,
@@ -358,19 +358,19 @@ void draw_bmp(window_description_t buffer,
               u32 source_width, u32 source_height,
               f32 source_hotspot_x, f32 source_hotspot_y, f32 orientation);
 
-void draw_circ_outline(window_description_t buffer,
+void draw_circ_outline(window_description_ buffer,
                        rect_i clip_rect,
-                       color_t color,
+                       color_ color,
                        v2 center,
                        f32 radius);
 
-void draw_rectangle(window_description_t buffer,
+void draw_rectangle(window_description_ buffer,
                     rect_i clip_rect,
-                    color_t color, i32 center_x, i32 center_y, u32 width, u32 height,
+                    color_ color, i32 center_x, i32 center_y, u32 width, u32 height,
                     f32 orientation = 0.0f);
 
-void draw_rectangle(window_description_t buffer,
-                    color_t color, i32 center_x, i32 center_y, u32 width, u32 height,
+void draw_rectangle(window_description_ buffer,
+                    color_ color, i32 center_x, i32 center_y, u32 width, u32 height,
                     f32 orientation = 0.0f);
 
 void add_debug_point(v2 point, i32 color);

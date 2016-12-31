@@ -22,11 +22,11 @@ void platform_debug_print(char* str) {
     puts(str);
 }
 
-void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* data) {
+void platform_start_task(task_queue_* queue, task_callback_* callback, void* data) {
     i32 next_write_index = (queue->write_index + 1) % TASK_QUEUE_MAX_ENTRIES;
     assert_(next_write_index != queue->read_index);
 
-    task_t* task = queue->tasks + queue->write_index;
+    task_* task = queue->tasks + queue->write_index;
     task->callback = callback;
     task->data = data;
     queue->write_index = next_write_index;
@@ -34,7 +34,7 @@ void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* d
     SDL_SemPost(queue->semaphore);
 }
 
-b32 platform_execute_next_task(task_queue_t* queue) {
+b32 platform_execute_next_task(task_queue_* queue) {
     b32 sleep = false;
 
     i32 original = queue->read_index;
@@ -43,7 +43,7 @@ b32 platform_execute_next_task(task_queue_t* queue) {
         if (__sync_val_compare_and_swap((i64 volatile*)&queue->read_index,
                                         original,
                                         read_index) == original) {
-            task_t* task = queue->tasks + original;
+            task_* task = queue->tasks + original;
             task->callback(queue, task->data);
             __sync_fetch_and_add((i64 volatile*)&queue->remaining, -1);
         }
@@ -54,14 +54,14 @@ b32 platform_execute_next_task(task_queue_t* queue) {
     return sleep;
 }
 
-void platform_wait_on_queue(task_queue_t* queue) {
+void platform_wait_on_queue(task_queue_* queue) {
     while (queue->remaining) {
         platform_execute_next_task(queue);
     }
 }
 
 int thread_func(void* ptr) {
-    task_queue_t* queue = (task_queue_t*)ptr;
+    task_queue_* queue = (task_queue_*)ptr;
 
     while (true) {
         if (platform_execute_next_task(queue)) {
@@ -76,8 +76,8 @@ void platform_free_file_memory(void* memory) {
     free(memory);
 }
 
-platform_read_entire_file_result_t platform_read_entire_file(const char * filename) {
-    platform_read_entire_file_result_t result = {};
+platform_read_entire_file_result_ platform_read_entire_file(const char * filename) {
+    platform_read_entire_file_result_ result = {};
 
     FILE *f = fopen(filename, "rb");
 
@@ -104,7 +104,7 @@ platform_read_entire_file_result_t platform_read_entire_file(const char * filena
     return result;
 }
 
-b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
+b32 handle_sdl_event(SDL_Event* event, platform_context_* context) {
     b32 should_quit = false;
     switch (event->type) {
         case SDL_QUIT: {
@@ -275,7 +275,7 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
                         context->next_input->keyboard.s.ended_down = ended_down;
                         context->next_input->keyboard.s.transition_count++;
                     } break;
-                    case SDLK_t: {
+                    case SDLK_: {
                         context->next_input->keyboard.t.ended_down = ended_down;
                         context->next_input->keyboard.t.transition_count++;
                     } break;
@@ -810,7 +810,7 @@ f32 get_seconds_elapsed(u64 old, u64 current) {
     return ((f32)(current - old) / (f32)(SDL_GetPerformanceFrequency()));
 }
 
-void printer_task(task_queue_t* queue, void* data) {
+void printer_task(task_queue_* queue, void* data) {
     char* as_str = (char*)data;
     printf("%s\n", as_str);
 }
@@ -840,21 +840,21 @@ int main() {
         perror("getcwd() error");
     }
 
-    platform_context_t context = {0};
+    platform_context_ context = {0};
 
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
         printf("Unable to init SDL: %s\n", SDL_GetError());
         return 1;
     }
 
-    task_queue_t primary_queue = {0};
+    task_queue_ primary_queue = {0};
     primary_queue.semaphore = SDL_CreateSemaphore(0);
-    task_queue_t secondary_queue = {0};
+    task_queue_ secondary_queue = {0};
     secondary_queue.semaphore = SDL_CreateSemaphore(0);
-    task_queue_t render_queue = {0};
+    task_queue_ render_queue = {0};
     render_queue.semaphore = SDL_CreateSemaphore(0);
 
-    platform_services_t platform = {0};
+    platform_services_ platform = {0};
     platform.primary_queue = &primary_queue;
     platform.secondary_queue = &secondary_queue;
     platform.render_queue = &render_queue;
@@ -947,8 +947,8 @@ int main() {
 
     bool running = true;
 
-    game_input_t prev_input = {};
-    game_input_t next_input = {};
+    game_input_ prev_input = {};
+    game_input_ next_input = {};
     context.next_input = &next_input;
     context.prev_input = &prev_input;
 
@@ -1016,17 +1016,17 @@ int main() {
         next_input.joystick_r.delta =
                 next_input.joystick_r.position - prev_input.joystick_r.position;
 
-        window_description_t game_buffer = {};
+        window_description_ game_buffer = {};
         game_buffer.width = START_WIDTH;
         game_buffer.height = START_HEIGHT;
 
         game_update_and_render(platform,
-                               (game_state_t*)game_memory,
-                               (transient_state_t*)transient_memory,
+                               (game_state_*)game_memory,
+                               (transient_state_*)transient_memory,
                                target_seconds_per_frame,
                                game_buffer,
                                &next_input,
-                               (tools_state_t*)tools_memory);
+                               (tools_state_*)tools_memory);
 
         prev_input = next_input;
 
@@ -1035,7 +1035,7 @@ int main() {
             SDL_GL_SwapWindow(context.window);
         }
 
-        process_debug_log((tools_state_t*)tools_memory);
+        process_debug_log((tools_state_*)tools_memory);
     }
 
     return 0;

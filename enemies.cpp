@@ -3,11 +3,11 @@ const v2 turret_diagonal = v2 {turret_width, turret_width};
 const f32 turret_shot_width = 0.2f;
 const v2 turret_shot_diagonal = v2 {turret_shot_width, turret_shot_width};
 
-sim_entity_t* create_turret(game_state_t* game_state, v2 position, v2 direction) {
+sim_entity_* create_turret(game_state_* game_state, v2 position, v2 direction) {
     const f32 turret_mass = 5.0f;
     const f32 turret_orientation = 0.0f;
 
-    sim_entity_t* turret = create_block_entity(game_state,
+    sim_entity_* turret = create_block_entity(game_state,
                                                TURRET,
                                                position,
                                                turret_diagonal,
@@ -27,7 +27,7 @@ UPDATE_FUNC(TURRET) {
     // const f32 turret_speed = 3.0f;
     const f32 turret_shoot_delay = 2.0f;
 
-    turret_state_t* state = &entity->turret_state;
+    turret_state_* state = &entity->turret_state;
     state->shoot_timer += dt;
 
     // f32 gravity_orientation = atanv(game_state->gravity_normal) + fPI_OVER_2;
@@ -40,7 +40,7 @@ UPDATE_FUNC(TURRET) {
     }
 
     push_rect(&game_state->main_render_group,
-              color_t {0.67f, 0.54f, 0.23f},
+              color_ {0.67f, 0.54f, 0.23f},
               entity->body->position,
               turret_diagonal,
               entity->body->orientation,
@@ -48,12 +48,12 @@ UPDATE_FUNC(TURRET) {
               0);
 }
 
-sim_entity_t* create_turret_shot(game_state_t* game_state, v2 position, v2 direction) {
+sim_entity_* create_turret_shot(game_state_* game_state, v2 position, v2 direction) {
     const f32 turret_shot_mass = 0.1f;
     const f32 turret_shot_orientation = 0.0f;
     const f32 turret_shot_speed = 10.0f;
 
-    sim_entity_t* shot = create_fillet_block_entity(game_state,
+    sim_entity_* shot = create_fillet_block_entity(game_state,
                                                     TURRET_SHOT,
                                                     position,
                                                     turret_shot_diagonal,
@@ -67,7 +67,7 @@ sim_entity_t* create_turret_shot(game_state_t* game_state, v2 position, v2 direc
 }
 
 UPDATE_FUNC(TURRET_SHOT) {
-    entity_ties_t* collision = get_hash_item(&game_state->collision_map,
+    entity_ties_* collision = get_hash_item(&game_state->collision_map,
       entity->id);
     if (collision && collision->type != TURRET) {
         if (collision->type == PLAYER) {
@@ -77,7 +77,7 @@ UPDATE_FUNC(TURRET_SHOT) {
         remove_entity(game_state, entity);
     } else {
         push_rect(&game_state->main_render_group,
-                  color_t {1.0f, 0.23f, 0.54f},
+                  color_ {1.0f, 0.23f, 0.54f},
                   entity->body->position,
                   turret_shot_diagonal,
                   entity->body->orientation,

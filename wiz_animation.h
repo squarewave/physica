@@ -23,14 +23,14 @@ tex2 wiz_walking_0(tex2 wiz_bmp) {
     return result;
 }
 
-animation_spec_t wiz_walking_right(vec<animation_frame_t>* frames, tex2 wiz_bmp) {
-	animation_spec_t result;
+animation_spec_ wiz_walking_right(vec<animation_frame_>* frames, tex2 wiz_bmp) {
+	animation_spec_ result;
 	result.frames.count = 6;
 	result.frames.values = frames->at(frames->count);
 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
-		animation_frame_t* frame = frames->at(index);
+		animation_frame_* frame = frames->at(index);
 
 		rect_i source_rect;
 		source_rect.min_x = WIZ_WIDTH * i;
@@ -49,14 +49,14 @@ animation_spec_t wiz_walking_right(vec<animation_frame_t>* frames, tex2 wiz_bmp)
 	return result;
 }
 
-animation_spec_t wiz_standing_right(vec<animation_frame_t>* frames, tex2 wiz_bmp) {
-	animation_spec_t result;
+animation_spec_ wiz_standing_right(vec<animation_frame_>* frames, tex2 wiz_bmp) {
+	animation_spec_ result;
 	result.frames.count = 1;
 	result.frames.values = frames->at(frames->count);
 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
-		animation_frame_t* frame = frames->at(index);
+		animation_frame_* frame = frames->at(index);
 
 		rect_i source_rect;
 		source_rect.min_x = WIZ_WIDTH * i;
@@ -75,14 +75,14 @@ animation_spec_t wiz_standing_right(vec<animation_frame_t>* frames, tex2 wiz_bmp
 	return result;
 }
 
-animation_spec_t wiz_jumping_right(vec<animation_frame_t>* frames, tex2 wiz_bmp) {
-	animation_spec_t result;
+animation_spec_ wiz_jumping_right(vec<animation_frame_>* frames, tex2 wiz_bmp) {
+	animation_spec_ result;
 	result.frames.count = 1;
 	result.frames.values = frames->at(frames->count);
 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
-		animation_frame_t* frame = frames->at(index);
+		animation_frame_* frame = frames->at(index);
 
 		rect_i source_rect;
 		source_rect.min_x = WIZ_WIDTH * i;
@@ -101,14 +101,14 @@ animation_spec_t wiz_jumping_right(vec<animation_frame_t>* frames, tex2 wiz_bmp)
 	return result;
 }
 
-animation_spec_t wiz_walking_left(vec<animation_frame_t>* frames, tex2 wiz_bmp) {
-	animation_spec_t result;
+animation_spec_ wiz_walking_left(vec<animation_frame_>* frames, tex2 wiz_bmp) {
+	animation_spec_ result;
 	result.frames.count = 6;
 	result.frames.values = frames->at(frames->count);
 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
-		animation_frame_t* frame = frames->at(index);
+		animation_frame_* frame = frames->at(index);
 
 		rect_i source_rect;
 		source_rect.min_x = WIZ_WIDTH * i;
@@ -127,14 +127,14 @@ animation_spec_t wiz_walking_left(vec<animation_frame_t>* frames, tex2 wiz_bmp) 
 	return result;
 }
 
-animation_spec_t wiz_standing_left(vec<animation_frame_t>* frames, tex2 wiz_bmp) {
-	animation_spec_t result;
+animation_spec_ wiz_standing_left(vec<animation_frame_>* frames, tex2 wiz_bmp) {
+	animation_spec_ result;
 	result.frames.count = 1;
 	result.frames.values = frames->at(frames->count);
 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
-		animation_frame_t* frame = frames->at(index);
+		animation_frame_* frame = frames->at(index);
 
 		rect_i source_rect;
 		source_rect.min_x = WIZ_WIDTH * i;
@@ -153,14 +153,14 @@ animation_spec_t wiz_standing_left(vec<animation_frame_t>* frames, tex2 wiz_bmp)
 	return result;
 }
 
-animation_spec_t wiz_jumping_left(vec<animation_frame_t>* frames, tex2 wiz_bmp) {
-	animation_spec_t result;
+animation_spec_ wiz_jumping_left(vec<animation_frame_>* frames, tex2 wiz_bmp) {
+	animation_spec_ result;
 	result.frames.count = 1;
 	result.frames.values = frames->at(frames->count);
 
 	for (int i = 0; i < result.frames.count; ++i) {
 		i32 index = frames->push_unassigned();
-		animation_frame_t* frame = frames->at(index);
+		animation_frame_* frame = frames->at(index);
 
 		rect_i source_rect;
 		source_rect.min_x = WIZ_WIDTH * (i + 1);

@@ -25,8 +25,8 @@ void platform_free_file_memory(void* memory) {
     free(memory);
 }
 
-platform_read_entire_file_result_t platform_read_entire_file(const char * filename) {
-    platform_read_entire_file_result_t result = {};
+platform_read_entire_file_result_ platform_read_entire_file(const char * filename) {
+    platform_read_entire_file_result_ result = {};
 
     FILE *f = fopen(filename, "rb");
 
@@ -52,7 +52,7 @@ platform_read_entire_file_result_t platform_read_entire_file(const char * filena
     return result;
 }
 
-void render_weird_gradient(i32 offset_x, i32 offset_y, offscreen_buffer_t offscreen_buffer){
+void render_weird_gradient(i32 offset_x, i32 offset_y, offscreen_buffer_ offscreen_buffer){
     u32* pixel = (u32*)offscreen_buffer.memory;
     for (int y = 0; y < offscreen_buffer.height; ++y)
     {
@@ -64,11 +64,11 @@ void render_weird_gradient(i32 offset_x, i32 offset_y, offscreen_buffer_t offscr
     }
 }
 
-i16* init_alsa(snd_pcm_t** out_handle) {
-    snd_pcm_t* pcm_handle;
+i16* init_alsa(snd_pcm_** out_handle) {
+    snd_pcm_* pcm_handle;
     i32 err;
-    snd_output_t* log;
-    snd_pcm_hw_params_t* params;
+    snd_output_* log;
+    snd_pcm_hw_params_* params;
     i16* sound_buffer = (i16*)malloc(SOUND_BUFFER_SIZE * 2);
 
     const char* default_hardware_device = (char*)"hw:0,0";
@@ -79,10 +79,10 @@ i16* init_alsa(snd_pcm_t** out_handle) {
         snd_pcm_hw_params_alloca(&params);
         snd_pcm_hw_params_any(pcm_handle, params);
 
-        snd_pcm_access_t access = SND_PCM_ACCESS_RW_INTERLEAVED;
+        snd_pcm_access_ access = SND_PCM_ACCESS_RW_INTERLEAVED;
         snd_pcm_hw_params_set_access(pcm_handle, params, access);
 
-        snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE; // signed 16-bit little-endian
+        snd_pcm_format_ format = SND_PCM_FORMAT_S16_LE; // signed 16-bit little-endian
         snd_pcm_hw_params_set_format (pcm_handle, params, format);
 
         snd_pcm_hw_params_set_rate(pcm_handle, params, AUDIO_SAMPLE_RATE, 0);
@@ -103,8 +103,8 @@ i16* init_alsa(snd_pcm_t** out_handle) {
     return sound_buffer;
 }
 
-offscreen_buffer_t init_xcb_buffer(platform_context context) {
-    offscreen_buffer_t offscreen_buffer = {};
+offscreen_buffer_ init_xcb_buffer(platform_context context) {
+    offscreen_buffer_ offscreen_buffer = {};
 
     if (offscreen_buffer.xcb_image) {
         xcb_image_destroy(offscreen_buffer.xcb_image);
@@ -121,8 +121,8 @@ offscreen_buffer_t init_xcb_buffer(platform_context context) {
     u8 pad = 32;
     u8 depth = 24;
     u8 bpp = 32;
-    xcb_format_t *fmt = xcb_setup_pixmap_formats(context.setup);
-    xcb_format_t *fmtend = fmt + xcb_setup_pixmap_formats_length(context.setup);
+    xcb_format_ *fmt = xcb_setup_pixmap_formats(context.setup);
+    xcb_format_ *fmtend = fmt + xcb_setup_pixmap_formats_length(context.setup);
     while (fmt++ != fmtend)
     {
         if (fmt->scanline_pad == pad && fmt->depth == depth && fmt->bits_per_pixel == bpp)
@@ -137,7 +137,7 @@ offscreen_buffer_t init_xcb_buffer(platform_context context) {
     size_t image_size = START_WIDTH * START_HEIGHT * (fmt->bits_per_pixel / 8);
     u8 *image_data = (u8 *)malloc(image_size);
 
-    xcb_image_t* xcb_image =
+    xcb_image_* xcb_image =
         xcb_image_create(START_WIDTH,
                          START_HEIGHT,
                          XCB_IMAGE_FORMAT_Z_PIXMAP,
@@ -145,7 +145,7 @@ offscreen_buffer_t init_xcb_buffer(platform_context context) {
                          fmt->depth,
                          fmt->bits_per_pixel,
                          0,
-                         (xcb_image_order_t)context.setup->image_byte_order,
+                         (xcb_image_order_)context.setup->image_byte_order,
                          XCB_IMAGE_ORDER_LSB_FIRST,
                          image_data,
                          image_size,
@@ -190,8 +190,8 @@ int main(int argc, char const *argv[]) {
     context.key_symbols = xcb_key_symbols_alloc(context.connection);
 
     context.setup = xcb_get_setup(context.connection);
-    xcb_screen_iterator_t iter = xcb_setup_roots_iterator(context.setup);
-    xcb_screen_t* screen = iter.data;
+    xcb_screen_iterator_ iter = xcb_setup_roots_iterator(context.setup);
+    xcb_screen_* screen = iter.data;
     context.window = xcb_generate_id(context.connection);
 
     u32 mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
@@ -217,26 +217,26 @@ int main(int argc, char const *argv[]) {
     u16 dw_name_length = 16;
     u16 proto_name_length = 12;
 
-    xcb_intern_atom_cookie_t wm_delete_window_cookie =
+    xcb_intern_atom_cookie_ wm_delete_window_cookie =
             xcb_intern_atom(context.connection,
                             0,
                             dw_name_length,
                             "WM_DELETE_WINDOW");
-    xcb_intern_atom_cookie_t wm_protocols_cookie =
+    xcb_intern_atom_cookie_ wm_protocols_cookie =
             xcb_intern_atom(context.connection,
                             0,
                             proto_name_length,
                             "WM_PROTOCOLS");
 
-    xcb_intern_atom_reply_t* wm_delete_window_cookie_reply =
+    xcb_intern_atom_reply_* wm_delete_window_cookie_reply =
             xcb_intern_atom_reply(context.connection,
                                   wm_delete_window_cookie,
                                   0);
-    xcb_intern_atom_reply_t* wm_protocols_cookie_reply =
+    xcb_intern_atom_reply_* wm_protocols_cookie_reply =
             xcb_intern_atom_reply(context.connection, wm_protocols_cookie, 0);
 
-    xcb_atom_t wm_protocols_atom = {};
-    xcb_atom_t wm_delete_window_atom = {};
+    xcb_atom_ wm_protocols_atom = {};
+    xcb_atom_ wm_delete_window_atom = {};
 
     if (wm_protocols_cookie_reply)
     {
@@ -275,9 +275,9 @@ int main(int argc, char const *argv[]) {
     const u64 one_gig = 1024LL * 1024LL * 1024LL;
     void* game_memory = calloc(one_gig, sizeof(u8));
 
-    offscreen_buffer_t offscreen_buffer = init_xcb_buffer(context);
+    offscreen_buffer_ offscreen_buffer = init_xcb_buffer(context);
 
-    snd_pcm_t* pcm_handle;
+    snd_pcm_* pcm_handle;
     i16* sound_buffer = init_alsa(&pcm_handle);
 
     u32 frame_index = 0;
@@ -287,8 +287,8 @@ int main(int argc, char const *argv[]) {
     timespec next_time = {};
     clock_gettime(CLOCK_MONOTONIC, &previous_time);
 
-    game_input_t prev_input = {};
-    game_input_t next_input = {};
+    game_input_ prev_input = {};
+    game_input_ next_input = {};
 
     i32 game_pad = open("/dev/input/js0", O_NONBLOCK);
 
@@ -320,8 +320,8 @@ int main(int argc, char const *argv[]) {
         }
         previous_time = next_time;
 
-        xcb_generic_event_t *event = 0;
-        xcb_generic_event_t *peek_event = 0;
+        xcb_generic_event_ *event = 0;
+        xcb_generic_event_ *peek_event = 0;
 
         ZERO_STRUCT(next_input);
         next_input.up.ended_down = prev_input.up.ended_down;
@@ -413,8 +413,8 @@ int main(int argc, char const *argv[]) {
             u8 response_type = event->response_type & ~0x80;
             switch(response_type) {
                 case XCB_KEY_PRESS: {
-                    xcb_keycode_t key_code = ((xcb_key_press_event_t*)event)->detail;
-                    xcb_keysym_t keysym = xcb_key_symbols_get_keysym(context.key_symbols, key_code, 0);
+                    xcb_keycode_ key_code = ((xcb_key_press_event_*)event)->detail;
+                    xcb_keysym_ keysym = xcb_key_symbols_get_keysym(context.key_symbols, key_code, 0);
                     if (keysym == XK_Up) {
                         if (!prev_input.button_a.ended_down) {
                             next_input.button_a.ended_down = true;
@@ -442,14 +442,14 @@ int main(int argc, char const *argv[]) {
                     }
                 } break;
                 case XCB_KEY_RELEASE: {
-                    xcb_keycode_t key_code = ((xcb_key_release_event_t*)event)->detail;
+                    xcb_keycode_ key_code = ((xcb_key_release_event_*)event)->detail;
 
                     event = 0;
 
                     if ((peek_event = xcb_poll_for_event(context.connection))) {
                         u8 peek_response_type = peek_event->response_type & ~0x80;
                         if (peek_response_type == XCB_KEY_PRESS) {
-                            xcb_keycode_t peek_key_code = ((xcb_key_press_event_t*)peek_event)->detail;
+                            xcb_keycode_ peek_key_code = ((xcb_key_press_event_*)peek_event)->detail;
                             if (peek_key_code == key_code) {
                                 peek_event = 0;
                                 break;
@@ -457,7 +457,7 @@ int main(int argc, char const *argv[]) {
                         }
                     }
 
-                    xcb_keysym_t keysym = xcb_key_symbols_get_keysym(context.key_symbols, key_code, 0);
+                    xcb_keysym_ keysym = xcb_key_symbols_get_keysym(context.key_symbols, key_code, 0);
                     if (keysym == XK_Up) {
                         if (prev_input.button_a.ended_down) {
                             next_input.button_a.ended_down = false;
@@ -485,8 +485,8 @@ int main(int argc, char const *argv[]) {
                     }
                 } break;
                 case XCB_CLIENT_MESSAGE: {
-                    xcb_client_message_event_t* client_message_event =
-                        (xcb_client_message_event_t*)event;
+                    xcb_client_message_event_* client_message_event =
+                        (xcb_client_message_event_*)event;
 
                     if (client_message_event->type == wm_protocols_atom)
                     {
@@ -514,7 +514,7 @@ int main(int argc, char const *argv[]) {
         next_input.joystick_r.delta =
                 next_input.joystick_r.position - prev_input.joystick_r.position;
 
-        window_description_t game_buffer = {};
+        window_description_ game_buffer = {};
         game_buffer.memory = offscreen_buffer.xcb_image->data;
         game_buffer.width = offscreen_buffer.width;
         game_buffer.height = offscreen_buffer.height;
@@ -524,7 +524,7 @@ int main(int argc, char const *argv[]) {
         // f32 dt = (f32)(((f64)delta_tn) / (f64)(1000LL * 1000LL * 1000LL));
         f32 dt = (f32)(((f64)target_delta_tn) / (f64)(1000LL * 1000LL * 1000LL));
 
-        game_update_and_render((game_state_t*)game_memory, dt, game_buffer, next_input);
+        game_update_and_render((game_state_*)game_memory, dt, game_buffer, next_input);
         prev_input = next_input;
 
         xcb_image_put(context.connection, offscreen_buffer.xcb_pixmap_id,
@@ -540,9 +540,9 @@ int main(int argc, char const *argv[]) {
 
         // if (available_frames > 0) {
         //   if (available_frames < SOUND_BUFFER_SIZE) {
-        //     game_get_sound_samples((game_state_t*)game_memory, sound_buffer, available_frames);
+        //     game_get_sound_samples((game_state_*)game_memory, sound_buffer, available_frames);
         //   } else {
-        //     game_get_sound_samples((game_state_t*)game_memory, sound_buffer, SOUND_BUFFER_SIZE);
+        //     game_get_sound_samples((game_state_*)game_memory, sound_buffer, SOUND_BUFFER_SIZE);
         //   }
 
         //   i32 frames_written = snd_pcm_writei(pcm_handle, sound_buffer, available_frames);

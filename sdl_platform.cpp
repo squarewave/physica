@@ -17,11 +17,11 @@
 #include "sdl_platform.h"
 
 
-void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* data) {
+void platform_start_task(task_queue_* queue, task_callback_* callback, void* data) {
     i32 next_write_index = (queue->write_index + 1) % TASK_QUEUE_MAX_ENTRIES;
     assert_(next_write_index != queue->read_index);
 
-    task_t* task = queue->tasks + queue->write_index;
+    task_* task = queue->tasks + queue->write_index;
     task->callback = callback;
     task->data = data;
     queue->write_index = next_write_index;
@@ -29,7 +29,7 @@ void platform_start_task(task_queue_t* queue, task_callback_t* callback, void* d
     SDL_SemPost(queue->semaphore);
 }
 
-b32 platform_execute_next_task(task_queue_t* queue) {
+b32 platform_execute_next_task(task_queue_* queue) {
     b32 sleep = false;
 
     i32 original = queue->read_index;
@@ -40,7 +40,7 @@ b32 platform_execute_next_task(task_queue_t* queue) {
                                         false,
                                         __ATOMIC_SEQ_CST,
                                         __ATOMIC_SEQ_CST)) {
-            task_t* task = queue->tasks + original;
+            task_* task = queue->tasks + original;
             task->callback(queue, task->data);
             __atomic_sub_fetch(&queue->remaining, 1, __ATOMIC_SEQ_CST);
         }
@@ -51,14 +51,14 @@ b32 platform_execute_next_task(task_queue_t* queue) {
     return sleep;
 }
 
-void platform_wait_on_queue(task_queue_t* queue) {
+void platform_wait_on_queue(task_queue_* queue) {
     while (queue->remaining) {
         platform_execute_next_task(queue);
     }
 }
 
 int thread_func(void* ptr) {
-    task_queue_t* queue = (task_queue_t*)ptr;
+    task_queue_* queue = (task_queue_*)ptr;
 
     while (true) {
         if (platform_execute_next_task(queue)) {
@@ -73,8 +73,8 @@ void platform_free_file_memory(void* memory) {
     free(memory);
 }
 
-platform_read_entire_file_result_t platform_read_entire_file(const char * filename) {
-    platform_read_entire_file_result_t result = {};
+platform_read_entire_file_result_ platform_read_entire_file(const char * filename) {
+    platform_read_entire_file_result_ result = {};
 
     FILE *f = fopen(filename, "rb");
 
@@ -101,7 +101,7 @@ platform_read_entire_file_result_t platform_read_entire_file(const char * filena
     return result;
 }
 
-b32 handle_sdl_event(SDL_Event* event, platform_context_t* context) {
+b32 handle_sdl_event(SDL_Event* event, platform_context_* context) {
     b32 should_quit = false;
     switch (event->type) {
         case SDL_QUIT: {
@@ -222,7 +222,7 @@ void segv_handler(int sig) {
   exit(1);
 }
 
-void printer_task(task_queue_t* queue, void* data) {
+void printer_task(task_queue_* queue, void* data) {
     char* as_str = (char*)data;
     printf("%s\n", as_str);
 }
@@ -233,21 +233,21 @@ int main(int argc, char const *argv[]) {
     signal(SIGSEGV, segv_handler);
     setlocale(LC_NUMERIC, "");
 
-    platform_context_t context = {0};
+    platform_context_ context = {0};
 
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
         printf("Unable to init SDL: %s\n", SDL_GetError());
         return 1;
     }
 
-    task_queue_t primary_queue = {0};
+    task_queue_ primary_queue = {0};
     primary_queue.semaphore = SDL_CreateSemaphore(0);
-    task_queue_t secondary_queue = {0};
+    task_queue_ secondary_queue = {0};
     secondary_queue.semaphore = SDL_CreateSemaphore(0);
-    task_queue_t render_queue = {0};
+    task_queue_ render_queue = {0};
     render_queue.semaphore = SDL_CreateSemaphore(0);
 
-    platform_services_t platform = {0};
+    platform_services_ platform = {0};
     platform.primary_queue = &primary_queue;
     platform.secondary_queue = &secondary_queue;
     platform.render_queue = &render_queue;
@@ -304,8 +304,8 @@ int main(int argc, char const *argv[]) {
     u32 s = 0;
     bool running = true;
 
-    game_input_t prev_input = {};
-    game_input_t next_input = {};
+    game_input_ prev_input = {};
+    game_input_ next_input = {};
     context.next_input = &next_input;
     context.prev_input = &prev_input;
 
@@ -369,14 +369,14 @@ int main(int argc, char const *argv[]) {
         next_input.joystick_r.delta =
                 next_input.joystick_r.position - prev_input.joystick_r.position;
 
-        window_description_t game_buffer = {};
+        window_description_ game_buffer = {};
         game_buffer.memory = pixels;
         game_buffer.width = START_WIDTH;
         game_buffer.height = START_HEIGHT;
         game_buffer.pitch = START_WIDTH * 4;
         game_buffer.bytes_per_pixel = 4;
 
-        game_update_and_render(platform, (game_state_t*)game_memory, dt, game_buffer, next_input);
+        game_update_and_render(platform, (game_state_*)game_memory, dt, game_buffer, next_input);
 
         prev_input = next_input;
 

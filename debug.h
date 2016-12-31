@@ -6,18 +6,18 @@
 #include "renderer.h"
 #include "physica_math.h"
 
-const rgba_t RGBA_GREEN = rgba_t {0.2f, 0.7f, 0.2f, 1.0f};
-const rgba_t RGBA_RED = rgba_t {0.7f, 0.2f, 0.2f, 1.0f};
-const rgba_t RGBA_ORANGE = rgba_t {0.6f, 0.5f, 0.2f, 1.0f};
-const rgba_t RGBA_WHITE = rgba_t {1.0f, 1.0f, 1.0f, 1.0f};
-const rgba_t RGBA_BLACK = rgba_t {0.0f, 0.0f, 0.0f, 1.0f};
-const rgba_t RGBA_BLUE = rgba_t {0.2f, 0.2f, 0.7f, 1.0f};
-const color_t COLOR_GREEN = color_t {0.2f, 0.7f, 0.2f};
-const color_t COLOR_RED = color_t {0.7f, 0.2f, 0.2f};
-const color_t COLOR_ORANGE = color_t {0.6f, 0.5f, 0.2f};
-const color_t COLOR_WHITE = color_t {1.0f, 1.0f, 1.0f};
-const color_t COLOR_BLACK = color_t {0.0f, 0.0f, 0.0f};
-const color_t COLOR_BLUE = color_t {0.2f, 0.2f, 0.7f};
+const rgba_ RGBA_GREEN = rgba_ {0.2f, 0.7f, 0.2f, 1.0f};
+const rgba_ RGBA_RED = rgba_ {0.7f, 0.2f, 0.2f, 1.0f};
+const rgba_ RGBA_ORANGE = rgba_ {0.6f, 0.5f, 0.2f, 1.0f};
+const rgba_ RGBA_WHITE = rgba_ {1.0f, 1.0f, 1.0f, 1.0f};
+const rgba_ RGBA_BLACK = rgba_ {0.0f, 0.0f, 0.0f, 1.0f};
+const rgba_ RGBA_BLUE = rgba_ {0.2f, 0.2f, 0.7f, 1.0f};
+const color_ COLOR_GREEN = color_ {0.2f, 0.7f, 0.2f};
+const color_ COLOR_RED = color_ {0.7f, 0.2f, 0.2f};
+const color_ COLOR_ORANGE = color_ {0.6f, 0.5f, 0.2f};
+const color_ COLOR_WHITE = color_ {1.0f, 1.0f, 1.0f};
+const color_ COLOR_BLACK = color_ {0.0f, 0.0f, 0.0f};
+const color_ COLOR_BLUE = color_ {0.2f, 0.2f, 0.7f};
 
 __inline__ u64 rdtsc() {
     return __rdtsc();
@@ -30,24 +30,24 @@ __inline__ u64 rdtsc() {
 }
 
 
-#define TIMED_BLOCK(ID) timed_block_t timed_block##ID((char*)#ID, __COUNTER__)
-#define TIMED_FUNC() timed_block_t timed_func((char*)__FUNCTION__, __COUNTER__)
+#define TIMED_BLOCK(ID) timed_block_ timed_block##ID((char*)#ID, __COUNTER__)
+#define TIMED_FUNC() timed_block_ timed_func((char*)__FUNCTION__, __COUNTER__)
 
-struct game_state_t;
-struct tools_state_t;
-struct game_input_t;
-struct phy_body_t;
+struct game_state_;
+struct tools_state_;
+struct game_input_;
+struct phy_body_;
 
-struct debug_block_t {
+struct debug_block_ {
     char* id;
     u32 call_count;
     u64 total_cycles;
 };
 
-struct debug_state_t {
-    font_spec_t monospace_font;
+struct debug_state_ {
+    font_spec_ monospace_font;
     char performance_log[1 << 12];
-    phy_body_t* selected;
+    phy_body_* selected;
 
     b32 draw_wireframes;
     b32 draw_aabb_tree;
@@ -57,12 +57,12 @@ struct debug_state_t {
 
 const i32 max_debug_blocks = 200;
 global i32 max_debug_counter = 0;
-global debug_block_t debug_blocks[max_debug_blocks] = {0};
+global debug_block_ debug_blocks[max_debug_blocks] = {0};
 
-struct timed_block_t {
+struct timed_block_ {
     i32 block_index;
     u64 start;
-    timed_block_t(char* id_str, i32 counter) {
+    timed_block_(char* id_str, i32 counter) {
         if (counter > max_debug_counter) {
             max_debug_counter = counter;
         }
@@ -71,45 +71,45 @@ struct timed_block_t {
         start = rdtsc();
     }
 
-    ~timed_block_t() {
+    ~timed_block_() {
         debug_blocks[block_index].call_count++;
         debug_blocks[block_index].total_cycles += rdtsc() - start;
     }
 };
 
-void process_debug_log(tools_state_t* tools_state);
+void process_debug_log(tools_state_* tools_state);
 
-void debug_push_ui_text_f(game_state_t* game_state,
-                          tools_state_t* tools_state,
-                          window_description_t window,
+void debug_push_ui_text_f(game_state_* game_state,
+                          tools_state_* tools_state,
+                          window_description_ window,
                           v2 bottom_left,
-                          rgba_t color,
+                          rgba_ color,
                           char* format,
                           ...);
 
-void debug_init(tools_state_t* tools_state);
+void debug_init(tools_state_* tools_state);
 
-void debug_update_and_render(game_state_t* game_state,
-                             tools_state_t* tools_state,
+void debug_update_and_render(game_state_* game_state,
+                             tools_state_* tools_state,
                              f32 dt,
-                             window_description_t window,
-                             game_input_t* game_input);
+                             window_description_ window,
+                             game_input_* game_input);
 
-void debug_load_monospace_font(tools_state_t* tools_state);
+void debug_load_monospace_font(tools_state_* tools_state);
 
-void debug_push_ui_text(game_state_t* game_state,
-                        tools_state_t* tools_state,
-                        window_description_t window,
+void debug_push_ui_text(game_state_* game_state,
+                        tools_state_* tools_state,
+                        window_description_ window,
                         v2 top_left,
                         char* text);
 
-void debug_draw_physics(game_state_t* game_state);
+void debug_draw_physics(game_state_* game_state);
 
-void debug_push_ui_text_f(game_state_t* game_state,
-                          tools_state_t* tools_state,
-                          window_description_t window,
+void debug_push_ui_text_f(game_state_* game_state,
+                          tools_state_* tools_state,
+                          window_description_ window,
                           v2 bottom_left,
-                          rgba_t color,
+                          rgba_ color,
                           char* format,
                           ...)
 #ifndef _WIN32

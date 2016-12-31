@@ -77,24 +77,24 @@ global char* texture_paths[] = {
     "assets/castle.png"
 };
 
-void create_background(game_state_t* game_state,
-                       background_t* background) {
+void create_background(game_state_* game_state,
+                       background_* background) {
 
     background->background_color = to_rgb(0xffc8dfec);
     background->motes.count = MOTE_COUNT;
     background->motes.values = PUSH_ARRAY(&game_state->render_arena,
                                           MOTE_COUNT,
-                                          mote_t);
+                                          mote_);
 
     background->attractors.count = ATTRACTOR_COUNT;
     background->attractors.values = PUSH_ARRAY(&game_state->render_arena,
                                           ATTRACTOR_COUNT,
-                                          mote_attractor_t);
+                                          mote_attractor_);
     const i32 floaty_count = 70;
     background->floaties.count = floaty_count;
     background->floaties.values = PUSH_ARRAY(&game_state->render_arena,
                                              floaty_count,
-                                             floaty_t);
+                                             floaty_);
 
     const i32 texture_count = ARRAY_SIZE(texture_paths);
     background->textures.count = texture_count;
@@ -108,7 +108,7 @@ void create_background(game_state_t* game_state,
     }
 
     for (int i = 0; i < floaty_count; ++i) {
-        floaty_t* floaty = background->floaties.at(i);
+        floaty_* floaty = background->floaties.at(i);
 
         i32 texture_index = random_i32(0, texture_count);
         floaty->texture = background->textures[texture_index];
@@ -131,7 +131,7 @@ void create_background(game_state_t* game_state,
     }
 
     for (i32 i = 0; i < MOTE_COUNT; ++i) {
-        mote_t* mote = background->motes.at(i);
+        mote_* mote = background->motes.at(i);
 
         mote->width = 1;
         mote->color = palette[random_i32(0, ARRAY_SIZE(palette))];
@@ -155,7 +155,7 @@ void create_background(game_state_t* game_state,
     }
 
     for (i32 i = 0; i < ATTRACTOR_COUNT; ++i) {
-        mote_attractor_t* attractor = background->attractors.at(i);
+        mote_attractor_* attractor = background->attractors.at(i);
 
         attractor->position = v2 {
             random_f32(-1.0f, 1.0f),
@@ -164,9 +164,9 @@ void create_background(game_state_t* game_state,
     }
 }
 
-void update_background(background_t* background,
-                       render_group_t* render_group,
-                       camera_t camera,
+void update_background(background_* background,
+                       render_group_* render_group,
+                       camera_ camera,
                        f32 dt) {
     TIMED_FUNC();
 
@@ -175,7 +175,7 @@ void update_background(background_t* background,
     m3x3 inverse_view = get_inverse_view_transform_3x3(camera);
 
     for (i32 i = 0; i < background->floaties.count; ++i) {
-        floaty_t* floaty = background->floaties.at(i);
+        floaty_* floaty = background->floaties.at(i);
 
         floaty->center.x += floaty->velocity * dt;
 
@@ -206,7 +206,7 @@ void update_background(background_t* background,
                      VIRTUAL_PIXEL_SIZE,
                      floaty->texture,
                      floaty->source_rect,
-                     rgba_t{0.7f, 0.7f, 0.75f,
+                     rgba_{0.7f, 0.7f, 0.75f,
                      scale(floaty->z, MIN_DISTANCE_EFFECT, MAX_DISTANCE_EFFECT)},
                      0.0f,
                      z,
@@ -214,7 +214,7 @@ void update_background(background_t* background,
     }
 
     for (i32 i = 0; i < background->motes.count; ++i) {
-        mote_t* mote = background->motes.at(i);
+        mote_* mote = background->motes.at(i);
 
         f32 z = scale(mote->z, MIN_MOTE_Z, MAX_MOTE_Z);
         f32 parallax = 1.0f - z;
@@ -243,7 +243,7 @@ void update_background(background_t* background,
     }
 
     for (int i = 0; i < background->attractors.count; ++i) {
-        mote_attractor_t* attractor = background->attractors.at(i);
+        mote_attractor_* attractor = background->attractors.at(i);
         v2 position = inverse_view * v2 { attractor->position.x, attractor->position.y };
 
         push_rect(render_group,

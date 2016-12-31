@@ -43,7 +43,7 @@ i32 check_program_status(u32 item_id, GLenum status_id) {
 b32 load_program(u32* program_result,
                  const char* vertex_path,
                  const char* fragment_path) {
-    platform_read_entire_file_result_t vertex_file = platform_read_entire_file(vertex_path);
+    platform_read_entire_file_result_ vertex_file = platform_read_entire_file(vertex_path);
     char* vertex_code = (char*)vertex_file.contents;
     char* fragment_code = (char*)platform_read_entire_file(fragment_path).contents;
 
@@ -78,7 +78,7 @@ b32 load_program(u32* program_result,
     return true;
 }
 #if 0
-enum gl_resouce_t {
+enum gl_resouce_ {
     RES_SOLIDS_PROG,
     RES_SOLIDS_VAO_RECT,
     RES_SOLIDS_VAO_CIRCLE,
@@ -129,8 +129,8 @@ enum gl_resouce_t {
 };
 #endif
 
-gl_programs_t load_programs() {
-    gl_programs_t result;
+gl_programs_ load_programs() {
+    gl_programs_ result;
     i32* res = result.i_res_ids;
     u32* ures = result.u_res_ids;
 
@@ -423,7 +423,7 @@ gl_programs_t load_programs() {
     // solids program
     /////////////////////////////////////////////////////////////
 
-    gl_program_t solids_program;
+    gl_program_ solids_program;
     glGenVertexArrays(1,&solids_program.vaos[GL_VAO_RECT]);
     glBindVertexArray(solids_program.vaos[GL_VAO_RECT]);
 
@@ -514,8 +514,8 @@ gl_programs_t load_programs() {
     return result;
 }
 
-frame_buffer_t default_frame_buffer(i32 width, i32 height) {
-    frame_buffer_t result;
+frame_buffer_ default_frame_buffer(i32 width, i32 height) {
+    frame_buffer_ result;
 
     result.width = width;
     result.height = height;
@@ -525,8 +525,8 @@ frame_buffer_t default_frame_buffer(i32 width, i32 height) {
     return result;
 }
 
-frame_buffer_t create_frame_buffer(i32 width, i32 height) {
-    frame_buffer_t result;
+frame_buffer_ create_frame_buffer(i32 width, i32 height) {
+    frame_buffer_ result;
 
     result.width = width;
     result.height = height;
@@ -600,7 +600,7 @@ tex2 load_image(char* filename) {
 
     stbi_set_flip_vertically_on_load(true);
 
-    platform_read_entire_file_result_t file = platform_read_entire_file(filename);
+    platform_read_entire_file_result_ file = platform_read_entire_file(filename);
 
     i32 x;
     i32 y;
@@ -640,12 +640,12 @@ tex2 load_image(char* filename) {
 
 }
 
-font_spec_t load_font(char* font_file_name, f32 pixel_height) {
-    font_spec_t result;
+font_spec_ load_font(char* font_file_name, f32 pixel_height) {
+    font_spec_ result;
 
     tex2 texture;
 
-    platform_read_entire_file_result_t file =
+    platform_read_entire_file_result_ file =
         platform_read_entire_file(font_file_name);
 
     texture.width = 1024;
@@ -698,13 +698,13 @@ font_spec_t load_font(char* font_file_name, f32 pixel_height) {
 }
 
 // this is really inefficient and is only for internal tools
-glyph_spec_t load_glyph(char* font_file_name, char c, f32 pixel_height) {
+glyph_spec_ load_glyph(char* font_file_name, char c, f32 pixel_height) {
 
-    glyph_spec_t result;
+    glyph_spec_ result;
     tex2 texture;
     stbtt_fontinfo font;
 
-    platform_read_entire_file_result_t file =
+    platform_read_entire_file_result_ file =
         platform_read_entire_file(font_file_name);
 
     i32 width;
@@ -770,12 +770,12 @@ glyph_spec_t load_glyph(char* font_file_name, char c, f32 pixel_height) {
 
 tex2 load_bmp(char* filename, i32 scaling) {
     tex2 result = {};
-    platform_read_entire_file_result_t file = platform_read_entire_file(filename);
+    platform_read_entire_file_result_ file = platform_read_entire_file(filename);
 
     assert_(file.contents);
 
     if (file.contents) {
-        bitmap_header_t* header = (bitmap_header_t*)file.contents;
+        bitmap_header_* header = (bitmap_header_*)file.contents;
 
         assert_(header->compression == 3);
         assert_(header->width > 0);
@@ -843,14 +843,14 @@ tex2 load_bmp(char* filename, i32 scaling) {
     return result;
 }
 
-render_object_t* push_circle(render_group_t* render_group,
-                             color_t color,
+render_object_* push_circle(render_group_* render_group,
+                             color_ color,
                              v2 center,
                              f32 radius,
                              f32 z,
                              b32 parallax) {
     i32 i = render_group->objects.push_unassigned();
-    render_object_t* obj = render_group->objects.at(i);
+    render_object_* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_CIRCLE;
     obj->render_circle.color = color;
     obj->render_circle.center = center;
@@ -859,15 +859,15 @@ render_object_t* push_circle(render_group_t* render_group,
     return obj;
 }
 
-render_object_t* push_rect(render_group_t* render_group,
-                           color_t color,
+render_object_* push_rect(render_group_* render_group,
+                           color_ color,
                            v2 center,
                            v2 diagonal,
                            f32 orientation,
                            f32 z,
                            b32 parallax) {
     i32 i = render_group->objects.push_unassigned();
-    render_object_t* obj = render_group->objects.at(i);
+    render_object_* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_RECT;
     obj->render_rect.color = color;
     obj->render_rect.center = center;
@@ -878,12 +878,12 @@ render_object_t* push_rect(render_group_t* render_group,
     return obj;
 }
 
-render_object_t* push_color_picker(render_group_t* render_group,
+render_object_* push_color_picker(render_group_* render_group,
                                    v3 hsv,
                                    rect r) {
 
     i32 i = render_group->objects.push_unassigned();
-    render_object_t* obj = render_group->objects.at(i);
+    render_object_* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_COLOR_PICKER;
     obj->render_color_picker.hsv = hsv;
     obj->render_color_picker.center = 0.5f * (r.max + r.min);
@@ -893,15 +893,15 @@ render_object_t* push_color_picker(render_group_t* render_group,
     return obj;
 }
 
-render_object_t* push_rect_outline(render_group_t* render_group,
-                           color_t color,
+render_object_* push_rect_outline(render_group_* render_group,
+                           color_ color,
                            v2 center,
                            v2 diagonal,
                            f32 orientation,
                            f32 z,
                            b32 parallax) {
     i32 i = render_group->objects.push_unassigned();
-    render_object_t* obj = render_group->objects.at(i);
+    render_object_* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_RECT_OUTLINE;
     obj->render_rect.color = color;
     obj->render_rect.center = center;
@@ -912,18 +912,18 @@ render_object_t* push_rect_outline(render_group_t* render_group,
     return obj;
 }
 
-render_object_t* push_texture(render_group_t* render_group,
+render_object_* push_texture(render_group_* render_group,
                               v2 center,
                               v2 hotspot,
                               f32 pixel_size,
                               tex2 texture,
                               rect_i source_rect,
-                              rgba_t tint,
+                              rgba_ tint,
                               f32 orientation,
                               f32 z,
                               b32 parallax) {
     i32 i = render_group->objects.push_unassigned();
-    render_object_t* obj = render_group->objects.at(i);
+    render_object_* obj = render_group->objects.at(i);
     obj->type = RENDER_TYPE_TEXTURE;
     obj->render_texture.texture = texture;
     obj->render_texture.source_rect = source_rect;
@@ -937,13 +937,13 @@ render_object_t* push_texture(render_group_t* render_group,
     return obj;
 }
 
-void swap_render_objs(render_object_t* a, render_object_t* b) {
-    render_object_t tmp = *a;
+void swap_render_objs(render_object_* a, render_object_* b) {
+    render_object_ tmp = *a;
     *a = *b;
     *b = tmp;
 }
 
-void sort_render_objects(vec<render_object_t> objs) {
+void sort_render_objects(vec<render_object_> objs) {
     TIMED_FUNC();
     // sort our render objects by z
     const i32 quicksort_max_stack_size = 1024;
@@ -961,7 +961,7 @@ void sort_render_objects(vec<render_object_t> objs) {
         i32 pivot = current.first;
         i32 left = current.first;
         i32 right = current.second - 1;
-        render_object_t pivot_val = objs[pivot];
+        render_object_ pivot_val = objs[pivot];
         f32 pivot_z = pivot_val.z;
 
         while (left < right) {
@@ -982,9 +982,9 @@ void sort_render_objects(vec<render_object_t> objs) {
     }
 }
 
-void draw_gl_rect(gl_program_t* program,
-                  camera_t camera,
-                  render_rect_t rect,
+void draw_gl_rect(gl_program_* program,
+                  camera_ camera,
+                  render_rect_ rect,
                   f32 z) {
     TIMED_FUNC();
     // our base rect is simply a square at the origin with sides of length 1.0f,
@@ -1021,9 +1021,9 @@ void draw_gl_rect(gl_program_t* program,
     // }
 }
 
-void draw_gl_color_picker(gl_programs_t* programs,
-                          camera_t camera,
-                          render_color_picker_t color_picker,
+void draw_gl_color_picker(gl_programs_* programs,
+                          camera_ camera,
+                          render_color_picker_ color_picker,
                           f32 z) {
     TIMED_FUNC();
     // our base rect is simply a square at the origin with sides of length 1.0f,
@@ -1061,9 +1061,9 @@ void draw_gl_color_picker(gl_programs_t* programs,
     glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
 }
 
-void draw_gl_circle(gl_program_t* program,
-                    camera_t camera,
-                    render_circle_t circle,
+void draw_gl_circle(gl_program_* program,
+                    camera_ camera,
+                    render_circle_ circle,
                     f32 z) {
     TIMED_FUNC();
     // our base rect is simply a square at the origin with sides of length 1.0f,
@@ -1105,9 +1105,9 @@ void draw_gl_circle(gl_program_t* program,
     // }
 }
 
-void draw_gl_texture(gl_programs_t* programs,
-                     camera_t camera,
-                     render_texture_t texture,
+void draw_gl_texture(gl_programs_* programs,
+                     camera_ camera,
+                     render_texture_ texture,
                      f32 z,
                      i32 render_item_index) {
     TIMED_FUNC();
@@ -1174,7 +1174,7 @@ void draw_gl_texture(gl_programs_t* programs,
     glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
 }
 
-void setup_gl_for_type(gl_programs_t* programs,
+void setup_gl_for_type(gl_programs_* programs,
                        u32 type) {
 
     // i32* res = programs->i_res_ids;
@@ -1205,7 +1205,7 @@ void setup_gl_for_type(gl_programs_t* programs,
     }
 }
 
-void setup_frame_buffer(frame_buffer_t frame_buffer) {
+void setup_frame_buffer(frame_buffer_ frame_buffer) {
     TIMED_FUNC();
 
     glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer.id);
@@ -1213,9 +1213,9 @@ void setup_frame_buffer(frame_buffer_t frame_buffer) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void present_frame_buffer(gl_programs_t* programs,
-                          frame_buffer_t source,
-                          frame_buffer_t dest) {
+void present_frame_buffer(gl_programs_* programs,
+                          frame_buffer_ source,
+                          frame_buffer_ dest) {
     TIMED_FUNC();
 
     i32* res = programs->i_res_ids;
@@ -1257,12 +1257,12 @@ void present_frame_buffer(gl_programs_t* programs,
 
 }
 
-void draw_gradient(gl_programs_t* programs,
+void draw_gradient(gl_programs_* programs,
                    v2 viewport,
                    v2 start,
                    v2 end,
-                   rgba_t start_color,
-                   rgba_t end_color) {
+                   rgba_ start_color,
+                   rgba_ end_color) {
 
     TIMED_FUNC();
 
@@ -1284,10 +1284,10 @@ void draw_gradient(gl_programs_t* programs,
     glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
 }
 
-void draw_rect_particles(transient_state_t* transient_state,
-                                gl_programs_t* programs,
-                                camera_t camera,
-                                render_group_t* render_group,
+void draw_rect_particles(transient_state_* transient_state,
+                                gl_programs_* programs,
+                                camera_ camera,
+                                render_group_* render_group,
                                 b32 solid) {
     u32 type = solid ? RENDER_TYPE_RECT : RENDER_TYPE_RECT_OUTLINE;
 
@@ -1299,7 +1299,7 @@ void draw_rect_particles(transient_state_t* transient_state,
     i32 particle_count = 0;
     v4* particle_center_data = transient_state->particle_center_data;
     v2* particle_scaling_data = transient_state->particle_scaling_data;
-    rgba_t* particle_color_data = transient_state->particle_color_data;
+    rgba_* particle_color_data = transient_state->particle_color_data;
 
     glUseProgram(ures[RES_SOLID_PARTICLES_PROG]);
     glUniform4f(res[RES_SOLID_PARTICLES_LIGHTING],
@@ -1309,7 +1309,7 @@ void draw_rect_particles(transient_state_t* transient_state,
                 render_group->lighting.a);
 
     for (int i = 0; i < render_group->objects.count; ++i) {
-        render_object_t* obj = render_group->objects.at(i);
+        render_object_* obj = render_group->objects.at(i);
 
         if (obj->type != type) {
             continue;
@@ -1324,9 +1324,9 @@ void draw_rect_particles(transient_state_t* transient_state,
         
         particle_center_data[particle_count] = 
             v4 {obj->center.x, obj->center.y, obj->z, parallax};
-        color_t color = obj->render_rect.color;
+        color_ color = obj->render_rect.color;
         particle_color_data[particle_count] =
-            rgba_t {color.r,color.g,color.b,1.0f};
+            rgba_ {color.r,color.g,color.b,1.0f};
         particle_scaling_data[particle_count] =
             v2 {obj->render_rect.diagonal};
 
@@ -1390,10 +1390,10 @@ void draw_rect_particles(transient_state_t* transient_state,
 }
 
 void
-draw_solid_rect_particles(transient_state_t* transient_state,
-                          gl_programs_t* programs,
-                          camera_t camera,
-                          render_group_t* render_group) {
+draw_solid_rect_particles(transient_state_* transient_state,
+                          gl_programs_* programs,
+                          camera_ camera,
+                          render_group_* render_group) {
     draw_rect_particles(transient_state,
                         programs,
                         camera,
@@ -1402,10 +1402,10 @@ draw_solid_rect_particles(transient_state_t* transient_state,
 }
 
 void
-draw_outlined_rect_particles(transient_state_t* transient_state,
-                          gl_programs_t* programs,
-                          camera_t camera,
-                          render_group_t* render_group) {
+draw_outlined_rect_particles(transient_state_* transient_state,
+                          gl_programs_* programs,
+                          camera_ camera,
+                          render_group_* render_group) {
     draw_rect_particles(transient_state,
                         programs,
                         camera,
@@ -1413,10 +1413,10 @@ draw_outlined_rect_particles(transient_state_t* transient_state,
                         false);
 }
 
-void draw_render_group(transient_state_t* transient_state,
-                       gl_programs_t* programs,
-                       camera_t camera,
-                       render_group_t* render_group) {
+void draw_render_group(transient_state_* transient_state,
+                       gl_programs_* programs,
+                       camera_ camera,
+                       render_group_* render_group) {
     TIMED_FUNC();
 
     const GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
@@ -1445,7 +1445,7 @@ void draw_render_group(transient_state_t* transient_state,
     for (int i = 0; i < len; ++i) {
         setup_gl_for_type(programs, types[i]);
         for (int j = 0; j < render_group->objects.count; ++j) {
-            render_object_t* obj = render_group->objects.at(j);
+            render_object_* obj = render_group->objects.at(j);
 
             if (obj->type != types[i]) {
                 continue;
@@ -1485,6 +1485,6 @@ void draw_render_group(transient_state_t* transient_state,
     draw_outlined_rect_particles(transient_state, programs, camera, render_group);
 }
 
-void clear_render_group(render_group_t* render_group) {
+void clear_render_group(render_group_* render_group) {
     render_group->objects.count = 0;
 }

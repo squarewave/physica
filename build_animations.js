@@ -10,14 +10,14 @@ for (var i = dir.length - 1; i >= 0; i--) {
     var typename = filename.split('.')[0];
 
     includes += '#include "animations/' + filename + '"\n';
-    animations_body += '    animation_spec_t ' + typename +';\n';
+    animations_body += '    animation_spec_ ' + typename +';\n';
     method_body +=
 '    {\n\
-    animation_builder_t builder = ' + typename + '_builder();\n\
-    animation_spec_t* spec = &animations.' + typename + ';\n\
+    animation_builder_ builder = ' + typename + '_builder();\n\
+    animation_spec_* spec = &animations.' + typename + ';\n\
     spec->cycle_point = builder.cycle_point;\n\
     spec->frames.count = builder.frame_count;\n\
-    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_t);\n\
+    spec->frames.values = PUSH_ARRAY(arena, (size_t)builder.frame_count, animation_frame_);\n\
     tex2 texture = load_image(builder.bmp_filepath);\n\
     i32 frame_height = texture.height;\n\
     assert_(texture.width % builder.frame_count == 0);\n\
@@ -25,7 +25,7 @@ for (var i = dir.length - 1; i >= 0; i--) {
     v2 hotspot = builder.hotspot;\n\
 \n\
     for (i32 i = 0; i < builder.frame_count; ++i) {\n\
-        animation_frame_t frame = {0};\n\
+        animation_frame_ frame = {0};\n\
         frame.duration = builder.frame_duration;\n\
         frame.texture = texture;\n\
         frame.source_rect.min_y = 0;\n\
@@ -43,11 +43,11 @@ for (var i = dir.length - 1; i >= 0; i--) {
 
 var source = "#ifndef ANIMATIONS_H_\n#define ANIMATIONS_H_\n" +
     includes +
-    '\nstruct animations_list_t {\n'
+    '\nstruct animations_list_ {\n'
     + animations_body +
     '};\n\n' +
-    'animations_list_t load_animations(memory_arena_t* arena) {\n\
-    animations_list_t animations = {0};\n' +
+    'animations_list_ load_animations(memory_arena_* arena) {\n\
+    animations_list_ animations = {0};\n' +
     method_body + '    return animations;\n}\n' +
     '#endif\n';
 

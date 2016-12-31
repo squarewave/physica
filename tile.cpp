@@ -6,13 +6,13 @@ const i32 tile_texture_size = 64;
 const f32 spikes_z = tile_z;
 const i32 spikes_texture_size = tile_texture_size;
 
-sim_entity_t*
-create_tile(game_state_t* game_state, v2 position, tile_info_t info) {
+sim_entity_*
+create_tile(game_state_* game_state, v2 position, tile_info_ info) {
 
     const f32 tile_mass = 100.0f;
     const f32 tile_orientation = 0.0f;
 
-    sim_entity_t* tile = create_block_entity(game_state,
+    sim_entity_* tile = create_block_entity(game_state,
                                              TILE,
                                              position,
                                              tile_diagonal,
@@ -28,7 +28,7 @@ create_tile(game_state_t* game_state, v2 position, tile_info_t info) {
 }
 
 UPDATE_FUNC(TILE) {
-    phy_body_t* body = entity->body;
+    phy_body_* body = entity->body;
 
     rect_i source_rect;
     source_rect.min_x = entity->tile_info.tex_coord_x * tile_texture_size;
@@ -42,13 +42,13 @@ UPDATE_FUNC(TILE) {
                  VIRTUAL_PIXEL_SIZE,
                  game_state->terrain_1,
                  source_rect,
-                 rgba_t{0},
+                 rgba_{0},
                  body->orientation,
                  tile_z);
 }
 
-sim_entity_t*
-create_spikes(game_state_t* game_state, v2 position, i32 direction) {
+sim_entity_*
+create_spikes(game_state_* game_state, v2 position, i32 direction) {
 
     const f32 spikes_mass = 100.0f;
     const f32 spikes_orientation = 0.0f;
@@ -74,7 +74,7 @@ create_spikes(game_state_t* game_state, v2 position, i32 direction) {
         } break;
     }
 
-    sim_entity_t* spikes = create_block_entity(game_state,
+    sim_entity_* spikes = create_block_entity(game_state,
                                                SPIKES,
                                                center,
                                                diagonal,
@@ -90,7 +90,7 @@ create_spikes(game_state_t* game_state, v2 position, i32 direction) {
 }
 
 UPDATE_FUNC(SPIKES) {
-    phy_body_t* body = entity->body;
+    phy_body_* body = entity->body;
 
     rect_i source_rect;
     source_rect.min_x = entity->spikes_info.direction * spikes_texture_size;
@@ -120,12 +120,12 @@ UPDATE_FUNC(SPIKES) {
                  VIRTUAL_PIXEL_SIZE,
                  game_state->terrain_1,
                  source_rect,
-                 rgba_t{0},
+                 rgba_{0},
                  body->orientation,
                  spikes_z);
 
 
-    entity_ties_t* collision = get_hash_item(&game_state->collision_map, entity->id);
+    entity_ties_* collision = get_hash_item(&game_state->collision_map, entity->id);
     if (collision && collision->type == PLAYER) {
         kill_player(game_state);
     }

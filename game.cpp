@@ -16,18 +16,18 @@
 #include "npcs.h"
 
 void
-initialize_render_arena(game_state_t* game_state, window_description_t window) {
+initialize_render_arena(game_state_* game_state, window_description_ window) {
     game_state->gl_programs = load_programs();
 
-    rgba_t lighting = to_rgba(0xff818dba);
-    // rgba_t lighting = (1.0f / 255.0f) * rgba_t {237.0f,222.0f,213.0f,255.0f};
-    // rgba_t lighting = (1.0f / 255.0f) * rgba_t {255.0f,255.0f,255.0f,255.0f};
+    rgba_ lighting = to_rgba(0xff818dba);
+    // rgba_ lighting = (1.0f / 255.0f) * rgba_ {237.0f,222.0f,213.0f,255.0f};
+    // rgba_ lighting = (1.0f / 255.0f) * rgba_ {255.0f,255.0f,255.0f,255.0f};
 
     const i32 max_render_objects = 70000;
     game_state->main_render_group.objects.count = 0;
     game_state->main_render_group.objects.capacity = max_render_objects;
     game_state->main_render_group.objects.values =
-        PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_t);
+        PUSH_ARRAY(&game_state->render_arena, max_render_objects, render_object_);
     game_state->main_render_group.frame_buffer =
         create_frame_buffer(window.width, window.height);
     game_state->main_render_group.lighting = lighting;
@@ -36,7 +36,7 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
     game_state->ui_render_group.objects.count = 0;
     game_state->ui_render_group.objects.capacity = max_ui_objects;
     game_state->ui_render_group.objects.values =
-        PUSH_ARRAY(&game_state->render_arena, max_ui_objects, render_object_t);
+        PUSH_ARRAY(&game_state->render_arena, max_ui_objects, render_object_);
     game_state->ui_render_group.frame_buffer =
         game_state->main_render_group.frame_buffer;
     game_state->ui_render_group.lighting = to_rgba(0xffffffff);
@@ -48,7 +48,7 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
     game_state->main_animation_group.animations.count = 0;
     game_state->main_animation_group.animations.capacity = max_animations;
     game_state->main_animation_group.animations.values =
-        PUSH_ARRAY(&game_state->render_arena, max_animations, animation_t);
+        PUSH_ARRAY(&game_state->render_arena, max_animations, animation_);
 
     game_state->main_animation_group.freed.count = 0;
     game_state->main_animation_group.freed.capacity = max_animations;
@@ -59,7 +59,7 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
     game_state->animation_frames.count = 0;
     game_state->animation_frames.capacity = max_animation_frames;
     game_state->animation_frames.values =
-        PUSH_ARRAY(&game_state->render_arena, max_animation_frames, animation_frame_t);
+        PUSH_ARRAY(&game_state->render_arena, max_animation_frames, animation_frame_);
 
     game_state->wiz_bmp = load_wiz_bmp();
     game_state->wiz_walking_right = wiz_walking_right(&game_state->animation_frames,
@@ -81,7 +81,7 @@ initialize_render_arena(game_state_t* game_state, window_description_t window) {
 }
 
 void
-setup_world(game_state_t *game_state) {
+setup_world(game_state_ *game_state) {
 
     const char* tile_map =
     "                                                                                                     *"
@@ -168,7 +168,7 @@ setup_world(game_state_t *game_state) {
             char c = tile_map[y * tile_map_width + x];
             switch(c) {
                 case '#': {
-                    tile_info_t info;
+                    tile_info_ info;
                     info.tex_coord_x = random_i32(0, 8);
                     info.tex_coord_y = 0;
                     if (y && (tile_map[(y-1) * tile_map_width + x] == '#')) {
@@ -246,9 +246,9 @@ setup_world(game_state_t *game_state) {
 }
 
 void
-initialize_game_state(game_state_t* game_state, window_description_t window) {
+initialize_game_state(game_state_* game_state, window_description_ window) {
     // i64 memory_index = 0;
-    u8* memory_location = (u8*)game_state + sizeof(game_state_t);
+    u8* memory_location = (u8*)game_state + sizeof(game_state_);
 
     #define __MAKE_ARENA(arena, count) do {\
         arena.size = (count);\
@@ -289,13 +289,13 @@ initialize_game_state(game_state_t* game_state, window_description_t window) {
     const i32 entity_map_capacity = 8000;
     game_state->entity_map.pairs.values = PUSH_ARRAY(&game_state->world_arena,
                                                         entity_map_capacity,
-                                                        hashpair<sim_entity_t*>);
+                                                        hashpair<sim_entity_*>);
     game_state->entity_map.pairs.count = entity_map_capacity;
 
     const i32 collision_capacity = 2000;
     game_state->collision_map.pairs.values = PUSH_ARRAY(&game_state->world_arena,
                                                         collision_capacity,
-                                                        hashpair<entity_ties_t>);
+                                                        hashpair<entity_ties_>);
     game_state->collision_map.pairs.count = collision_capacity;
 
     setup_world(game_state);
@@ -307,13 +307,13 @@ initialize_game_state(game_state_t* game_state, window_description_t window) {
 }
 
 void
-game_update_and_render(platform_services_t platform,
-                       game_state_t* game_state,
-                       transient_state_t* transient_state,
+game_update_and_render(platform_services_ platform,
+                       game_state_* game_state,
+                       transient_state_* transient_state,
                        f32 dt,
-                       window_description_t window,
-                       game_input_t* game_input,
-                       tools_state_t* tools_state) {
+                       window_description_ window,
+                       game_input_* game_input,
+                       tools_state_* tools_state) {
 
     TIMED_FUNC();
 
@@ -333,7 +333,7 @@ game_update_and_render(platform_services_t platform,
 
         for (int i = 0; i < game_state->entities.size; ++i) {
 			TIMED_BLOCK(update_entities);
-            sim_entity_t* entity = game_state->entities.try_get(i);
+            sim_entity_* entity = game_state->entities.try_get(i);
 
             if (!entity) {
                 continue;
@@ -413,10 +413,10 @@ game_update_and_render(platform_services_t platform,
     };
 
     f32 rotation = atanv(game_state->player->body->gravity_normal) + fPI_OVER_2;
-    // rgba_t up_color = to_rgba(0xffc4f0e7);
-    // rgba_t down_color = to_rgba(0xfff7b798);
-    rgba_t up_color = to_rgba(0xff562f77);
-    rgba_t down_color = to_rgba(0xff66a8bd);
+    // rgba_ up_color = to_rgba(0xffc4f0e7);
+    // rgba_ down_color = to_rgba(0xfff7b798);
+    rgba_ up_color = to_rgba(0xff562f77);
+    rgba_ down_color = to_rgba(0xff66a8bd);
     draw_gradient(&game_state->gl_programs,
                   viewport,
                   rotate(v2 {0.0f, -1.0f}, -rotation),

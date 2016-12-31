@@ -1,7 +1,7 @@
 const f32 player_height = vpixels_to_meters(18.0f);
 const f32 player_width = vpixels_to_meters(8.0f);
 
-sim_entity_t* create_player(game_state_t* game_state, v2 position) {
+sim_entity_* create_player(game_state_* game_state, v2 position) {
 
 	const v2 player_diagonal = v2 {player_width, player_height};
 	const f32 player_block_fillet = 0.25f * player_width;
@@ -10,7 +10,7 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
     const f32 player_z_index = 0.1f;
     const u32 player_flags = PHY_CHARACTER_FLAG;
 
-    sim_entity_t* player = create_fillet_block_entity(game_state,
+    sim_entity_* player = create_fillet_block_entity(game_state,
                                                       PLAYER,
                                                       position,
                                                       player_diagonal,
@@ -27,8 +27,8 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
                       &game_state->animations.may_standing_right,
                       player_z_index);
 
-    player_state_t* player_state = PUSH_STRUCT(&game_state->world_arena,
-                                               player_state_t);
+    player_state_* player_state = PUSH_STRUCT(&game_state->world_arena,
+                                               player_state_);
     player_state->animation_index = animation_index;
     player_state->facing_right = true;
 
@@ -40,7 +40,7 @@ sim_entity_t* create_player(game_state_t* game_state, v2 position) {
 }
 
 UPDATE_FUNC(PLAYER) {
-	player_state_t* player = (player_state_t*)entity->custom_state;
+	player_state_* player = (player_state_*)entity->custom_state;
 
     const f32 player_move_factor = 20.0f;
     const f32 direction_deadzone = 0.1f;
@@ -99,7 +99,7 @@ UPDATE_FUNC(PLAYER) {
     f32 virtual_dx = old_virtual_dx;
     f32 virtual_dy = old_virtual_dy;
 
-    ray_body_intersect_t r =
+    ray_body_intersect_ r =
         ray_cast_from_body(&game_state->physics_state,
                            entity->body,
                            jump_raycast_threshold,
@@ -164,7 +164,7 @@ UPDATE_FUNC(PLAYER) {
     }
 
     // update texture
-    animation_t* animation = game_state->main_animation_group.animations
+    animation_* animation = game_state->main_animation_group.animations
     	.at(player->animation_index);
 
     animation->position = entity->body->position;
@@ -224,7 +224,7 @@ UPDATE_FUNC(PLAYER) {
     }
 
 
-    entity_ties_t* collision = get_hash_item(&game_state->collision_map, entity->id);
+    entity_ties_* collision = get_hash_item(&game_state->collision_map, entity->id);
     if (collision && collision->type == SAVE_POINT) {
         player->save_position = entity->body->position;
         player->save_gravity_normal = entity->body->gravity_normal;
@@ -234,9 +234,9 @@ UPDATE_FUNC(PLAYER) {
     entity->body->velocity = rotate(v2{virtual_dx, virtual_dy}, gravity_orientation);
 }
 
-void kill_player(game_state_t* game_state) {
-    sim_entity_t* player = game_state->player;
-    player_state_t* player_state = (player_state_t*)player->custom_state;
+void kill_player(game_state_* game_state) {
+    sim_entity_* player = game_state->player;
+    player_state_* player_state = (player_state_*)player->custom_state;
     player->body->position = player_state->save_position;
     player->body->gravity_normal = player_state->save_gravity_normal;
     game_state->rotation_state = player_state->save_rotation_state;
@@ -246,12 +246,12 @@ void kill_player(game_state_t* game_state) {
 
 const v2 save_point_diagonal = v2 {1.0f, 1.0f};
 
-sim_entity_t*
-create_save_point(game_state_t* game_state, v2 position) {
+sim_entity_*
+create_save_point(game_state_* game_state, v2 position) {
     const f32 save_point_mass = 1.0f;
     const f32 save_point_orientation = 0.0f;
 
-    sim_entity_t* save_point = create_block_entity(game_state,
+    sim_entity_* save_point = create_block_entity(game_state,
                                              SAVE_POINT,
                                              position,
                                              save_point_diagonal,

@@ -3,10 +3,10 @@
 
 #include "debug.h"
 
-struct game_state_t;
-struct game_input_t;
+struct game_state_;
+struct game_input_;
 
-enum ui_element_type_t {
+enum ui_element_type_ {
     UI_NONE,
     UI_MENU,
     UI_DRAGGABLE_WIDGET,
@@ -17,56 +17,56 @@ enum ui_element_type_t {
     UI_COLOR_PICKER,
 };
 
-struct ui_element_t;
+struct ui_element_;
 
-struct draggable_widget_options_t {
+struct draggable_widget_options_ {
     v2 initial_mouse_position;
-    ui_element_t* child;
+    ui_element_* child;
 };
 
-struct menu_options_t {
+struct menu_options_ {
     b32 active;
-    ui_element_t* children;
+    ui_element_* children;
     i32 child_count;
 };
 
-struct color_picker_options_t {
+struct color_picker_options_ {
     v3 hsv;
 };
 
-struct ui_element_t {
+struct ui_element_ {
     u32 type;
-    ui_element_t* parent;
+    ui_element_* parent;
     v2 offset;
     v2 size;
     union {
-        menu_options_t menu;
-        color_picker_options_t color_picker;
-        draggable_widget_options_t draggable_widget;
+        menu_options_ menu;
+        color_picker_options_ color_picker;
+        draggable_widget_options_ draggable_widget;
     };
 };
 
-struct tools_state_t {
+struct tools_state_ {
     v2 proper_camera_center;
     v2 zoom_camera_offset;
     v2 debug_world_coord;
     i32 zoom_level;
-    debug_state_t debug_state;
-    vec<ui_element_t> ui_elements;
+    debug_state_ debug_state;
+    vec<ui_element_> ui_elements;
 
-    ui_element_t* root_element;
-    ui_element_t* active_element;
-    ui_element_t* hover_element;
+    ui_element_* root_element;
+    ui_element_* active_element;
+    ui_element_* hover_element;
 
     i32 selected_render_item;
 };
 
-void tools_init(tools_state_t* tools_state);
+void tools_init(tools_state_* tools_state);
 
-void tools_update_and_render(game_state_t* game_state,
-                             tools_state_t* tools_state,
+void tools_update_and_render(game_state_* game_state,
+                             tools_state_* tools_state,
                              f32 dt,
-                             window_description_t window,
-                             game_input_t* game_input);
+                             window_description_ window,
+                             game_input_* game_input);
 
 #endif

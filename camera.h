@@ -3,19 +3,19 @@
 
 #include "physica_math.h"
 
-struct camera_zoom_t {
+struct camera_zoom_ {
     f32 factor;
     v2 relative_center;
 };
 
-struct camera_t {
+struct camera_ {
     v2 center, to_top_right;
     f32 orientation;
-    camera_zoom_t zoom;
+    camera_zoom_ zoom;
 };
 
 inline m4x4
-get_view_transform_4x4(camera_t camera) {
+get_view_transform_4x4(camera_ camera) {
     assert_(camera.zoom.factor != 0.0f);
     v2 to_top_right = camera.to_top_right * (1.0f / camera.zoom.factor);
     v2 center = camera.center + rotate(v2 {
@@ -40,7 +40,7 @@ get_view_transform_4x4(camera_t camera) {
 }
 
 inline m4x4
-get_parallaxed_view_transform_4x4(camera_t camera, f32 parallax) {
+get_parallaxed_view_transform_4x4(camera_ camera, f32 parallax) {
     assert_(camera.zoom.factor != 0.0f);
     v2 to_top_right = camera.to_top_right * (1.0f / camera.zoom.factor);
     v2 center = camera.center * parallax + rotate(v2 {
@@ -65,7 +65,7 @@ get_parallaxed_view_transform_4x4(camera_t camera, f32 parallax) {
 }
 
 inline m3x3
-get_parallaxed_view_transform_3x3(camera_t camera, f32 parallax) {
+get_parallaxed_view_transform_3x3(camera_ camera, f32 parallax) {
     assert_(camera.zoom.factor != 0.0f);
     v2 to_top_right = camera.to_top_right * (1.0f / camera.zoom.factor);
     v2 center = camera.center * parallax + rotate(v2 {
@@ -90,7 +90,7 @@ get_parallaxed_view_transform_3x3(camera_t camera, f32 parallax) {
 }
 
 inline m3x3
-get_inverse_parallaxed_view_transform_3x3(camera_t camera, f32 parallax) {
+get_inverse_parallaxed_view_transform_3x3(camera_ camera, f32 parallax) {
     assert_(camera.zoom.factor != 0.0f);
     v2 to_top_right = camera.to_top_right * (1.0f / camera.zoom.factor);
     v2 center = (camera.center - rotate(v2 {
@@ -115,7 +115,7 @@ get_inverse_parallaxed_view_transform_3x3(camera_t camera, f32 parallax) {
 }
 
 inline m3x3
-get_view_transform_3x3(camera_t camera) {
+get_view_transform_3x3(camera_ camera) {
     assert_(camera.zoom.factor != 0.0f);
     v2 to_top_right = camera.to_top_right * (1.0f / camera.zoom.factor);
     v2 center = camera.center + rotate(v2 {
@@ -140,7 +140,7 @@ get_view_transform_3x3(camera_t camera) {
 }
 
 inline m3x3
-get_inverse_view_transform_3x3(camera_t camera) {
+get_inverse_view_transform_3x3(camera_ camera) {
     assert_(camera.zoom.factor != 0.0f);
     v2 to_top_right = camera.to_top_right * (1.0f / camera.zoom.factor);
     v2 center = camera.center + rotate(v2 {

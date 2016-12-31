@@ -10,8 +10,8 @@ const f32 LILGUY_RUN_SPEED = 1.5f;
 const f32 LILGUY_Z = 0.1f;
 const f32 LILGUY_AVERAGE_STATE_CHANGE_SECONDS = 1.0f;
 
-animation_spec_t* get_animation(game_state_t* game_state, u32 flags) {
-    animation_spec_t* spec = 0;
+animation_spec_* get_animation(game_state_* game_state, u32 flags) {
+    animation_spec_* spec = 0;
 
     switch (flags) {
         case LILGUY_MAYOR | LILGUY_RUNNING | LILGUY_LEFT_FACING: {
@@ -43,10 +43,10 @@ animation_spec_t* get_animation(game_state_t* game_state, u32 flags) {
     return spec;
 }
 
-sim_entity_t*
-create_lilguy(game_state_t* game_state, v2 position, u32 flags) {
+sim_entity_*
+create_lilguy(game_state_* game_state, v2 position, u32 flags) {
 
-    sim_entity_t* entity = create_fillet_block_entity(game_state,
+    sim_entity_* entity = create_fillet_block_entity(game_state,
                                                       LILGUY,
                                                       position,
                                                       v2{LILGUY_WIDTH, LILGUY_HEIGHT},
@@ -82,7 +82,7 @@ create_lilguy(game_state_t* game_state, v2 position, u32 flags) {
 
 UPDATE_FUNC(LILGUY) {
 
-    lilguy_state_t* state = &entity->lilguy_state;
+    lilguy_state_* state = &entity->lilguy_state;
     u32 previous_flags = state->flags;
 
     i32 chance = i32(LILGUY_AVERAGE_STATE_CHANGE_SECONDS / dt);
@@ -101,7 +101,7 @@ UPDATE_FUNC(LILGUY) {
     }
 
     if (state->flags & LILGUY_LEFT_FACING) {
-        ray_body_intersect_t ground = ray_cast(&game_state->physics_state,
+        ray_body_intersect_ ground = ray_cast(&game_state->physics_state,
                                                entity->body->position,
                                                normalize(v2 {-1.0f, -1.0f}),
                                                PHY_GROUND_FLAG);
@@ -110,7 +110,7 @@ UPDATE_FUNC(LILGUY) {
             state->flags &= ~LILGUY_RUNNING;
         }
     } else {
-        ray_body_intersect_t ground = ray_cast(&game_state->physics_state,
+        ray_body_intersect_ ground = ray_cast(&game_state->physics_state,
                                                entity->body->position,
                                                normalize(v2 {1.0f, -1.0f}),
                                                PHY_GROUND_FLAG);
@@ -136,7 +136,7 @@ UPDATE_FUNC(LILGUY) {
     }
 
     // update texture
-    animation_t* animation = game_state->main_animation_group.animations
+    animation_* animation = game_state->main_animation_group.animations
         .at(state->animation_index);
 
     animation->position = entity->body->position;

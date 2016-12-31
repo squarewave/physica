@@ -26,7 +26,7 @@ enum gamepad_axes {
     R_TRIGGER = 5
 };
 
-struct offscreen_buffer_t
+struct offscreen_buffer_
 {
     void *memory;
     int width;
@@ -35,44 +35,44 @@ struct offscreen_buffer_t
     int bytes_per_pixel;
 };
 
-struct platform_context_t {
+struct platform_context_ {
     SDL_Renderer* renderer;
     SDL_Window* window;
     SDL_Texture* texture;
 
-    game_input_t* next_input;
-    game_input_t* prev_input;
+    game_input_* next_input;
+    game_input_* prev_input;
 
     SDL_Joystick* controller_handle;
 };
 
 #define TASK_QUEUE_MAX_ENTRIES 256
 
-struct task_queue_t;
+struct task_queue_;
 
-typedef void task_callback_t(task_queue_t* queue, void* data); 
+typedef void task_callback_(task_queue_* queue, void* data); 
 
-struct task_t {
-    task_callback_t* callback;
+struct task_ {
+    task_callback_* callback;
     void* data;
 };
 
-struct task_queue_t {
+struct task_queue_ {
     i32 volatile write_index;
     i32 volatile read_index;
     i32 volatile remaining;
 
-    task_t tasks[TASK_QUEUE_MAX_ENTRIES];
+    task_ tasks[TASK_QUEUE_MAX_ENTRIES];
     SDL_sem* semaphore;
 };
 
-typedef void start_task_func(task_queue_t* queue, task_callback_t* callback, void* data);
-typedef void wait_on_queue_func(task_queue_t* queue);
+typedef void start_task_func(task_queue_* queue, task_callback_* callback, void* data);
+typedef void wait_on_queue_func(task_queue_* queue);
 
-struct platform_services_t {
-    task_queue_t* primary_queue;
-    task_queue_t* secondary_queue;
-    task_queue_t* render_queue;
+struct platform_services_ {
+    task_queue_* primary_queue;
+    task_queue_* secondary_queue;
+    task_queue_* render_queue;
     start_task_func* start_task;
     wait_on_queue_func* wait_on_queue;
 };

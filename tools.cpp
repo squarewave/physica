@@ -1,15 +1,15 @@
 #include "camera.h"
 
 
-void tools_init(tools_state_t* tools_state) {
+void tools_init(tools_state_* tools_state) {
     debug_init(tools_state);
 
     const i32 max_ui_elements = 1024;
-    tools_state->ui_elements.values = (ui_element_t*)malloc(max_ui_elements *
-                                                            sizeof(ui_element_t));
+    tools_state->ui_elements.values = (ui_element_*)malloc(max_ui_elements *
+                                                            sizeof(ui_element_));
     tools_state->ui_elements.capacity = max_ui_elements;
 
-    ui_element_t* main_menu = tools_state->root_element = tools_state->ui_elements.push({0});
+    ui_element_* main_menu = tools_state->root_element = tools_state->ui_elements.push({0});
     main_menu->type = UI_MENU;    
     main_menu->parent = 0;
     main_menu->offset = v2 {0.0f, 0.0f};
@@ -19,37 +19,37 @@ void tools_init(tools_state_t* tools_state) {
     main_menu->menu.children = tools_state->ui_elements.push_many(main_menu_item_count);
     main_menu->menu.child_count = main_menu_item_count;
 
-    ui_element_t* main_menu_toggle = &main_menu->menu.children[0];
+    ui_element_* main_menu_toggle = &main_menu->menu.children[0];
     main_menu_toggle->type = UI_TOGGLE_MENU;
     main_menu_toggle->parent = main_menu;
     main_menu_toggle->offset = v2 {8.0f, 8.0f};
     main_menu_toggle->size = v2 {40.0f, 40.0f};
 
-    ui_element_t* wireframes_toggle = &main_menu->menu.children[1];
+    ui_element_* wireframes_toggle = &main_menu->menu.children[1];
     wireframes_toggle->type = UI_TOGGLE_WIREFRAMES;
     wireframes_toggle->parent = main_menu;
     wireframes_toggle->offset = v2 {8.0f, 56.0f};
     wireframes_toggle->size = v2 {40.0f, 40.0f};
 
-    ui_element_t* aabb_tree_toggle = &main_menu->menu.children[2];
+    ui_element_* aabb_tree_toggle = &main_menu->menu.children[2];
     aabb_tree_toggle->type = UI_TOGGLE_AABB_TREE;
     aabb_tree_toggle->parent = main_menu;
     aabb_tree_toggle->offset = v2 {8.0f, 104.0f};
     aabb_tree_toggle->size = v2 {40.0f, 40.0f};
 
-    ui_element_t* performance_toggle = &main_menu->menu.children[3];
+    ui_element_* performance_toggle = &main_menu->menu.children[3];
     performance_toggle->type = UI_TOGGLE_PERFORMANCE;
     performance_toggle->parent = main_menu;
     performance_toggle->offset = v2 {8.0f, 152.0f};
     performance_toggle->size = v2 {40.0f, 40.0f};
 
-    ui_element_t* draggable = &main_menu->menu.children[4];
+    ui_element_* draggable = &main_menu->menu.children[4];
     draggable->type = UI_DRAGGABLE_WIDGET;
     draggable->parent = main_menu;
     draggable->offset = v2 {8.0f, 200.0f};
     draggable->size = v2 {208.0f, 208.0f};
 
-    ui_element_t* color_picker = draggable->draggable_widget.child =
+    ui_element_* color_picker = draggable->draggable_widget.child =
         tools_state->ui_elements.push({0});
     color_picker->type = UI_COLOR_PICKER;
     color_picker->parent = draggable;
@@ -80,32 +80,32 @@ get_factor(i32 zoom_level) {
     return 0;
 }
 
-struct ui_draw_stack_item_t {
-    ui_element_t* element;
+struct ui_draw_stack_item_ {
+    ui_element_* element;
     v2 parent_offset;
 };
 
-void draw_tools_menu(game_state_t* game_state,
-                     tools_state_t* tools_state,
-                     window_description_t window,
-                     game_input_t* game_input) {
+void draw_tools_menu(game_state_* game_state,
+                     tools_state_* tools_state,
+                     window_description_ window,
+                     game_input_* game_input) {
     TIMED_FUNC();
 
     i32 stack_index = 0;
-    ui_draw_stack_item_t stack[MEDIUM_STACK_SIZE] = {0};
+    ui_draw_stack_item_ stack[MEDIUM_STACK_SIZE] = {0};
 
     m3x3 inv_ui_view = get_inverse_view_transform_3x3(game_state->ui_camera);
     v2 mouse_position = inv_ui_view * game_input->mouse.normalized_position;
 
-    ui_element_t* hover_element = 0;
+    ui_element_* hover_element = 0;
 
-    ui_draw_stack_item_t root_item;
+    ui_draw_stack_item_ root_item;
     root_item.element = tools_state->root_element;
     root_item.parent_offset = v2{0};
     stack[stack_index++] = root_item;
 
     while (stack_index) {
-        ui_draw_stack_item_t item = stack[--stack_index];
+        ui_draw_stack_item_ item = stack[--stack_index];
 
         v2 offset = item.element->offset + item.parent_offset;
         rect draw_rect = rect { offset, offset + item.element->size };
@@ -115,9 +115,9 @@ void draw_tools_menu(game_state_t* game_state,
         switch (item.element->type) {
             case UI_MENU: {
                 for (int i = 0; i < item.element->menu.child_count; ++i) {
-                    ui_element_t* sub_element = &item.element->menu.children[i];
+                    ui_element_* sub_element = &item.element->menu.children[i];
                     if (item.element->menu.active || sub_element->type == UI_TOGGLE_MENU) {
-                        ui_draw_stack_item_t new_item;
+                        ui_draw_stack_item_ new_item;
                         new_item.element = sub_element;
                         new_item.parent_offset = item.parent_offset + item.element->offset;
                         stack[stack_index++] = new_item;
@@ -130,33 +130,33 @@ void draw_tools_menu(game_state_t* game_state,
                     v2 {0};
                 draw_rect.min += mouse_delta;
                 draw_rect.max += mouse_delta;
-                ui_draw_stack_item_t new_item;
+                ui_draw_stack_item_ new_item;
                 new_item.element = item.element->draggable_widget.child;
                 new_item.parent_offset = item.parent_offset + mouse_delta +
                     item.element->offset;
                 stack[stack_index++] = new_item;
                 push_rect(&game_state->ui_render_group,
-                                  color_t{0.5f,0.5f,0.5f},
+                                  color_{0.5f,0.5f,0.5f},
                                   draw_rect);
             } break;
             case UI_TOGGLE_MENU: {
                 push_rect(&game_state->ui_render_group,
-                          hovering ? color_t {0.2f, 0.2f, 0.2f} : color_t {0.0f, 0.0f, 0.0f},
+                          hovering ? color_ {0.2f, 0.2f, 0.2f} : color_ {0.0f, 0.0f, 0.0f},
                           draw_rect);
             } break;
             case UI_TOGGLE_WIREFRAMES: {
                 push_rect(&game_state->ui_render_group,
-                          hovering ? color_t {0.2f, 0.6f, 0.2f} : color_t {0.0f, 0.6f, 0.0f},
+                          hovering ? color_ {0.2f, 0.6f, 0.2f} : color_ {0.0f, 0.6f, 0.0f},
                           draw_rect);
             } break;
             case UI_TOGGLE_AABB_TREE: {
                 push_rect(&game_state->ui_render_group,
-                          hovering ? color_t {0.6f, 0.2f, 0.2f} : color_t {0.6f, 0.0f, 0.0f},
+                          hovering ? color_ {0.6f, 0.2f, 0.2f} : color_ {0.6f, 0.0f, 0.0f},
                           draw_rect);
             } break;
             case UI_TOGGLE_PERFORMANCE: {
                 push_rect(&game_state->ui_render_group,
-                          hovering ? color_t {0.2f, 0.2f, 0.6f} : color_t {0.0f, 0.0f, 0.6f},
+                          hovering ? color_ {0.2f, 0.2f, 0.6f} : color_ {0.0f, 0.0f, 0.6f},
                           draw_rect);
             } break;
             case UI_COLOR_PICKER: {
@@ -177,11 +177,11 @@ void draw_tools_menu(game_state_t* game_state,
     tools_state->hover_element = hover_element;
 }
 
-void tools_update_and_render(game_state_t* game_state,
-                             tools_state_t* tools_state,
+void tools_update_and_render(game_state_* game_state,
+                             tools_state_* tools_state,
                              f32 dt,
-                             window_description_t window,
-                             game_input_t* game_input) {
+                             window_description_ window,
+                             game_input_* game_input) {
 
     i32 wheel_delta = game_input->mouse.wheel_delta;
     tools_state->zoom_level = iclamp(tools_state->zoom_level + wheel_delta, -4, 4);
@@ -227,7 +227,7 @@ void tools_update_and_render(game_state_t* game_state,
                 } break;
                 case UI_COLOR_PICKER: {
                     v2 item_offset = tools_state->active_element->offset;
-                    ui_element_t* parent = tools_state->active_element->parent;
+                    ui_element_* parent = tools_state->active_element->parent;
                     while (parent) {
                         item_offset += parent->offset;
                         parent = parent->parent;

@@ -7,11 +7,11 @@
 
 const f32 LINE_HEIGHT = 16.0f;
 
-void process_debug_log(tools_state_t* tools_state) {
+void process_debug_log(tools_state_* tools_state) {
     char* buffer = tools_state->debug_state.performance_log;
 
     for (int i = 0; i < max_debug_counter; ++i) {
-        debug_block_t block = debug_blocks[i];
+        debug_block_ block = debug_blocks[i];
 
         i32 j = i;
 
@@ -69,17 +69,17 @@ debug_get_seconds_elapsed(u64 old, u64 current) {
 }
 
 void
-debug_load_monospace_font(tools_state_t* tools_state) {
+debug_load_monospace_font(tools_state_* tools_state) {
     tools_state->debug_state.monospace_font =
         load_font("assets/SourceCodePro-Regular.ttf", LINE_HEIGHT);
 }
 
 void
-debug_push_ui_text(game_state_t* game_state,
-                   tools_state_t* tools_state,
-                   window_description_t window,
+debug_push_ui_text(game_state_* game_state,
+                   tools_state_* tools_state,
+                   window_description_ window,
                    v2 bottom_left,
-                   rgba_t color,
+                   rgba_ color,
                    char* text) {
     TIMED_FUNC();
 
@@ -87,7 +87,7 @@ debug_push_ui_text(game_state_t* game_state,
 
     bottom_left.y = (f32)window.height - bottom_left.y - 1;
 
-    font_spec_t* font = &tools_state->debug_state.monospace_font;
+    font_spec_* font = &tools_state->debug_state.monospace_font;
     tex2 texture = font->texture;
 
     while (*text) {
@@ -144,7 +144,7 @@ debug_push_ui_text(game_state_t* game_state,
     // while (*text) {
     //     i32 c = (i32)*text;
 
-    //     glyph_spec_t glyph = game_state->debug_state.monospace_font[c - 32];
+    //     glyph_spec_ glyph = game_state->debug_state.monospace_font[c - 32];
 
     //     tex2 texture = glyph.texture;
     //     v2 hotspot = v2{0};
@@ -167,11 +167,11 @@ debug_push_ui_text(game_state_t* game_state,
     // }
 }
 
-void debug_push_ui_text_f(game_state_t* game_state,
-                          tools_state_t* tools_state,
-                          window_description_t window,
+void debug_push_ui_text_f(game_state_* game_state,
+                          tools_state_* tools_state,
+                          window_description_ window,
                           v2 bottom_left,
-                          rgba_t color,
+                          rgba_ color,
                           char* format,
                           ...)
 {
@@ -184,8 +184,8 @@ void debug_push_ui_text_f(game_state_t* game_state,
     va_end(args);
 }
 
-void debug_draw_aabb_tree(game_state_t* game_state) {
-    phy_aabb_tree_t* tree = &game_state->physics_state.aabb_tree;
+void debug_draw_aabb_tree(game_state_* game_state) {
+    phy_aabb_tree_* tree = &game_state->physics_state.aabb_tree;
 
     i32 stack[LARGE_STACK_SIZE] = {0};
 
@@ -195,15 +195,15 @@ void debug_draw_aabb_tree(game_state_t* game_state) {
     while (stack_index > 0) {
         assert_(stack_index < (i32)ARRAY_SIZE(stack));
 
-        phy_aabb_tree_node_t* node = tree->nodes.at(stack[--stack_index]);
+        phy_aabb_tree_node_* node = tree->nodes.at(stack[--stack_index]);
 
-        phy_aabb_t aabb = node->fat_aabb;
+        phy_aabb_ aabb = node->fat_aabb;
         v2 diagonal = aabb.max - aabb.min;
         v2 center = 0.5f * (aabb.max + aabb.min);
 
-        color_t color = node->is_asleep ?
-            color_t {0.5f,0.5f,0.5f} :
-            color_t {0.9f, 0.4f, 0.2f};
+        color_ color = node->is_asleep ?
+            color_ {0.5f,0.5f,0.5f} :
+            color_ {0.9f, 0.4f, 0.2f};
 
         f32 z = node->is_asleep ? 0.01f : 0.0f;
 
@@ -222,20 +222,20 @@ void debug_draw_aabb_tree(game_state_t* game_state) {
 }
 
 void
-debug_draw_hulls(game_state_t* game_state) {
-    phy_state_t* physics = &game_state->physics_state;
+debug_draw_hulls(game_state_* game_state) {
+    phy_state_* physics = &game_state->physics_state;
     for (int i = 0; i < physics->bodies.size; ++i) {
-        phy_body_t* body = physics->bodies.try_get(i);
+        phy_body_* body = physics->bodies.try_get(i);
         if (!body) {
             continue;
         }
 
         for (int j = 0; j < body->hulls.count; ++j) {
-            phy_hull_t* hull = body->hulls.at(j);
+            phy_hull_* hull = body->hulls.at(j);
             switch (hull->type) {
                 case HULL_RECT: {
                     push_rect_outline(&game_state->main_render_group,
-                              color_t {0.2f, 0.9f, 0.2f},
+                              color_ {0.2f, 0.9f, 0.2f},
                               hull->position,
                               v2 {hull->width, hull->height},
                               hull->orientation,
@@ -243,7 +243,7 @@ debug_draw_hulls(game_state_t* game_state) {
                 } break;
                 case HULL_FILLET_RECT: {
                     push_rect_outline(&game_state->main_render_group,
-                              color_t {0.2f, 0.9f, 0.2f},
+                              color_ {0.2f, 0.9f, 0.2f},
                               hull->position,
                               v2 {hull->width, hull->height},
                               hull->orientation,
@@ -253,22 +253,22 @@ debug_draw_hulls(game_state_t* game_state) {
                     // f32 inner_height = hull->height / 2.0f - fillet;
                     // m2x2 rotation = get_rotation_matrix(hull->orientation);
                     // push_circle(&game_state->main_render_group,
-                    //             color_t {0.9f, 0.2f, 0.2f},
+                    //             color_ {0.9f, 0.2f, 0.2f},
                     //             hull->position + rotation * v2 {inner_width, inner_height},
                     //             hull->fillet,
                     //             0.0f);
                     // push_circle(&game_state->main_render_group,
-                    //             color_t {0.9f, 0.2f, 0.2f},
+                    //             color_ {0.9f, 0.2f, 0.2f},
                     //             hull->position + rotation * v2 {inner_width, -inner_height},
                     //             hull->fillet,
                     //             0.0f);
                     // push_circle(&game_state->main_render_group,
-                    //             color_t {0.9f, 0.2f, 0.2f},
+                    //             color_ {0.9f, 0.2f, 0.2f},
                     //             hull->position + rotation * v2 {-inner_width, -inner_height},
                     //             hull->fillet,
                     //             0.0f);
                     // push_circle(&game_state->main_render_group,
-                    //             color_t {0.9f, 0.2f, 0.2f},
+                    //             color_ {0.9f, 0.2f, 0.2f},
                     //             hull->position + rotation * v2 {-inner_width, inner_height},
                     //             hull->fillet,
                     //             0.0f);
@@ -278,22 +278,22 @@ debug_draw_hulls(game_state_t* game_state) {
     }
 }
 
-void debug_init(tools_state_t* tools_state) {
+void debug_init(tools_state_* tools_state) {
     debug_load_monospace_font(tools_state);
 }
 
-void debug_update_and_render(game_state_t* game_state,
-                             tools_state_t* tools_state,
+void debug_update_and_render(game_state_* game_state,
+                             tools_state_* tools_state,
                              f32 dt,
-                             window_description_t window,
-                             game_input_t* game_input) {
+                             window_description_ window,
+                             game_input_* game_input) {
 
     persist u64 last_counter = SDL_GetPerformanceCounter();
     f32 actual_dt = debug_get_seconds_elapsed(last_counter, SDL_GetPerformanceCounter());
     last_counter = SDL_GetPerformanceCounter();
 
     if (tools_state->debug_state.show_performance) {
-        rgba_t color;
+        rgba_ color;
 
         f32 fps = 1.0f / actual_dt;
 
@@ -333,12 +333,12 @@ void debug_update_and_render(game_state_t* game_state,
         
         if (tools_state->debug_state.selected) {
 
-            sim_entity_t* entity =
+            sim_entity_* entity =
                 get_hash_item_value(&game_state->entity_map,
                                     tools_state->debug_state.selected->entity.id);
 
             push_circle(&game_state->main_render_group,
-                        color_t {0.4f, 1.0f, 0.4f},
+                        color_ {0.4f, 1.0f, 0.4f},
                         entity->body->position,
                         2.0f * VIRTUAL_PIXEL_SIZE,
                         0.0f,

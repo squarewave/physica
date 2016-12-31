@@ -1,11 +1,11 @@
 #include "physica.h"
 
-struct particle_t {
+struct particle_ {
     f32 lifespan;
-    phy_body_t* body;
+    phy_body_* body;
 };
 
 void
-particles_update_and_render(particle_system_t* particle_system) {
+particles_update_and_render(particle_system_* particle_system) {
     
 }

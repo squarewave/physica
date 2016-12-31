@@ -62,213 +62,213 @@ __CASE_UPDATE_GP_BUTTON	linux_platform.cpp	338;"	d	file:
 __MAKE_ARENA	test.cpp	22;"	d	file:
 __ROW_MULT	physica_math.h	229;"	d
 _find_slot	hashmap.cpp	/^inline u32 _find_slot(hashmap<T>* hm, u64 k) {$/;"	f
-_find_slot	hashmap.cpp	/^inline u32 _find_slot(hashmap_t* hm, u64 k) {$/;"	f
+_find_slot	hashmap.cpp	/^inline u32 _find_slot(hashmap_* hm, u64 k) {$/;"	f
 _get_hashed_key	hashmap.cpp	/^inline u32 _get_hashed_key(u64 h) {$/;"	f
-_phy_update	physica.cpp	/^void _phy_update(phy_memory_t memory, f32 dt) {$/;"	f
-_push_size	game.h	/^void* _push_size(memory_arena_t* arena, u32 size) {$/;"	f
+_phy_update	physica.cpp	/^void _phy_update(phy_memory_ memory, f32 dt) {$/;"	f
+_push_size	game.h	/^void* _push_size(memory_arena_* arena, u32 size) {$/;"	f
 _rotl64	hashmap.cpp	/^inline u64 _rotl64(u64 val, u32 degree) {$/;"	f
 _slot_occupied	hashmap.cpp	/^inline b32 _slot_occupied(hashmap<T>* hm, u32 slot) {$/;"	f
-_slot_occupied	hashmap.cpp	/^inline b32 _slot_occupied(hashmap_t* hm, u32 slot) {$/;"	f
+_slot_occupied	hashmap.cpp	/^inline b32 _slot_occupied(hashmap_* hm, u32 slot) {$/;"	f
 _zero_size	game.h	/^void _zero_size(void* memory, size_t size) {$/;"	f
-a	physica.h	/^    i32 a;$/;"	m	struct:phy_edge_t
-a	physica.h	/^    phy_body_t* a;$/;"	m	struct:phy_collision_t
-a_index	physica.h	/^    i32 a_index;$/;"	m	struct:phy_potential_collision_t
-aabb	physica.h	/^    phy_aabb_t aabb;$/;"	m	struct:phy_body_t
-aabb_node_index	physica.h	/^    i32 aabb_node_index;$/;"	m	struct:phy_body_t
-aabb_t	sim_entity.h	/^struct aabb_t {$/;"	s
-aabb_tree	physica.h	/^    phy_aabb_tree_t aabb_tree;$/;"	m	struct:phy_state_t
+a	physica.h	/^    i32 a;$/;"	m	struct:phy_edge_
+a	physica.h	/^    phy_body_* a;$/;"	m	struct:phy_collision_
+a_index	physica.h	/^    i32 a_index;$/;"	m	struct:phy_potential_collision_
+aabb	physica.h	/^    phy_aabb_ aabb;$/;"	m	struct:phy_body_
+aabb_node_index	physica.h	/^    i32 aabb_node_index;$/;"	m	struct:phy_body_
+aabb_	sim_entity.h	/^struct aabb_ {$/;"	s
+aabb_tree	physica.h	/^    phy_aabb_tree_ aabb_tree;$/;"	m	struct:phy_state_
 abs	physica_math.h	/^inline f32 abs(f32 val) {$/;"	f
-analog_input_t	game.h	/^struct analog_input_t {$/;"	s
-analog_l_trigger	game.h	/^    analog_input_t analog_l_trigger, analog_r_trigger;$/;"	m	struct:game_input_t
-analog_r_trigger	game.h	/^    analog_input_t analog_l_trigger, analog_r_trigger;$/;"	m	struct:game_input_t
-angular_velocity	physica.h	/^    f32 orientation, angular_velocity;$/;"	m	struct:phy_body_t
-are_intersecting	physica.cpp	/^are_intersecting(phy_aabb_t a, phy_aabb_t b) {$/;"	f
+analog_input_	game.h	/^struct analog_input_ {$/;"	s
+analog_l_trigger	game.h	/^    analog_input_ analog_l_trigger, analog_r_trigger;$/;"	m	struct:game_input_
+analog_r_trigger	game.h	/^    analog_input_ analog_l_trigger, analog_r_trigger;$/;"	m	struct:game_input_
+angular_velocity	physica.h	/^    f32 orientation, angular_velocity;$/;"	m	struct:phy_body_
+are_intersecting	physica.cpp	/^are_intersecting(phy_aabb_ a, phy_aabb_ b) {$/;"	f
 are_opposite_signs	physica_math.h	/^inline f32 are_opposite_signs(f32 lhs, f32 rhs) {$/;"	f
-area	physica.cpp	/^area(phy_aabb_t aabb) {$/;"	f
+area	physica.cpp	/^area(phy_aabb_ aabb) {$/;"	f
 array	typedefs.h	/^struct array {$/;"	s
 at	typedefs.h	/^  T *at(i32 index) { return this->values + index; }$/;"	f	struct:array
 at	typedefs.h	/^  T* at(i32 index) { return this->values + index; }$/;"	f	struct:vec
 atan2	physica_math.h	/^inline f32 atan2(f32 y, f32 x) {$/;"	f
 atanv	physica_math.h	/^inline f32 atanv(v2 val) {$/;"	f
-b	physica.h	/^    i32 b;$/;"	m	struct:phy_edge_t
-b	physica.h	/^    phy_body_t* b;$/;"	m	struct:phy_collision_t
-b32	typedefs.h	/^typedef uint32_t b32;$/;"	t
-b_index	physica.h	/^    i32 b_index;$/;"	m	struct:phy_potential_collision_t
-base	game.h	/^    u8* base;$/;"	m	struct:memory_arena_t
-base	physica.h	/^    u8* base;$/;"	m	struct:phy_memory_t
-bitmap_header_t	game.h	/^struct bitmap_header_t {$/;"	s
-bitmap_offset	game.h	/^    u32 bitmap_offset;$/;"	m	struct:bitmap_header_t
-bits_per_pixel	game.h	/^    u16 bits_per_pixel;$/;"	m	struct:bitmap_header_t
-blue_mask	game.h	/^    u32 blue_mask;$/;"	m	struct:bitmap_header_t
-bodies	physica.h	/^    vec<phy_body_t> bodies;$/;"	m	struct:phy_state_t
-body	sim_entity.h	/^    phy_body_t* body;$/;"	m	struct:sim_entity_t
-body_index	physica.h	/^        i32 body_index;$/;"	m	union:phy_aabb_tree_node_t::__anon1
+b	physica.h	/^    i32 b;$/;"	m	struct:phy_edge_
+b	physica.h	/^    phy_body_* b;$/;"	m	struct:phy_collision_
+b32	typedefs.h	/^typedef uint32_ b32;$/;"	t
+b_index	physica.h	/^    i32 b_index;$/;"	m	struct:phy_potential_collision_
+base	game.h	/^    u8* base;$/;"	m	struct:memory_arena_
+base	physica.h	/^    u8* base;$/;"	m	struct:phy_memory_
+bitmap_header_	game.h	/^struct bitmap_header_ {$/;"	s
+bitmap_offset	game.h	/^    u32 bitmap_offset;$/;"	m	struct:bitmap_header_
+bits_per_pixel	game.h	/^    u16 bits_per_pixel;$/;"	m	struct:bitmap_header_
+blue_mask	game.h	/^    u32 blue_mask;$/;"	m	struct:bitmap_header_
+bodies	physica.h	/^    vec<phy_body_> bodies;$/;"	m	struct:phy_state_
+body	sim_entity.h	/^    phy_body_* body;$/;"	m	struct:sim_entity_
+body_index	physica.h	/^        i32 body_index;$/;"	m	union:phy_aabb_tree_node_::__anon1
 booboogoogoo	typedefs.h	/^struct booboogoogoo {$/;"	s
-bottom_left	sim_entity.h	/^    v2 top_right, bottom_left;$/;"	m	struct:aabb_t
-button_a	game.h	/^    button_input_t button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_t
-button_b	game.h	/^    button_input_t button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_t
-button_input_t	game.h	/^struct button_input_t {$/;"	s
-button_l_bumper	game.h	/^    button_input_t button_l_bumper, button_r_bumper;$/;"	m	struct:game_input_t
-button_l_stick	game.h	/^    button_input_t button_l_stick, button_r_stick;$/;"	m	struct:game_input_t
-button_r_bumper	game.h	/^    button_input_t button_l_bumper, button_r_bumper;$/;"	m	struct:game_input_t
-button_r_stick	game.h	/^    button_input_t button_l_stick, button_r_stick;$/;"	m	struct:game_input_t
-button_x	game.h	/^    button_input_t button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_t
-button_y	game.h	/^    button_input_t button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_t
-bytes_per_pixel	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
-bytes_per_pixel	linux_platform.h	/^    int bytes_per_pixel;$/;"	m	struct:offscreen_buffer_t
-c1	physica_math.h	/^    f32 c1, c2, c3;$/;"	m	struct:row3_t
-c1	physica_math.h	/^    f32 c1, c2;$/;"	m	struct:row2_t
-c2	physica_math.h	/^    f32 c1, c2, c3;$/;"	m	struct:row3_t
-c2	physica_math.h	/^    f32 c1, c2;$/;"	m	struct:row2_t
-c3	physica_math.h	/^    f32 c1, c2, c3;$/;"	m	struct:row3_t
-camera	game.h	/^    camera_t camera;$/;"	m	struct:game_state_t
-camera_t	game.h	/^struct camera_t {$/;"	s
-capacity	game.h	/^    u32 capacity;$/;"	m	struct:spatial_partition_t
-capacity	hashmap.h	/^    u32 capacity;$/;"	m	struct:hashmap_t
+bottom_left	sim_entity.h	/^    v2 top_right, bottom_left;$/;"	m	struct:aabb_
+button_a	game.h	/^    button_input_ button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_
+button_b	game.h	/^    button_input_ button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_
+button_input_	game.h	/^struct button_input_ {$/;"	s
+button_l_bumper	game.h	/^    button_input_ button_l_bumper, button_r_bumper;$/;"	m	struct:game_input_
+button_l_stick	game.h	/^    button_input_ button_l_stick, button_r_stick;$/;"	m	struct:game_input_
+button_r_bumper	game.h	/^    button_input_ button_l_bumper, button_r_bumper;$/;"	m	struct:game_input_
+button_r_stick	game.h	/^    button_input_ button_l_stick, button_r_stick;$/;"	m	struct:game_input_
+button_x	game.h	/^    button_input_ button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_
+button_y	game.h	/^    button_input_ button_a, button_b, button_x, button_y;$/;"	m	struct:game_input_
+bytes_per_pixel	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_
+bytes_per_pixel	linux_platform.h	/^    int bytes_per_pixel;$/;"	m	struct:offscreen_buffer_
+c1	physica_math.h	/^    f32 c1, c2, c3;$/;"	m	struct:row3_
+c1	physica_math.h	/^    f32 c1, c2;$/;"	m	struct:row2_
+c2	physica_math.h	/^    f32 c1, c2, c3;$/;"	m	struct:row3_
+c2	physica_math.h	/^    f32 c1, c2;$/;"	m	struct:row2_
+c3	physica_math.h	/^    f32 c1, c2, c3;$/;"	m	struct:row3_
+camera	game.h	/^    camera_ camera;$/;"	m	struct:game_state_
+camera_	game.h	/^struct camera_ {$/;"	s
+capacity	game.h	/^    u32 capacity;$/;"	m	struct:spatial_partition_
+capacity	hashmap.h	/^    u32 capacity;$/;"	m	struct:hashmap_
 capacity	typedefs.h	/^  i32 capacity;$/;"	m	struct:vec
-center	game.h	/^    v2 center, to_top_left;$/;"	m	struct:camera_t
-check_children	physica.cpp	/^check_children(phy_state_t *state,$/;"	f
-checked_parents	physica.h	/^    array<b32> checked_parents;$/;"	m	struct:phy_aabb_tree_t
+center	game.h	/^    v2 center, to_top_left;$/;"	m	struct:camera_
+check_children	physica.cpp	/^check_children(phy_state_ *state,$/;"	f
+checked_parents	physica.h	/^    array<b32> checked_parents;$/;"	m	struct:phy_aabb_tree_
 class	linux_platform.cpp	17;"	d	file:
 class	linux_platform.cpp	19;"	d	file:
-collision_count	physica.h	/^    i32 collision_count;$/;"	m	struct:phy_manifold_t
-collisions	physica.h	/^    phy_collision_t collisions[COLLISION_CAPACITY];$/;"	m	struct:phy_manifold_t
-collisions	physica.h	/^    vec<phy_collision_t> collisions;$/;"	m	struct:phy_state_t
-color	sim_entity.h	/^    u32 color;$/;"	m	struct:sim_entity_t
-colors_important	game.h	/^    u32 colors_important;$/;"	m	struct:bitmap_header_t
-colors_used	game.h	/^    u32 colors_used;$/;"	m	struct:bitmap_header_t
-compression	game.h	/^    u32 compression;$/;"	m	struct:bitmap_header_t
-connection	linux_platform.h	/^    xcb_connection_t *connection;$/;"	m	struct:platform_context
-content_size	game.h	/^    u32 content_size;$/;"	m	struct:platform_read_entire_file_result_t
-contents	game.h	/^    u8* contents;$/;"	m	struct:platform_read_entire_file_result_t
+collision_count	physica.h	/^    i32 collision_count;$/;"	m	struct:phy_manifold_
+collisions	physica.h	/^    phy_collision_ collisions[COLLISION_CAPACITY];$/;"	m	struct:phy_manifold_
+collisions	physica.h	/^    vec<phy_collision_> collisions;$/;"	m	struct:phy_state_
+color	sim_entity.h	/^    u32 color;$/;"	m	struct:sim_entity_
+colors_important	game.h	/^    u32 colors_important;$/;"	m	struct:bitmap_header_
+colors_used	game.h	/^    u32 colors_used;$/;"	m	struct:bitmap_header_
+compression	game.h	/^    u32 compression;$/;"	m	struct:bitmap_header_
+connection	linux_platform.h	/^    xcb_connection_ *connection;$/;"	m	struct:platform_context
+content_size	game.h	/^    u32 content_size;$/;"	m	struct:platform_read_entire_file_result_
+contents	game.h	/^    u8* contents;$/;"	m	struct:platform_read_entire_file_result_
 cos	physica_math.h	/^inline f32 cos(f32 val) {$/;"	f
-count	hashmap.h	/^    u32 count;$/;"	m	struct:hashmap_t
+count	hashmap.h	/^    u32 count;$/;"	m	struct:hashmap_
 count	typedefs.h	/^  i32 count;$/;"	m	struct:array
 count	typedefs.h	/^  i32 count;$/;"	m	struct:vec
 cross	physica_math.h	/^inline v3 cross(v3 lhs, v3 rhs) {$/;"	f
 cross_radial_velocity	physica.cpp	/^cross_radial_velocity(v2 r, f32 omega) {$/;"	f
-current_time	physica.h	/^    f32 time_step, current_time;$/;"	m	struct:phy_state_t
-dead_nodes	physica.h	/^    vec<i32> dead_nodes;$/;"	m	struct:phy_aabb_tree_t
-delta	game.h	/^    f32 delta, value;$/;"	m	struct:analog_input_t
-delta	game.h	/^    v2 delta, position;$/;"	m	struct:joystick_input_t
-depth	physica.h	/^    f32 depth;$/;"	m	struct:phy_collision_t
-depth	physica.h	/^    f32 depth;$/;"	m	struct:phy_edge_t
-do_epa	physica.cpp	/^do_epa(phy_hull_t* a,$/;"	f
-do_gjk	physica.cpp	/^do_gjk(phy_hull_t* a, phy_hull_t* b, phy_support_result_t* simplex) {$/;"	f
-do_simplex	physica.cpp	/^do_simplex(phy_support_result_t support,$/;"	f
-do_support	test.cpp	/^do_support(phy_hull_t* a, phy_hull_t* b, v2 direction) {$/;"	f
-do_support	test.cpp	/^do_support(phy_hull_t* hull, v2 direction) {$/;"	f
+current_time	physica.h	/^    f32 time_step, current_time;$/;"	m	struct:phy_state_
+dead_nodes	physica.h	/^    vec<i32> dead_nodes;$/;"	m	struct:phy_aabb_tree_
+delta	game.h	/^    f32 delta, value;$/;"	m	struct:analog_input_
+delta	game.h	/^    v2 delta, position;$/;"	m	struct:joystick_input_
+depth	physica.h	/^    f32 depth;$/;"	m	struct:phy_collision_
+depth	physica.h	/^    f32 depth;$/;"	m	struct:phy_edge_
+do_epa	physica.cpp	/^do_epa(phy_hull_* a,$/;"	f
+do_gjk	physica.cpp	/^do_gjk(phy_hull_* a, phy_hull_* b, phy_support_result_* simplex) {$/;"	f
+do_simplex	physica.cpp	/^do_simplex(phy_support_result_ support,$/;"	f
+do_support	test.cpp	/^do_support(phy_hull_* a, phy_hull_* b, v2 direction) {$/;"	f
+do_support	test.cpp	/^do_support(phy_hull_* hull, v2 direction) {$/;"	f
 dot	physica_math.h	/^inline f32 dot(v2 lhs, v2 rhs) {$/;"	f
 dot	physica_math.h	/^inline f32 dot(v6 lhs, v6 rhs) {$/;"	f
-down	game.h	/^    button_input_t up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_t
+down	game.h	/^    button_input_ up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_
 draw_bmp	game_render.cpp	/^void draw_bmp(tex2 dest,$/;"	f
-draw_bmp	game_render.cpp	/^void draw_bmp(window_description_t buffer,$/;"	f
-draw_rectangle	game_render.cpp	/^void draw_rectangle(window_description_t buffer,$/;"	f
-ended_down	game.h	/^    b32 ended_down;$/;"	m	struct:button_input_t
-entities	game.h	/^    sim_entity_t* entities;$/;"	m	struct:game_state_t
-entity_capacity	game.h	/^    u32 entity_capacity;$/;"	m	struct:game_state_t
-entity_count	game.h	/^    u32 entity_count;$/;"	m	struct:game_state_t
-entity_low_t	sim_entity.h	/^struct entity_low_t {$/;"	s
+draw_bmp	game_render.cpp	/^void draw_bmp(window_description_ buffer,$/;"	f
+draw_rectangle	game_render.cpp	/^void draw_rectangle(window_description_ buffer,$/;"	f
+ended_down	game.h	/^    b32 ended_down;$/;"	m	struct:button_input_
+entities	game.h	/^    sim_entity_* entities;$/;"	m	struct:game_state_
+entity_capacity	game.h	/^    u32 entity_capacity;$/;"	m	struct:game_state_
+entity_count	game.h	/^    u32 entity_count;$/;"	m	struct:game_state_
+entity_low_	sim_entity.h	/^struct entity_low_ {$/;"	s
 entity_type	sim_entity.h	/^enum entity_type {$/;"	g
 f32	typedefs.h	/^typedef float f32;$/;"	t
 f32max	physica_math.h	/^inline f32 f32max(f32 lhs, f32 rhs) {$/;"	f
 f32min	physica_math.h	/^inline f32 f32min(f32 lhs, f32 rhs) {$/;"	f
 f64	typedefs.h	/^typedef double f64;$/;"	t
 fPI	physica_math.h	/^const f32 fPI = 3.14159265358979323846264338327950288f;$/;"	v
-fat_aabb	physica.h	/^    phy_aabb_t fat_aabb;$/;"	m	struct:phy_aabb_tree_node_t
+fat_aabb	physica.h	/^    phy_aabb_ fat_aabb;$/;"	m	struct:phy_aabb_tree_node_
 fclamp	physica_math.h	/^inline f32 fclamp(f32 val, f32 min, f32 max) {$/;"	f
 fequals	physica_math.h	/^inline b32 fequals(f32 lhs, f32 rhs) {$/;"	f
-file_size	game.h	/^    u32 file_size;$/;"	m	struct:bitmap_header_t
-file_type	game.h	/^    u16 file_type;$/;"	m	struct:bitmap_header_t
-find_closest_edge_to_origin	physica.cpp	/^find_closest_edge_to_origin(phy_support_result_t* polytope, u32 vertex_count) {$/;"	f
+file_size	game.h	/^    u32 file_size;$/;"	m	struct:bitmap_header_
+file_type	game.h	/^    u16 file_type;$/;"	m	struct:bitmap_header_
+find_closest_edge_to_origin	physica.cpp	/^find_closest_edge_to_origin(phy_support_result_* polytope, u32 vertex_count) {$/;"	f
 find_least_significant_set_bit	intrinsics.h	/^i32 find_least_significant_set_bit(u32 value) {$/;"	f
-find_possible_collisions	physica.cpp	/^find_possible_collisions(phy_state_t* state) {$/;"	f
-find_possible_collisions	physica.cpp	/^find_possible_collisions(phy_state_t* state,$/;"	f
-flags	physica.h	/^    u32 flags; \/\/ see above$/;"	m	struct:phy_body_t
+find_possible_collisions	physica.cpp	/^find_possible_collisions(phy_state_* state) {$/;"	f
+find_possible_collisions	physica.cpp	/^find_possible_collisions(phy_state_* state,$/;"	f
+flags	physica.h	/^    u32 flags; \/\/ see above$/;"	m	struct:phy_body_
 flt_cross	physica_math.h	/^inline f32 flt_cross(v2 lhs, v2 rhs) {$/;"	f
-fmt	linux_platform.h	/^    xcb_format_t *fmt;$/;"	m	struct:platform_context
-force	physica.h	/^    v2 force; \/\/ zeroed after integration$/;"	m	struct:phy_body_t
-game_input_t	game.h	/^struct game_input_t {$/;"	s
-game_state_t	game.h	/^struct game_state_t {$/;"	s
-game_update_and_render	test.cpp	/^game_update_and_render(game_state_t* game_state, f64 dt,$/;"	f
+fmt	linux_platform.h	/^    xcb_format_ *fmt;$/;"	m	struct:platform_context
+force	physica.h	/^    v2 force; \/\/ zeroed after integration$/;"	m	struct:phy_body_
+game_input_	game.h	/^struct game_input_ {$/;"	s
+game_state_	game.h	/^struct game_state_ {$/;"	s
+game_update_and_render	test.cpp	/^game_update_and_render(game_state_* game_state, f64 dt,$/;"	f
 gamepad_axes	linux_platform.h	/^enum gamepad_axes {$/;"	g
 gamepad_buttons	linux_platform.h	/^enum gamepad_buttons {$/;"	g
-get_aabb	physica.cpp	/^get_aabb(phy_body_t *body) {$/;"	f
+get_aabb	physica.cpp	/^get_aabb(phy_body_ *body) {$/;"	f
 get_hash_item	hashmap.cpp	/^inline T* get_hash_item(hashmap<T>* hm, u64 k) {$/;"	f
-get_hash_item	hashmap.cpp	/^inline void* get_hash_item(hashmap_t* hm, u64 k) {$/;"	f
+get_hash_item	hashmap.cpp	/^inline void* get_hash_item(hashmap_* hm, u64 k) {$/;"	f
 get_rotation_matrix	physica_math.h	/^inline m2x2 get_rotation_matrix(f32 theta) {$/;"	f
 get_rotation_matrix_3x3	physica_math.h	/^inline m3x3 get_rotation_matrix_3x3(f32 theta) {$/;"	f
 get_scaling_matrix	physica_math.h	/^inline m3x3 get_scaling_matrix(f32 ratio) {$/;"	f
 get_translation_matrix	physica_math.h	/^inline m3x3 get_translation_matrix(v2 val) {$/;"	f
-get_union	physica.cpp	/^get_union(phy_aabb_t a, phy_aabb_t b) {$/;"	f
-gravity	physica.h	/^    v2 gravity;$/;"	m	struct:phy_state_t
-green_mask	game.h	/^    u32 green_mask;$/;"	m	struct:bitmap_header_t
-hash_pair_t	hashmap.h	/^struct hash_pair_t {$/;"	s
+get_union	physica.cpp	/^get_union(phy_aabb_ a, phy_aabb_ b) {$/;"	f
+gravity	physica.h	/^    v2 gravity;$/;"	m	struct:phy_state_
+green_mask	game.h	/^    u32 green_mask;$/;"	m	struct:bitmap_header_
+hash_pair_	hashmap.h	/^struct hash_pair_ {$/;"	s
 hashmap	hashmap.h	/^struct hashmap {$/;"	s
-hashmap_t	hashmap.h	/^struct hashmap_t {$/;"	s
+hashmap_	hashmap.h	/^struct hashmap_ {$/;"	s
 hashpair	hashmap.h	/^struct hashpair {$/;"	s
-height	game.h	/^    i32 height;$/;"	m	struct:bitmap_header_t
-height	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
+height	game.h	/^    i32 height;$/;"	m	struct:bitmap_header_
+height	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_
 height	game_render.h	/^    u32 width, height;$/;"	m	struct:tex2
-height	linux_platform.h	/^    int height;$/;"	m	struct:offscreen_buffer_t
-height	sim_entity.h	/^    f32 height;$/;"	m	struct:sim_entity_t
-horz_resolution	game.h	/^    i32 horz_resolution;$/;"	m	struct:bitmap_header_t
-hulls	physica.h	/^    array<phy_hull_t> hulls;$/;"	m	struct:phy_body_t
-hulls	physica.h	/^    vec<phy_hull_t> hulls;$/;"	m	struct:phy_state_t
-i16	typedefs.h	/^typedef int16_t i16;$/;"	t
-i32	typedefs.h	/^typedef int32_t i32;$/;"	t
-i64	typedefs.h	/^typedef int64_t i64;$/;"	t
-i8	typedefs.h	/^typedef int8_t i8;$/;"	t
-id	physica.h	/^    i64 id; \/\/ intended for use outside the physics engine$/;"	m	struct:phy_body_t
-id	sim_entity.h	/^    u64 id;$/;"	m	struct:sim_entity_t
+height	linux_platform.h	/^    int height;$/;"	m	struct:offscreen_buffer_
+height	sim_entity.h	/^    f32 height;$/;"	m	struct:sim_entity_
+horz_resolution	game.h	/^    i32 horz_resolution;$/;"	m	struct:bitmap_header_
+hulls	physica.h	/^    array<phy_hull_> hulls;$/;"	m	struct:phy_body_
+hulls	physica.h	/^    vec<phy_hull_> hulls;$/;"	m	struct:phy_state_
+i16	typedefs.h	/^typedef int16_ i16;$/;"	t
+i32	typedefs.h	/^typedef int32_ i32;$/;"	t
+i64	typedefs.h	/^typedef int64_ i64;$/;"	t
+i8	typedefs.h	/^typedef int8_ i8;$/;"	t
+id	physica.h	/^    i64 id; \/\/ intended for use outside the physics engine$/;"	m	struct:phy_body_
+id	sim_entity.h	/^    u64 id;$/;"	m	struct:sim_entity_
 identity_3x3	physica_math.h	/^inline m3x3 identity_3x3(){$/;"	f
-init_alsa	linux_platform.cpp	/^i16* init_alsa(snd_pcm_t** out_handle) {$/;"	f
-init_xcb_buffer	linux_platform.cpp	/^offscreen_buffer_t init_xcb_buffer(platform_context context) {$/;"	f
-initialize_game_state	test.cpp	/^initialize_game_state(game_state_t* game_state) {$/;"	f
-initialized	game.h	/^    u32 initialized;$/;"	m	struct:game_state_t
-insert_into_polytope	physica.cpp	/^insert_into_polytope(phy_support_result_t* polytope,$/;"	f
-insert_node	physica.cpp	/^insert_node(phy_state_t* state,$/;"	f
-inv_mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_t
-inv_mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_t
-inv_moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_t
-inv_moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_t
-is_contained_in	physica.cpp	/^b32 is_contained_in(phy_aabb_t inner, phy_aabb_t outer) {$/;"	f
-joystick_input_t	game.h	/^struct joystick_input_t {$/;"	s
-joystick_l	game.h	/^    joystick_input_t joystick_l, joystick_r;$/;"	m	struct:game_input_t
-joystick_r	game.h	/^    joystick_input_t joystick_l, joystick_r;$/;"	m	struct:game_input_t
-key	hashmap.h	/^    u64 key;$/;"	m	struct:hash_pair_t
+init_alsa	linux_platform.cpp	/^i16* init_alsa(snd_pcm_** out_handle) {$/;"	f
+init_xcb_buffer	linux_platform.cpp	/^offscreen_buffer_ init_xcb_buffer(platform_context context) {$/;"	f
+initialize_game_state	test.cpp	/^initialize_game_state(game_state_* game_state) {$/;"	f
+initialized	game.h	/^    u32 initialized;$/;"	m	struct:game_state_
+insert_into_polytope	physica.cpp	/^insert_into_polytope(phy_support_result_* polytope,$/;"	f
+insert_node	physica.cpp	/^insert_node(phy_state_* state,$/;"	f
+inv_mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_
+inv_mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_
+inv_moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_
+inv_moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_
+is_contained_in	physica.cpp	/^b32 is_contained_in(phy_aabb_ inner, phy_aabb_ outer) {$/;"	f
+joystick_input_	game.h	/^struct joystick_input_ {$/;"	s
+joystick_l	game.h	/^    joystick_input_ joystick_l, joystick_r;$/;"	m	struct:game_input_
+joystick_r	game.h	/^    joystick_input_ joystick_l, joystick_r;$/;"	m	struct:game_input_
+key	hashmap.h	/^    u64 key;$/;"	m	struct:hash_pair_
 key	hashmap.h	/^    u64 key;$/;"	m	struct:hashpair
-key_symbols	linux_platform.h	/^    xcb_key_symbols_t* key_symbols;$/;"	m	struct:platform_context
-latest_id	game.h	/^    u64 latest_id;$/;"	m	struct:game_state_t
-left	game.h	/^    button_input_t up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_t
-left	physica.h	/^        i32 left;$/;"	m	union:phy_aabb_tree_node_t::__anon1
+key_symbols	linux_platform.h	/^    xcb_key_symbols_* key_symbols;$/;"	m	struct:platform_context
+latest_id	game.h	/^    u64 latest_id;$/;"	m	struct:game_state_
+left	game.h	/^    button_input_ up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_
+left	physica.h	/^        i32 left;$/;"	m	union:phy_aabb_tree_node_::__anon1
 length	physica_math.h	/^inline f32 length(v2 val) {$/;"	f
 length_squared	physica_math.h	/^inline f32 length_squared(v2 val) {$/;"	f
 load_bmp	game_render.cpp	/^tex2 load_bmp(char* filename) {$/;"	f
-local_contact_a	physica.h	/^    v2 local_contact_a, local_contact_b;$/;"	m	struct:phy_collision_t
-local_contact_b	physica.h	/^    v2 local_contact_a, local_contact_b;$/;"	m	struct:phy_collision_t
-lshift	game.h	/^    button_input_t up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_t
+local_contact_a	physica.h	/^    v2 local_contact_a, local_contact_b;$/;"	m	struct:phy_collision_
+local_contact_b	physica.h	/^    v2 local_contact_a, local_contact_b;$/;"	m	struct:phy_collision_
+lshift	game.h	/^    button_input_ up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_
 m2x2	physica_math.h	/^struct m2x2 {$/;"	s
 m3x3	physica_math.h	/^struct m3x3 {$/;"	s
 main	linux_platform.cpp	/^int main(int argc, char const *argv[]) {$/;"	f
-main_panel	game.h	/^    tex2 main_panel;$/;"	m	struct:game_state_t
-make_block	test.cpp	/^make_block(game_state_t *game_state, f32 width, f32 height, f32 mass) {$/;"	f
-manifold_cache	physica.h	/^    hashmap<phy_manifold_t> manifold_cache;$/;"	m	struct:phy_state_t
-mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_t
-mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_t
-max	physica.h	/^    v2 min, max;$/;"	m	struct:phy_aabb_t
-memory	game_render.h	/^    void* memory;$/;"	m	struct:window_description_t
-memory	linux_platform.h	/^    void *memory;$/;"	m	struct:offscreen_buffer_t
-memory_arena_t	game.h	/^struct memory_arena_t {$/;"	s
+main_panel	game.h	/^    tex2 main_panel;$/;"	m	struct:game_state_
+make_block	test.cpp	/^make_block(game_state_ *game_state, f32 width, f32 height, f32 mass) {$/;"	f
+manifold_cache	physica.h	/^    hashmap<phy_manifold_> manifold_cache;$/;"	m	struct:phy_state_
+mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_
+mass	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_
+max	physica.h	/^    v2 min, max;$/;"	m	struct:phy_aabb_
+memory	game_render.h	/^    void* memory;$/;"	m	struct:window_description_
+memory	linux_platform.h	/^    void *memory;$/;"	m	struct:offscreen_buffer_
+memory_arena_	game.h	/^struct memory_arena_ {$/;"	s
 meters_to_pixels	test.cpp	/^meters_to_pixels(f32 meters) {$/;"	f
-min	physica.h	/^    v2 min, max;$/;"	m	struct:phy_aabb_t
-moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_t
-moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_t
-nodes	physica.h	/^    vec<phy_aabb_tree_node_t> nodes;$/;"	m	struct:phy_aabb_tree_t
-normal	physica.h	/^    v2 normal;$/;"	m	struct:phy_collision_t
-normal	physica.h	/^    v2 normal;$/;"	m	struct:phy_edge_t
+min	physica.h	/^    v2 min, max;$/;"	m	struct:phy_aabb_
+moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_
+moment	physica.h	/^    f32 mass, inv_mass, moment, inv_moment; \/\/ (moment of inertia)$/;"	m	struct:phy_body_
+nodes	physica.h	/^    vec<phy_aabb_tree_node_> nodes;$/;"	m	struct:phy_aabb_tree_
+normal	physica.h	/^    v2 normal;$/;"	m	struct:phy_collision_
+normal	physica.h	/^    v2 normal;$/;"	m	struct:phy_edge_
 normalize	physica_math.h	/^inline v2 normalize(v2 val) {$/;"	f
-offscreen_buffer_t	linux_platform.h	/^struct offscreen_buffer_t$/;"	s
+offscreen_buffer_	linux_platform.h	/^struct offscreen_buffer_$/;"	s
 operator *	physica_math.h	/^inline m3x3 operator* (m3x3 lhs, m3x3 rhs) {$/;"	f
 operator *	physica_math.h	/^inline m3x3 operator*(f32 lhs, m3x3 rhs) {$/;"	f
 operator *	physica_math.h	/^inline v2 operator* (m2x2 lhs, v2 rhs) {$/;"	f
@@ -285,124 +285,124 @@ operator -	physica_math.h	/^inline v2 operator-(v2 lhs, v2 rhs) {$/;"	f
 operator /	physica_math.h	/^inline v2 operator\/(v2 lhs, f32 rhs) {$/;"	f
 operator []	typedefs.h	/^  T operator[](i32 index) { return this->values[index]; }$/;"	f	struct:array
 operator []	typedefs.h	/^  T& operator[] (i32 index) { return this->values[index]; }$/;"	f	struct:vec
-orientation	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_t
-orientation	physica.h	/^    f32 orientation, angular_velocity;$/;"	m	struct:phy_body_t
-p	physica.h	/^    v2 p;$/;"	m	struct:phy_support_result_t
-p_a	physica.h	/^    v2 p_a;$/;"	m	struct:phy_support_result_t
-p_b	physica.h	/^    v2 p_b;$/;"	m	struct:phy_support_result_t
+orientation	physica.h	/^    f32 mass, inv_mass, moment, inv_moment, orientation;$/;"	m	struct:phy_hull_
+orientation	physica.h	/^    f32 orientation, angular_velocity;$/;"	m	struct:phy_body_
+p	physica.h	/^    v2 p;$/;"	m	struct:phy_support_result_
+p_a	physica.h	/^    v2 p_a;$/;"	m	struct:phy_support_result_
+p_b	physica.h	/^    v2 p_b;$/;"	m	struct:phy_support_result_
 pairs	hashmap.h	/^    array<hashpair<T>> pairs;$/;"	m	struct:hashmap
-pairs	hashmap.h	/^    hash_pair_t* pairs;$/;"	m	struct:hashmap_t
-parent	physica.h	/^    i32 parent;$/;"	m	struct:phy_aabb_tree_node_t
+pairs	hashmap.h	/^    hash_pair_* pairs;$/;"	m	struct:hashmap_
+parent	physica.h	/^    i32 parent;$/;"	m	struct:phy_aabb_tree_node_
 perp	physica_math.h	/^inline v2 perp(v2 val) {$/;"	f
-phy_aabb_t	physica.h	/^struct phy_aabb_t {$/;"	s
-phy_aabb_tree_node_t	physica.h	/^struct phy_aabb_tree_node_t {$/;"	s
-phy_aabb_tree_t	physica.h	/^struct phy_aabb_tree_t {$/;"	s
-phy_add_aabb_for_body	physica.cpp	/^phy_add_aabb_for_body(phy_memory_t memory,$/;"	f
-phy_add_body	physica.cpp	/^phy_add_body(phy_memory_t memory) {$/;"	f
-phy_add_collision	physica.cpp	/^phy_add_collision(phy_memory_t memory) {$/;"	f
-phy_add_collision	physica.cpp	/^phy_add_collision(phy_memory_t memory, phy_collision_t collision) {$/;"	f
-phy_add_hulls	physica.cpp	/^phy_add_hulls(phy_memory_t memory, i32 count) {$/;"	f
-phy_add_points	physica.cpp	/^phy_add_points(phy_memory_t memory, i32 count) {$/;"	f
-phy_body_t	physica.h	/^struct phy_body_t {$/;"	s
-phy_collision_t	physica.h	/^struct phy_collision_t {$/;"	s
-phy_edge_t	physica.h	/^struct phy_edge_t {$/;"	s
-phy_hull_t	physica.h	/^struct phy_hull_t {$/;"	s
-phy_init	physica.cpp	/^phy_init(phy_memory_t memory) {$/;"	f
-phy_manifold_t	physica.h	/^struct phy_manifold_t {$/;"	s
-phy_memory_t	physica.h	/^struct phy_memory_t {$/;"	s
-phy_potential_collision_t	physica.h	/^struct phy_potential_collision_t {$/;"	s
-phy_set_gravity	physica.cpp	/^void phy_set_gravity(phy_memory_t memory, v2 gravity) {$/;"	f
-phy_state_t	physica.h	/^struct phy_state_t {$/;"	s
-phy_support_result_t	physica.h	/^struct phy_support_result_t {$/;"	s
-phy_update	physica.cpp	/^phy_update(phy_memory_t memory, f32 dt) {$/;"	f
-physics_arena	game.h	/^    phy_memory_t physics_arena;$/;"	m	struct:game_state_t
-physics_state_t	test.cpp	/^struct physics_state_t {$/;"	s	file:
-pitch	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
-pitch	linux_platform.h	/^    int pitch;$/;"	m	struct:offscreen_buffer_t
+phy_aabb_	physica.h	/^struct phy_aabb_ {$/;"	s
+phy_aabb_tree_node_	physica.h	/^struct phy_aabb_tree_node_ {$/;"	s
+phy_aabb_tree_	physica.h	/^struct phy_aabb_tree_ {$/;"	s
+phy_add_aabb_for_body	physica.cpp	/^phy_add_aabb_for_body(phy_memory_ memory,$/;"	f
+phy_add_body	physica.cpp	/^phy_add_body(phy_memory_ memory) {$/;"	f
+phy_add_collision	physica.cpp	/^phy_add_collision(phy_memory_ memory) {$/;"	f
+phy_add_collision	physica.cpp	/^phy_add_collision(phy_memory_ memory, phy_collision_ collision) {$/;"	f
+phy_add_hulls	physica.cpp	/^phy_add_hulls(phy_memory_ memory, i32 count) {$/;"	f
+phy_add_points	physica.cpp	/^phy_add_points(phy_memory_ memory, i32 count) {$/;"	f
+phy_body_	physica.h	/^struct phy_body_ {$/;"	s
+phy_collision_	physica.h	/^struct phy_collision_ {$/;"	s
+phy_edge_	physica.h	/^struct phy_edge_ {$/;"	s
+phy_hull_	physica.h	/^struct phy_hull_ {$/;"	s
+phy_init	physica.cpp	/^phy_init(phy_memory_ memory) {$/;"	f
+phy_manifold_	physica.h	/^struct phy_manifold_ {$/;"	s
+phy_memory_	physica.h	/^struct phy_memory_ {$/;"	s
+phy_potential_collision_	physica.h	/^struct phy_potential_collision_ {$/;"	s
+phy_set_gravity	physica.cpp	/^void phy_set_gravity(phy_memory_ memory, v2 gravity) {$/;"	f
+phy_state_	physica.h	/^struct phy_state_ {$/;"	s
+phy_support_result_	physica.h	/^struct phy_support_result_ {$/;"	s
+phy_update	physica.cpp	/^phy_update(phy_memory_ memory, f32 dt) {$/;"	f
+physics_arena	game.h	/^    phy_memory_ physics_arena;$/;"	m	struct:game_state_
+physics_state_	test.cpp	/^struct physics_state_ {$/;"	s	file:
+pitch	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_
+pitch	linux_platform.h	/^    int pitch;$/;"	m	struct:offscreen_buffer_
 pixels	game_render.h	/^    u32* pixels;$/;"	m	struct:tex2
-planes	game.h	/^    u16 planes;$/;"	m	struct:bitmap_header_t
+planes	game.h	/^    u16 planes;$/;"	m	struct:bitmap_header_
 platform_context	linux_platform.h	/^struct platform_context {$/;"	s
 platform_free_file_memory	linux_platform.cpp	/^void platform_free_file_memory(void* memory) {$/;"	f
-platform_read_entire_file	linux_platform.cpp	/^platform_read_entire_file_result_t platform_read_entire_file(const char * filename) {$/;"	f
-platform_read_entire_file_result_t	game.h	/^struct platform_read_entire_file_result_t {$/;"	s
-points	physica.h	/^    array<v2> points; \/\/ TODO(doug): better geometry$/;"	m	struct:phy_hull_t
-points	physica.h	/^    vec<v2> points;$/;"	m	struct:phy_state_t
-polytope_index	physica.h	/^    u32 polytope_index;$/;"	m	struct:phy_edge_t
-position	game.h	/^    v2 delta, position;$/;"	m	struct:joystick_input_t
-position	physica.h	/^    v2 position, velocity;$/;"	m	struct:phy_body_t
-position	physica.h	/^    v2 position;$/;"	m	struct:phy_hull_t
-potential_collisions	physica.h	/^    vec<phy_potential_collision_t> potential_collisions;$/;"	m	struct:phy_state_t
-primary_entities	game.h	/^    u32* primary_entities;$/;"	m	struct:spatial_partition_t
-primary_entity_count	game.h	/^    u32 primary_entity_count;$/;"	m	struct:spatial_partition_t
+platform_read_entire_file	linux_platform.cpp	/^platform_read_entire_file_result_ platform_read_entire_file(const char * filename) {$/;"	f
+platform_read_entire_file_result_	game.h	/^struct platform_read_entire_file_result_ {$/;"	s
+points	physica.h	/^    array<v2> points; \/\/ TODO(doug): better geometry$/;"	m	struct:phy_hull_
+points	physica.h	/^    vec<v2> points;$/;"	m	struct:phy_state_
+polytope_index	physica.h	/^    u32 polytope_index;$/;"	m	struct:phy_edge_
+position	game.h	/^    v2 delta, position;$/;"	m	struct:joystick_input_
+position	physica.h	/^    v2 position, velocity;$/;"	m	struct:phy_body_
+position	physica.h	/^    v2 position;$/;"	m	struct:phy_hull_
+potential_collisions	physica.h	/^    vec<phy_potential_collision_> potential_collisions;$/;"	m	struct:phy_state_
+primary_entities	game.h	/^    u32* primary_entities;$/;"	m	struct:spatial_partition_
+primary_entity_count	game.h	/^    u32 primary_entity_count;$/;"	m	struct:spatial_partition_
 push	typedefs.h	/^  i32 push(T val) {$/;"	f	struct:vec
 push_unassigned	typedefs.h	/^  i32 push_unassigned() {$/;"	f	struct:vec
-r1	physica_math.h	/^    row2_t r1, r2;$/;"	m	struct:m2x2
-r1	physica_math.h	/^    row3_t r1, r2, r3;$/;"	m	struct:m3x3
-r2	physica_math.h	/^    row2_t r1, r2;$/;"	m	struct:m2x2
-r2	physica_math.h	/^    row3_t r1, r2, r3;$/;"	m	struct:m3x3
-r3	physica_math.h	/^    row3_t r1, r2, r3;$/;"	m	struct:m3x3
-red_mask	game.h	/^    u32 red_mask;$/;"	m	struct:bitmap_header_t
-relative_position	physica.h	/^    v2 relative_position; \/\/ relative to body centroid$/;"	m	struct:phy_hull_t
-remove_aabb	physica.cpp	/^remove_aabb(phy_aabb_tree_t *tree, i32 index) {$/;"	f
+r1	physica_math.h	/^    row2_ r1, r2;$/;"	m	struct:m2x2
+r1	physica_math.h	/^    row3_ r1, r2, r3;$/;"	m	struct:m3x3
+r2	physica_math.h	/^    row2_ r1, r2;$/;"	m	struct:m2x2
+r2	physica_math.h	/^    row3_ r1, r2, r3;$/;"	m	struct:m3x3
+r3	physica_math.h	/^    row3_ r1, r2, r3;$/;"	m	struct:m3x3
+red_mask	game.h	/^    u32 red_mask;$/;"	m	struct:bitmap_header_
+relative_position	physica.h	/^    v2 relative_position; \/\/ relative to body centroid$/;"	m	struct:phy_hull_
+remove_aabb	physica.cpp	/^remove_aabb(phy_aabb_tree_ *tree, i32 index) {$/;"	f
 remove_hash_item	hashmap.cpp	/^inline void remove_hash_item(hashmap<T>* hm, u64 k) {$/;"	f
-remove_hash_item	hashmap.cpp	/^inline void remove_hash_item(hashmap_t* hm, u64 k) {$/;"	f
-render_weird_gradient	linux_platform.cpp	/^void render_weird_gradient(i32 offset_x, i32 offset_y, offscreen_buffer_t offscreen_buffer){$/;"	f
-reorder_simplex	physica.cpp	/^reorder_simplex(phy_support_result_t* simplex) {$/;"	f
-reserved_1	game.h	/^    u16 reserved_1;$/;"	m	struct:bitmap_header_t
-reserved_2	game.h	/^    u16 reserved_2;$/;"	m	struct:bitmap_header_t
-right	game.h	/^    button_input_t up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_t
-right	physica.h	/^        i32 right;$/;"	m	union:phy_aabb_tree_node_t::__anon2
-root	physica.h	/^    i32 root;$/;"	m	struct:phy_aabb_tree_t
+remove_hash_item	hashmap.cpp	/^inline void remove_hash_item(hashmap_* hm, u64 k) {$/;"	f
+render_weird_gradient	linux_platform.cpp	/^void render_weird_gradient(i32 offset_x, i32 offset_y, offscreen_buffer_ offscreen_buffer){$/;"	f
+reorder_simplex	physica.cpp	/^reorder_simplex(phy_support_result_* simplex) {$/;"	f
+reserved_1	game.h	/^    u16 reserved_1;$/;"	m	struct:bitmap_header_
+reserved_2	game.h	/^    u16 reserved_2;$/;"	m	struct:bitmap_header_
+right	game.h	/^    button_input_ up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_
+right	physica.h	/^        i32 right;$/;"	m	union:phy_aabb_tree_node_::__anon2
+root	physica.h	/^    i32 root;$/;"	m	struct:phy_aabb_tree_
 rotate	physica_math.h	/^inline v2 rotate(v2 val, f32 theta) {$/;"	f
-row2_t	physica_math.h	/^struct row2_t {$/;"	s
-row3_t	physica_math.h	/^struct row3_t {$/;"	s
-rshift	game.h	/^    button_input_t up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_t
-secondary_entities	game.h	/^    u32* secondary_entities;$/;"	m	struct:spatial_partition_t
-secondary_entity_count	game.h	/^    u32 secondary_entity_count;$/;"	m	struct:spatial_partition_t
+row2_	physica_math.h	/^struct row2_ {$/;"	s
+row3_	physica_math.h	/^struct row3_ {$/;"	s
+rshift	game.h	/^    button_input_ up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_
+secondary_entities	game.h	/^    u32* secondary_entities;$/;"	m	struct:spatial_partition_
+secondary_entity_count	game.h	/^    u32 secondary_entity_count;$/;"	m	struct:spatial_partition_
 set_hash_item	hashmap.cpp	/^inline void set_hash_item(hashmap<T>* hm, u64 k, T val) {$/;"	f
-set_hash_item	hashmap.cpp	/^inline void set_hash_item(hashmap_t* hm, u64 k, void* val) {$/;"	f
-setup	linux_platform.h	/^    const xcb_setup_t *setup;$/;"	m	struct:platform_context
+set_hash_item	hashmap.cpp	/^inline void set_hash_item(hashmap_* hm, u64 k, void* val) {$/;"	f
+setup	linux_platform.h	/^    const xcb_setup_ *setup;$/;"	m	struct:platform_context
 sfloor	physica_math.h	/^inline i32 sfloor(f32 val) {$/;"	f
-sim_entities	sim_entity.h	/^    sim_entity_t* sim_entities;$/;"	m	struct:sim_region_t
-sim_entity	sim_entity.h	/^    sim_entity_t sim_entity;$/;"	m	struct:entity_low_t
-sim_entity_count	sim_entity.h	/^    u32 sim_entity_count;$/;"	m	struct:sim_region_t
-sim_entity_t	sim_entity.h	/^struct sim_entity_t {$/;"	s
-sim_region_t	sim_entity.h	/^struct sim_region_t {$/;"	s
+sim_entities	sim_entity.h	/^    sim_entity_* sim_entities;$/;"	m	struct:sim_region_
+sim_entity	sim_entity.h	/^    sim_entity_ sim_entity;$/;"	m	struct:entity_low_
+sim_entity_count	sim_entity.h	/^    u32 sim_entity_count;$/;"	m	struct:sim_region_
+sim_entity_	sim_entity.h	/^struct sim_entity_ {$/;"	s
+sim_region_	sim_entity.h	/^struct sim_region_ {$/;"	s
 sin	physica_math.h	/^inline f32 sin(f32 val) {$/;"	f
-size	game.h	/^    u32 size, used;$/;"	m	struct:memory_arena_t
-size	game.h	/^    u32 size;$/;"	m	struct:bitmap_header_t
-size	physica.h	/^    i64 size;$/;"	m	struct:phy_memory_t
-size_of_bitmap	game.h	/^    u32 size_of_bitmap;$/;"	m	struct:bitmap_header_t
+size	game.h	/^    u32 size, used;$/;"	m	struct:memory_arena_
+size	game.h	/^    u32 size;$/;"	m	struct:bitmap_header_
+size	physica.h	/^    i64 size;$/;"	m	struct:phy_memory_
+size_of_bitmap	game.h	/^    u32 size_of_bitmap;$/;"	m	struct:bitmap_header_
 smod	physica_math.h	/^inline f32 smod(f32 numer, f32 denom) {$/;"	f
 smod	physica_math.h	/^inline i32 smod(i32 numer, i32 denom) {$/;"	f
-solve_constraint	physica.cpp	/^solve_constraint(phy_body_t *a,$/;"	f
-spatial_partition_count	game.h	/^    u32 spatial_partition_count;$/;"	m	struct:game_state_t
-spatial_partition_grid_width	game.h	/^    u32 spatial_partition_grid_width;$/;"	m	struct:game_state_t
-spatial_partition_t	game.h	/^struct spatial_partition_t {$/;"	s
-spatial_partition_width	game.h	/^    f32 spatial_partition_width;$/;"	m	struct:game_state_t
-spatial_partitions	game.h	/^    spatial_partition_t* spatial_partitions;$/;"	m	struct:game_state_t
+solve_constraint	physica.cpp	/^solve_constraint(phy_body_ *a,$/;"	f
+spatial_partition_count	game.h	/^    u32 spatial_partition_count;$/;"	m	struct:game_state_
+spatial_partition_grid_width	game.h	/^    u32 spatial_partition_grid_width;$/;"	m	struct:game_state_
+spatial_partition_	game.h	/^struct spatial_partition_ {$/;"	s
+spatial_partition_width	game.h	/^    f32 spatial_partition_width;$/;"	m	struct:game_state_
+spatial_partitions	game.h	/^    spatial_partition_* spatial_partitions;$/;"	m	struct:game_state_
 sticky	physica_math.h	/^inline f32 sticky(f32 val, f32 stick, f32 margin) {$/;"	f
 tex2	game_render.h	/^struct tex2 {$/;"	s
-time_step	physica.h	/^    f32 time_step, current_time;$/;"	m	struct:phy_state_t
-to_top_left	game.h	/^    v2 center, to_top_left;$/;"	m	struct:camera_t
+time_step	physica.h	/^    f32 time_step, current_time;$/;"	m	struct:phy_state_
+to_top_left	game.h	/^    v2 center, to_top_left;$/;"	m	struct:camera_
 to_v2	physica_math.h	/^inline v2 to_v2(v3 val) {$/;"	f
 to_v3	physica_math.h	/^inline v3 to_v3(v2 val) {$/;"	f
-top_right	sim_entity.h	/^    v2 top_right, bottom_left;$/;"	m	struct:aabb_t
-torque	physica.h	/^    f32 torque; \/\/ zeroed after integration$/;"	m	struct:phy_body_t
-transition_count	game.h	/^    u32 transition_count;$/;"	m	struct:button_input_t
+top_right	sim_entity.h	/^    v2 top_right, bottom_left;$/;"	m	struct:aabb_
+torque	physica.h	/^    f32 torque; \/\/ zeroed after integration$/;"	m	struct:phy_body_
+transition_count	game.h	/^    u32 transition_count;$/;"	m	struct:button_input_
 triple	physica_math.h	/^inline v2 triple(v2 a, v2 b, v2 c) {$/;"	f
-try_find_collision	physica.cpp	/^try_find_collision(phy_memory_t memory, phy_body_t *a, phy_body_t *b,$/;"	f
-type	physica.h	/^        i32 type;$/;"	m	union:phy_aabb_tree_node_t::__anon2
-u16	typedefs.h	/^typedef uint16_t u16;$/;"	t
-u32	typedefs.h	/^typedef uint32_t u32;$/;"	t
-u64	typedefs.h	/^typedef uint64_t u64;$/;"	t
-u8	typedefs.h	/^typedef uint8_t u8;$/;"	t
+try_find_collision	physica.cpp	/^try_find_collision(phy_memory_ memory, phy_body_ *a, phy_body_ *b,$/;"	f
+type	physica.h	/^        i32 type;$/;"	m	union:phy_aabb_tree_node_::__anon2
+u16	typedefs.h	/^typedef uint16_ u16;$/;"	t
+u32	typedefs.h	/^typedef uint32_ u32;$/;"	t
+u64	typedefs.h	/^typedef uint64_ u64;$/;"	t
+u8	typedefs.h	/^typedef uint8_ u8;$/;"	t
 uceil	physica_math.h	/^inline u32 uceil(f32 val) {$/;"	f
 ufloor	physica_math.h	/^inline u32 ufloor(f32 val) {$/;"	f
-up	game.h	/^    button_input_t up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_t
-update_hulls	physica.cpp	/^update_hulls(phy_body_t* body) {$/;"	f
+up	game.h	/^    button_input_ up, down, right, left, lshift, rshift;$/;"	m	struct:game_input_
+update_hulls	physica.cpp	/^update_hulls(phy_body_* body) {$/;"	f
 uround	physica_math.h	/^inline u32 uround(f32 val) {$/;"	f
-used	game.h	/^    u32 size, used;$/;"	m	struct:memory_arena_t
+used	game.h	/^    u32 size, used;$/;"	m	struct:memory_arena_
 v2	physica_math.h	/^struct v2 {$/;"	s
 v2_from_ints	physica_math.h	/^inline v2 v2_from_ints(i32 x, i32 y) {$/;"	f
 v2_from_theta	physica_math.h	/^inline v2 v2_from_theta(f32 theta) {$/;"	f
@@ -410,33 +410,33 @@ v3	physica_math.h	/^struct v3 {$/;"	s
 v3_from_ints	physica_math.h	/^inline v3 v3_from_ints(i32 x, i32 y, i32 z = 1) {$/;"	f
 v6	physica_math.h	/^struct v6 {$/;"	s
 val	hashmap.h	/^    T val;$/;"	m	struct:hashpair
-val	hashmap.h	/^    void* val;$/;"	m	struct:hash_pair_t
+val	hashmap.h	/^    void* val;$/;"	m	struct:hash_pair_
 vals	physica_math.h	/^    f32 vals[6];$/;"	m	struct:v6
-value	game.h	/^    f32 delta, value;$/;"	m	struct:analog_input_t
+value	game.h	/^    f32 delta, value;$/;"	m	struct:analog_input_
 values	typedefs.h	/^  T *values;$/;"	m	struct:array
 values	typedefs.h	/^  T* values;$/;"	m	struct:vec
 vec	typedefs.h	/^struct vec {$/;"	s
-velocity	physica.h	/^    v2 position, velocity;$/;"	m	struct:phy_body_t
-vert_resolution	game.h	/^    i32 vert_resolution;$/;"	m	struct:bitmap_header_t
-window_description_t	game_render.h	/^struct window_description_t {$/;"	s
-width	game.h	/^    i32 width;$/;"	m	struct:bitmap_header_t
-width	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_t
+velocity	physica.h	/^    v2 position, velocity;$/;"	m	struct:phy_body_
+vert_resolution	game.h	/^    i32 vert_resolution;$/;"	m	struct:bitmap_header_
+window_description_	game_render.h	/^struct window_description_ {$/;"	s
+width	game.h	/^    i32 width;$/;"	m	struct:bitmap_header_
+width	game_render.h	/^    u32 width, height, pitch, bytes_per_pixel;$/;"	m	struct:window_description_
 width	game_render.h	/^    u32 width, height;$/;"	m	struct:tex2
-width	linux_platform.h	/^    int width;$/;"	m	struct:offscreen_buffer_t
-width	sim_entity.h	/^    f32 width;$/;"	m	struct:sim_entity_t
-window	linux_platform.h	/^    xcb_window_t window;$/;"	m	struct:platform_context
-wm_delete_window	linux_platform.h	/^    xcb_atom_t wm_delete_window;$/;"	m	struct:platform_context
-wm_protocols	linux_platform.h	/^    xcb_atom_t wm_protocols;$/;"	m	struct:platform_context
-world_arena	game.h	/^    memory_arena_t world_arena;$/;"	m	struct:game_state_t
-world_contact_a	physica.h	/^    v2 world_contact_a, world_contact_b;$/;"	m	struct:phy_collision_t
-world_contact_b	physica.h	/^    v2 world_contact_a, world_contact_b;$/;"	m	struct:phy_collision_t
+width	linux_platform.h	/^    int width;$/;"	m	struct:offscreen_buffer_
+width	sim_entity.h	/^    f32 width;$/;"	m	struct:sim_entity_
+window	linux_platform.h	/^    xcb_window_ window;$/;"	m	struct:platform_context
+wm_delete_window	linux_platform.h	/^    xcb_atom_ wm_delete_window;$/;"	m	struct:platform_context
+wm_protocols	linux_platform.h	/^    xcb_atom_ wm_protocols;$/;"	m	struct:platform_context
+world_arena	game.h	/^    memory_arena_ world_arena;$/;"	m	struct:game_state_
+world_contact_a	physica.h	/^    v2 world_contact_a, world_contact_b;$/;"	m	struct:phy_collision_
+world_contact_b	physica.h	/^    v2 world_contact_a, world_contact_b;$/;"	m	struct:phy_collision_
 x	physica_math.h	/^    f32 x, y;$/;"	m	struct:v2
 x	physica_math.h	/^    f32 x,y,z;$/;"	m	struct:v3
-x	test.cpp	/^    f32 x, y;$/;"	m	struct:physics_state_t	file:
-xcb_gcontext_id	linux_platform.h	/^    xcb_gcontext_t xcb_gcontext_id;$/;"	m	struct:offscreen_buffer_t
-xcb_image	linux_platform.h	/^    xcb_image_t *xcb_image;$/;"	m	struct:offscreen_buffer_t
-xcb_pixmap_id	linux_platform.h	/^    xcb_pixmap_t xcb_pixmap_id;$/;"	m	struct:offscreen_buffer_t
+x	test.cpp	/^    f32 x, y;$/;"	m	struct:physics_state_	file:
+xcb_gcontext_id	linux_platform.h	/^    xcb_gcontext_ xcb_gcontext_id;$/;"	m	struct:offscreen_buffer_
+xcb_image	linux_platform.h	/^    xcb_image_ *xcb_image;$/;"	m	struct:offscreen_buffer_
+xcb_pixmap_id	linux_platform.h	/^    xcb_pixmap_ xcb_pixmap_id;$/;"	m	struct:offscreen_buffer_
 y	physica_math.h	/^    f32 x, y;$/;"	m	struct:v2
 y	physica_math.h	/^    f32 x,y,z;$/;"	m	struct:v3
-y	test.cpp	/^    f32 x, y;$/;"	m	struct:physics_state_t	file:
+y	test.cpp	/^    f32 x, y;$/;"	m	struct:physics_state_	file:
 z	physica_math.h	/^    f32 x,y,z;$/;"	m	struct:v3

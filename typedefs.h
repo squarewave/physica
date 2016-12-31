@@ -28,12 +28,12 @@ typedef double f64;
 #define global static
 #define persist static
 
-struct memory_arena_t {
+struct memory_arena_ {
     u32 size, used;
     u8* base;
 };
 
-void* _push_size(memory_arena_t* arena, size_t size) {
+void* _push_size(memory_arena_* arena, size_t size) {
     assert_(arena->used + size <= arena->size);
     u8* result = arena->base + arena->used;
     arena->used += size;
@@ -56,7 +56,7 @@ struct vec {
   i32 count;
   i32 capacity;
 
-  inline void init(memory_arena_t* memory, i32 cap) {
+  inline void init(memory_arena_* memory, i32 cap) {
     this->capacity = cap;
     this->count = 0;
     this->values = PUSH_ARRAY(memory, cap, T);
@@ -94,7 +94,7 @@ struct array {
   T *values;
   i32 count;
 
-  inline void init(memory_arena_t* memory, i32 cnt) {
+  inline void init(memory_arena_* memory, i32 cnt) {
     this->count = cnt;
     this->values = PUSH_ARRAY(memory, cnt, T);
   }
@@ -134,7 +134,7 @@ struct pool {
   i32 size;
   i32 capacity;
 
-  inline void init(memory_arena_t* memory, i32 cap) {
+  inline void init(memory_arena_* memory, i32 cap) {
     this->capacity = cap;
     this->size = 0;
     this->values = PUSH_ARRAY(memory, cap, T);
@@ -226,7 +226,7 @@ struct iterable_pool {
   i32 size;
   i32 capacity;
 
-  inline void init(memory_arena_t* memory, i32 cap) {
+  inline void init(memory_arena_* memory, i32 cap) {
     this->capacity = cap;
     this->size = 0;
     this->values = PUSH_ARRAY(memory, cap, pool_obj<T>);
@@ -319,7 +319,7 @@ struct iterable_pool {
   }
 
   inline void
-  allocate(memory_arena_t* memory, i32 cap) {
+  allocate(memory_arena_* memory, i32 cap) {
     this->capacity = cap;
     values = (pool_obj<T> *)_push_size(memory, (size_t)cap * sizeof(pool_obj<T>));
     freed.capacity = cap / 2;

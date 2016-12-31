@@ -8,15 +8,15 @@
 #include "typedefs.h"
 #include "limits.h"
 
-struct hash_pair_t {
+struct hash_pair_ {
     void* val;
     u64 key;
 };
 
-struct hashmap_t {
+struct hashmap_ {
     u32 capacity;
     u32 count;
-    hash_pair_t* pairs;
+    hash_pair_* pairs;
 };
 
 template<class T>
@@ -56,11 +56,11 @@ inline u32 _get_hashed_key(u64 h) {
     return (u32)h;
 }
 
-inline b32 _slot_occupied(hashmap_t* hm, i32 slot) {
+inline b32 _slot_occupied(hashmap_* hm, i32 slot) {
     return hm->pairs[slot].val != 0;
 }
 
-inline i32 _find_slot(hashmap_t* hm, u64 k) {
+inline i32 _find_slot(hashmap_* hm, u64 k) {
     i32 i = (i32)(_get_hashed_key(k) % hm->capacity);
     while (_slot_occupied(hm,i) && hm->pairs[i].key != k) {
         ++i;
@@ -69,12 +69,12 @@ inline i32 _find_slot(hashmap_t* hm, u64 k) {
     return i;
 }
 
-inline void* get_hash_item(hashmap_t* hm, u64 k) {
+inline void* get_hash_item(hashmap_* hm, u64 k) {
     i32 i = _find_slot(hm, k);
     return hm->pairs[i].val;
 }
 
-inline void* get_hash_item(hashmap_t* hm, i64 k) {
+inline void* get_hash_item(hashmap_* hm, i64 k) {
     return get_hash_item(hm, i64_bits_to_u64(k));
 }
 
@@ -120,7 +120,7 @@ inline T get_hash_item_value(hashmap<T>* hm, i64 k) {
     return *get_hash_item(hm, k);
 }
 
-// inline void set_hash_item(hashmap_t* hm, u64 k, void* val) {
+// inline void set_hash_item(hashmap_* hm, u64 k, void* val) {
 //     i32 i = _find_slot(hm, k);
 //     hm->pairs[i].key = k;
 //     hm->pairs[i].val = val;
@@ -142,7 +142,7 @@ inline T* set_hash_item(hashmap<T>* hm, i64 k, T val) {
     return set_hash_item(hm, i64_bits_to_u64(k), val);
 }
 
-inline void remove_hash_item(hashmap_t* hm, u64 k) {
+inline void remove_hash_item(hashmap_* hm, u64 k) {
     i32 i = _find_slot(hm, k);
     if (!_slot_occupied(hm, i)) {
         return;
@@ -172,7 +172,7 @@ inline void remove_hash_item(hashmap_t* hm, u64 k) {
     hm->count--;
 }
 
-inline void remove_hash_item(hashmap_t* hm, i64 k) {
+inline void remove_hash_item(hashmap_* hm, i64 k) {
     remove_hash_item(hm, i64_bits_to_u64(k));
 }
 

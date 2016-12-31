@@ -26,11 +26,11 @@ enum gamepad_axes {
     R_TRIGGER = 5
 };
 
-struct offscreen_buffer_t
+struct offscreen_buffer_
 {
-    xcb_image_t *xcb_image;
-    xcb_pixmap_t xcb_pixmap_id;
-    xcb_gcontext_t xcb_gcontext_id;
+    xcb_image_ *xcb_image;
+    xcb_pixmap_ xcb_pixmap_id;
+    xcb_gcontext_ xcb_gcontext_id;
 
     void *memory;
     int width;
@@ -40,13 +40,13 @@ struct offscreen_buffer_t
 };
 
 struct platform_context {
-    const xcb_setup_t *setup;
-    xcb_format_t *fmt;
-    xcb_connection_t *connection;
-    xcb_window_t window;
-    xcb_key_symbols_t* key_symbols;
-    xcb_atom_t wm_protocols;
-    xcb_atom_t wm_delete_window;
+    const xcb_setup_ *setup;
+    xcb_format_ *fmt;
+    xcb_connection_ *connection;
+    xcb_window_ window;
+    xcb_key_symbols_* key_symbols;
+    xcb_atom_ wm_protocols;
+    xcb_atom_ wm_delete_window;
 };
 
 #endif //PHYSICA_LINUX_PLATFORM_H

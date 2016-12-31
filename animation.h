@@ -2,12 +2,12 @@
 #define ANIMATION_H_
 
 const i32 MAX_FRAMES = 128;
-struct frame_builder_t {
+struct frame_builder_ {
     rect_i source_rect;
     f32 frame_duration;
 };
 
-struct animation_builder_t {
+struct animation_builder_ {
     char* bmp_filepath;
     i32 frame_count;
     i32 cycle_point;
@@ -15,8 +15,8 @@ struct animation_builder_t {
     v2 hotspot;
 };
 
-#define ANIMATION_BUILDER(name, body) animation_builder_t name##_builder() {\
-    animation_builder_t result;\
+#define ANIMATION_BUILDER(name, body) animation_builder_ name##_builder() {\
+    animation_builder_ result;\
     char* bmp_filepath;\
     i32 frame_count = -1;\
     i32 cycle_point = 0;\
@@ -34,7 +34,7 @@ struct animation_builder_t {
     return result;\
 }
 
-struct animation_frame_t {
+struct animation_frame_ {
     f32 duration;
     tex2 texture;
     rect_i source_rect;
@@ -43,29 +43,29 @@ struct animation_frame_t {
     v2 hotspot;
 };
 
-struct animation_spec_t {
+struct animation_spec_ {
     i32 cycle_point;
-    array<animation_frame_t> frames;
+    array<animation_frame_> frames;
 };
 
-struct animation_t {
+struct animation_ {
 	b32 freed;
     f32 frame_progress;
     i32 frame_index;
     f32 orientation;
     f32 z;
     v2 position;
-    animation_spec_t* spec;
+    animation_spec_* spec;
 };
 
-struct animation_group_t {
-	vec<animation_t> animations;
+struct animation_group_ {
+	vec<animation_> animations;
 	vec<i32> freed;
 };
 
 inline i32
-add_animation(animation_group_t* animation_group,
-              animation_spec_t* spec,
+add_animation(animation_group_* animation_group,
+              animation_spec_* spec,
               f32 z) {
 	i32 index;
 	if (animation_group->freed.count) {
@@ -74,7 +74,7 @@ add_animation(animation_group_t* animation_group,
 		index = animation_group->animations.push_unassigned();
 	}
 
-	animation_t* animation = animation_group->animations.at(index);
+	animation_* animation = animation_group->animations.at(index);
 	animation->freed = false;
 	animation->frame_progress = 0.0f;
 	animation->frame_index = 0;
@@ -86,9 +86,9 @@ add_animation(animation_group_t* animation_group,
 }
 
 inline void
-remove_animation(animation_group_t* animation_group, i32 index) {
+remove_animation(animation_group_* animation_group, i32 index) {
 	assert_(index < animation_group->animations.count);
-	animation_t* animation = animation_group->animations.at(index);
+	animation_* animation = animation_group->animations.at(index);
 	assert_(!animation->freed);
 	animation->freed = true;
 	animation_group->freed.push(index);
@@ -97,23 +97,23 @@ remove_animation(animation_group_t* animation_group, i32 index) {
 }
 
 void
-reset_animation(animation_t* animation, animation_spec_t* spec) {
+reset_animation(animation_* animation, animation_spec_* spec) {
     animation->spec = spec;
     animation->frame_progress = 0.0f;
     animation->frame_index = 0;
 }
 
 void
-set_animation(animation_t* animation, animation_spec_t* spec) {
+set_animation(animation_* animation, animation_spec_* spec) {
     animation->spec = spec;
 }
 
 void
-update_animations(animation_group_t* animation_group,
-                  render_group_t* render_group,
+update_animations(animation_group_* animation_group,
+                  render_group_* render_group,
                   f32 dt) {
 	for (int i = 0; i < animation_group->animations.count; ++i) {
-		animation_t* animation = animation_group->animations.at(i);
+		animation_* animation = animation_group->animations.at(i);
 		animation->frame_progress += dt;
 		animation->frame_index %= animation->spec->frames.count;
 		f32 current_frame_duration = animation->spec->frames[animation->frame_index].duration;
@@ -126,7 +126,7 @@ update_animations(animation_group_t* animation_group,
 			animation->frame_index %= animation->spec->frames.count;
 		}
 
-		animation_frame_t frame = animation->spec->frames[animation->frame_index];
+		animation_frame_ frame = animation->spec->frames[animation->frame_index];
 
 		push_texture(render_group,
 		             animation->position,
@@ -134,7 +134,7 @@ update_animations(animation_group_t* animation_group,
 		             frame.pixel_size,
 		             frame.texture,
                      frame.source_rect,
-                     rgba_t{0},
+                     rgba_{0},
 		             animation->orientation + frame.orientation,
 		             animation->z);
 	}

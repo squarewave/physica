@@ -69,26 +69,26 @@ union v4 {
     f32 e[4];
 };
 
-struct row2_t {
+struct row2_ {
     f32 c1, c2;
 };
 
 struct m2x2 {
-    row2_t r1, r2;
+    row2_ r1, r2;
 };
 
-struct row3_t {
+struct row3_ {
     f32 c1, c2, c3;
 };
 
-struct row4_t {
+struct row4_ {
     f32 c1, c2, c3, c4;
 };
 
 struct m3x3 {
     union {
         struct {
-            row3_t r1, r2, r3;
+            row3_ r1, r2, r3;
         };
         f32 vals[9];
     };
@@ -97,7 +97,7 @@ struct m3x3 {
 struct m4x4 {
     union {
         struct {
-            row4_t r1, r2, r3, r4;
+            row4_ r1, r2, r3, r4;
         };
         f32 vals[12];
     };
@@ -517,26 +517,26 @@ inline v2 triple(v2 a, v2 b, v2 c) {
 
 inline m3x3 get_translation_matrix(v2 val) {
     m3x3 result = {{0}};
-    result.r1 = row3_t{1,0,val.x};
-    result.r2 = row3_t{0,1,val.y};
-    result.r3 = row3_t{0,0,1};
+    result.r1 = row3_{1,0,val.x};
+    result.r2 = row3_{0,1,val.y};
+    result.r3 = row3_{0,0,1};
     return result;
 }
 
 inline m3x3 get_rotation_matrix_3x3(f32 theta) {
     m3x3 result;
-    result.r1 = row3_t{cos(theta), -sin(theta), 0.0f};
-    result.r2 = row3_t{sin(theta), cos(theta), 0.0f};
-    result.r3 = row3_t{0.0f, 0.0f, 1.0f};
+    result.r1 = row3_{cos(theta), -sin(theta), 0.0f};
+    result.r2 = row3_{sin(theta), cos(theta), 0.0f};
+    result.r3 = row3_{0.0f, 0.0f, 1.0f};
     return result;
 }
 
 inline m4x4 get_rotation_matrix_4x4(f32 theta) {
     m4x4 result;
-    result.r1 = row4_t{cos(theta), -sin(theta), 0.0f, 0.0f};
-    result.r2 = row4_t{sin(theta), cos(theta), 0.0f, 0.0f};
-    result.r3 = row4_t{0.0f, 0.0f, 1.0f, 0.0f};
-    result.r4 = row4_t{0.0f, 0.0f, 0.0f, 1.0f};
+    result.r1 = row4_{cos(theta), -sin(theta), 0.0f, 0.0f};
+    result.r2 = row4_{sin(theta), cos(theta), 0.0f, 0.0f};
+    result.r3 = row4_{0.0f, 0.0f, 1.0f, 0.0f};
+    result.r4 = row4_{0.0f, 0.0f, 0.0f, 1.0f};
     return result;
 }
 
@@ -549,18 +549,18 @@ inline v2 operator* (m3x3 lhs, v2 rhs) {
 
 inline m3x3 identity_3x3(){
     m3x3 result;
-    result.r1 = row3_t{1,0,0};
-    result.r2 = row3_t{0,1,0};
-    result.r3 = row3_t{0,0,1};
+    result.r1 = row3_{1,0,0};
+    result.r2 = row3_{0,1,0};
+    result.r3 = row3_{0,0,1};
     return result;
 }
 
 inline m4x4 identity_4x4(){
     m4x4 result;
-    result.r1 = row4_t{1,0,0,0};
-    result.r2 = row4_t{0,1,0,0};
-    result.r3 = row4_t{0,0,1,0};
-    result.r4 = row4_t{0,0,0,1};
+    result.r1 = row4_{1,0,0,0};
+    result.r2 = row4_{0,1,0,0};
+    result.r3 = row4_{0,0,1,0};
+    result.r4 = row4_{0,0,0,1};
     return result;
 }
 

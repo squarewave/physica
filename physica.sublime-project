@@ -1,0 +1,21 @@
+{
+    "folders":
+    [
+        {
+            "path": ".",
+            "folder_exclude_patterns": ["build"],
+            "follow_symlinks": true
+        },
+    ],
+    "settings":
+    {
+        "tab_size": 4
+    },
+    "build_systems":
+    [
+        {
+            "name": "run",
+            "shell_cmd": "build\\main.exe"
+        },
+    ]
+}

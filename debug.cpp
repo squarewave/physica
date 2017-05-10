@@ -5,7 +5,7 @@
 #include "game.h"
 #include "stb_truetype.h"
 
-const f32 LINE_HEIGHT = 16.0f;
+const f32 LINE_HEIGHT = 32.0f;
 
 void process_debug_log(tools_state_* tools_state) {
     char* buffer = tools_state->debug_state.performance_log;
@@ -74,7 +74,40 @@ debug_load_monospace_font(tools_state_* tools_state) {
         load_font("assets/SourceCodePro-Regular.ttf", LINE_HEIGHT);
 }
 
-void
+v2
+debug_easy_push_ui_text(game_state_* game_state,
+                        tools_state_* tools_state,
+                        window_description_ window,
+                        char* text)
+{
+    tools_state->debug_state.current_debug_text_bottom_left =
+        debug_push_ui_text(game_state,
+                           tools_state,
+                           window,
+                           tools_state->debug_state.current_debug_text_bottom_left,
+                           RGBA_BLACK,
+                           text);
+    return tools_state->debug_state.current_debug_text_bottom_left;
+}
+
+v2
+debug_easy_push_ui_text_f(game_state_* game_state,
+                          tools_state_* tools_state,
+                          window_description_ window,
+                          char* format,
+                          ...)
+{
+    TIMED_FUNC();
+    char buffer[512];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, ARRAY_SIZE(buffer), format, args);
+    v2 result = debug_easy_push_ui_text(game_state, tools_state, window, buffer); 
+    va_end(args);
+    return result;
+}
+
+v2
 debug_push_ui_text(game_state_* game_state,
                    tools_state_* tools_state,
                    window_description_ window,
@@ -83,7 +116,7 @@ debug_push_ui_text(game_state_* game_state,
                    char* text) {
     TIMED_FUNC();
 
-    v2 original_pos = bottom_left;
+    v2 base_pos = bottom_left;
 
     bottom_left.y = (f32)window.height - bottom_left.y - 1;
 
@@ -93,7 +126,8 @@ debug_push_ui_text(game_state_* game_state,
     while (*text) {
         if (*text == '\n') {
             bottom_left.y += LINE_HEIGHT;
-            bottom_left.x = original_pos.x;
+            base_pos.y -= LINE_HEIGHT;
+            bottom_left.x = base_pos.x;
         } else if (*text >= 32) {
             stbtt_aligned_quad q;
             stbtt_GetBakedQuad(font->baked_chars,
@@ -140,6 +174,9 @@ debug_push_ui_text(game_state_* game_state,
         ++text;
     }
 
+    base_pos.y -= LINE_HEIGHT;
+    return base_pos;
+
     // f32 current_left = 0.0f;
     // while (*text) {
     //     i32 c = (i32)*text;
@@ -167,21 +204,23 @@ debug_push_ui_text(game_state_* game_state,
     // }
 }
 
-void debug_push_ui_text_f(game_state_* game_state,
-                          tools_state_* tools_state,
-                          window_description_ window,
-                          v2 bottom_left,
-                          rgba_ color,
-                          char* format,
-                          ...)
+v2
+debug_push_ui_text_f(game_state_* game_state,
+                     tools_state_* tools_state,
+                     window_description_ window,
+                     v2 bottom_left,
+                     rgba_ color,
+                     char* format,
+                     ...)
 {
     TIMED_FUNC();
     char buffer[512];
     va_list args;
     va_start(args, format);
     vsnprintf(buffer, ARRAY_SIZE(buffer), format, args);
-    debug_push_ui_text(game_state, tools_state, window, bottom_left, color, buffer); 
+    v2 result = debug_push_ui_text(game_state, tools_state, window, bottom_left, color, buffer);
     va_end(args);
+    return result;
 }
 
 void debug_draw_aabb_tree(game_state_* game_state) {
@@ -304,25 +343,21 @@ void debug_update_and_render(game_state_* game_state,
         } else {
             color = RGBA_RED;
         }
-        
-        debug_push_ui_text_f(game_state,
+
+        debug_easy_push_ui_text_f(game_state,
                              tools_state,
                              window,
-                             v2 {8.0f, (f32)window.height - 20.0f},
-                             color,
                              "%3.1f fps", (f64)fps);
 
-        debug_push_ui_text(game_state,
+        debug_easy_push_ui_text(game_state,
                            tools_state,
                            window,
-                           v2 {8.0f, (f32)window.height - 40.0f},
-                           RGBA_BLACK,
                            tools_state->debug_state.performance_log);
     }
 
     if (tools_state->debug_state.draw_wireframes) {
         debug_draw_hulls(game_state);
-        
+
         if (game_input->mouse.left_click.transition_count &&
             game_input->mouse.left_click.ended_down) {
             m3x3 inverse_view_transform = get_inverse_view_transform_3x3(game_state->main_camera);
@@ -330,7 +365,7 @@ void debug_update_and_render(game_state_* game_state,
             tools_state->debug_state.selected = pick_body(&game_state->physics_state,
                                                          world_position);
         }
-        
+
         if (tools_state->debug_state.selected) {
 
             sim_entity_* entity =
@@ -357,4 +392,6 @@ void debug_update_and_render(game_state_* game_state,
     if (tools_state->debug_state.draw_aabb_tree) {
         debug_draw_aabb_tree(game_state);
     }
+
+    tools_state->debug_state.current_debug_text_bottom_left = debug_text_start(window);
 }

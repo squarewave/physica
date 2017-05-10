@@ -17,9 +17,16 @@
 #include <Windows.h>
 
 #include "SDL2/SDL.h"
+#include "SDL2/SDL_syswm.h"
+#include "easytab.h"
 
 #include "game.h"
 #include "win32sdl_platform.h"
+
+void exit_gracefully(int error_code) {
+    EasyTab_Unload();
+    exit(error_code);
+}
 
 void platform_debug_print(char* str) {
     OutputDebugString(str);
@@ -117,13 +124,64 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_* context) {
         case SDL_WINDOWEVENT: {
             switch (event->window.event) {
                 case SDL_WINDOWEVENT_RESIZED: {
-                    printf("SDL_WINDOWEVENT_RESIZED (%d, %d)\n", event->window.data1,
-                           event->window.data2);
                 } break;
                 case SDL_WINDOWEVENT_EXPOSED: {
-                    printf("SDL_WINDOWEVENT_EXPOSED\n");
                 } break;
             } break;
+        } break;
+        case SDL_SYSWMEVENT: {
+            SDL_SysWMEvent sysevent = event->syswm;
+            EasyTabResult er = EASYTAB_EVENT_NOT_HANDLED;
+            if (!EasyTab) { break; }
+
+            i32 bit_touch_old = (EasyTab->Buttons & EasyTab_Buttons_Pen_Touch);
+
+            switch(sysevent.msg->subsystem) {
+                case SDL_SYSWM_WINDOWS: {
+                    er = EasyTab_HandleEvent(sysevent.msg->msg.win.hwnd,
+                                             sysevent.msg->msg.win.msg,
+                                             sysevent.msg->msg.win.lParam,
+                                             sysevent.msg->msg.win.wParam);
+                } break;
+            }
+
+            if (er == EASYTAB_OK) {
+                i32 bit_touch = (EasyTab->Buttons & EasyTab_Buttons_Pen_Touch);
+                i32 bit_lower = (EasyTab->Buttons & EasyTab_Buttons_Pen_Lower);
+                i32 bit_upper = (EasyTab->Buttons & EasyTab_Buttons_Pen_Upper);
+
+                // Pen in use but not drawing
+                b32 taking_pen_input = bit_touch
+                                       && !( bit_upper || bit_lower );
+
+                if (taking_pen_input) {
+                    i32 window_width = 0;
+                    i32 window_height = 0;
+                    SDL_GetWindowSize(context->window,
+                                      &window_width,
+                                      &window_height);
+
+                    pen_input_* pen = &context->next_input->pen;
+                    b32 was_down = pen->touch_state.ended_down;
+                    pen->touch_state.ended_down = true;
+                    if (!was_down) {
+                        pen->touch_state.transition_count++;
+                    }
+
+                    v2 previous_position = pen->position;
+                    pen->position.x = EasyTab->PosX;
+                    pen->position.y = EasyTab->PosY;
+                    pen->delta.x = pen->position.x - previous_position.x;
+                    pen->delta.y = pen->position.y - previous_position.y;
+                    pen->normalized_position.x =
+                        ((f32)pen->position.x) / (0.5f * (f32)window_width) - 1.0f;
+                    pen->normalized_position.y =
+                        -1.0f * (((f32)pen->position.y) / (0.5f * (f32)window_height) - 1.0f);
+                    pen->normalized_delta.x = (f32)pen->delta.x / (0.5f * (f32)window_width);
+                    pen->normalized_delta.y = -((f32)pen->delta.y) / (0.5f * (f32)window_height);
+                    pen->pressure = EasyTab->Pressure;
+                }
+            }
         } break;
         case SDL_KEYDOWN:
         case SDL_KEYUP: {
@@ -690,12 +748,19 @@ b32 handle_sdl_event(SDL_Event* event, platform_context_* context) {
                               &window_width,
                               &window_height);
 
+            v2 previous_position = context->next_input->mouse.position;
             context->next_input->mouse.position.x = (f32)event->motion.x;
             context->next_input->mouse.position.y = (f32)event->motion.y;
+            context->next_input->mouse.delta.x = (f32)event->motion.xrel;
+            context->next_input->mouse.delta.y = (f32)event->motion.yrel;
             context->next_input->mouse.normalized_position.x =
                 ((f32)event->motion.x) / (0.5f * (f32)window_width) - 1.0f;
             context->next_input->mouse.normalized_position.y =
                 -1.0f * (((f32)event->motion.y) / (0.5f * (f32)window_height) - 1.0f);
+            context->next_input->mouse.normalized_delta.x =
+                (f32)event->motion.xrel / (0.5f * (f32)window_width);
+            context->next_input->mouse.normalized_delta.y =
+                -((f32)event->motion.yrel) / (0.5f * (f32)window_height);
         } break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
@@ -818,7 +883,7 @@ void printer_task(task_queue_* queue, void* data) {
     printf("%s\n", as_str);
 }
 
- 
+
 void check_sdl_error(int line = -1) {
     const char *error = SDL_GetError();
     if (*error != '\0')
@@ -846,7 +911,7 @@ int CALLBACK WinMain(
 
     if (SDL_Init(SDL_INIT_EVERYTHING)) {
         printf("Unable to init SDL: %s\n", SDL_GetError());
-        return 1;
+        exit_gracefully(1);
     }
 
     task_queue_ primary_queue = {0};
@@ -895,12 +960,13 @@ int CALLBACK WinMain(
     glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
         OutputDebugString("Error initializing GLEW");
+        exit_gracefully(1);
     }
 
     if( SDL_GL_SetSwapInterval(1) < 0 ){
         check_sdl_error(__LINE__);
     }
-    
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
@@ -915,7 +981,7 @@ int CALLBACK WinMain(
     // SDL_RendererInfo renderer_info;
     // SDL_GetRendererInfo(context.renderer, &renderer_info);
 
-    // if ((renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 || 
+    // if ((renderer_info.flags & SDL_RENDERER_ACCELERATED) == 0 ||
     //     (renderer_info.flags & SDL_RENDERER_TARGETTEXTURE) == 0) {
     //     assert_(false);
     // }
@@ -935,6 +1001,24 @@ int CALLBACK WinMain(
     //     printf("Unable to create texture: %s\n", SDL_GetError());
     //     return 1;
     // }
+
+    SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+
+    SDL_SysWMinfo sysinfo;
+    SDL_VERSION(&sysinfo.version);
+    if ( SDL_GetWindowWMInfo(context.window, &sysinfo) ) {
+        switch( sysinfo.subsystem ) {
+            case SDL_SYSWM_WINDOWS: {
+                HWND hwnd = sysinfo.info.win.window;
+                if (EasyTab_Load(hwnd) != EASYTAB_OK) {
+                    printf("Unable to init EasyTab");
+                }
+            } break;
+        }
+    } else {
+        printf("Can't get system info!\n");
+        exit_gracefully(1);
+    }
 
     size_t pixel_bytes = START_WIDTH * START_HEIGHT * 4;
     void* pixels = malloc(pixel_bytes);
@@ -999,6 +1083,13 @@ int CALLBACK WinMain(
 
         next_input.mouse.position = prev_input.mouse.position;
         next_input.mouse.normalized_position = prev_input.mouse.normalized_position;
+        next_input.mouse.left_click.ended_down = prev_input.mouse.left_click.ended_down;
+        next_input.mouse.right_click.ended_down = prev_input.mouse.right_click.ended_down;
+        next_input.mouse.middle_click.ended_down = prev_input.mouse.middle_click.ended_down;
+
+        next_input.pen.position = prev_input.pen.position;
+        next_input.pen.normalized_position = prev_input.pen.normalized_position;
+        next_input.pen.touch_state.ended_down = prev_input.pen.touch_state.ended_down;
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -1041,5 +1132,5 @@ int CALLBACK WinMain(
         process_debug_log((tools_state_*)tools_memory);
     }
 
-    return 0;
+    exit_gracefully(0);
 }

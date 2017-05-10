@@ -11,6 +11,7 @@
 #include "camera.h"
 #include "stb_truetype.h"
 #include "stb_image.h"
+#include "util.h"
 
 i32 check_shader_status(u32 item_id, GLenum status_id) {
     i32 result = GL_FALSE;
@@ -190,7 +191,7 @@ gl_programs_ load_programs() {
     }
 
     /////////////////////////////////////////////////////////////
-    // colored vertex program
+    // color picker program
     /////////////////////////////////////////////////////////////
 
     {
@@ -198,7 +199,7 @@ gl_programs_ load_programs() {
                           "shaders/simple_vertex_shader.glsl",
                           "shaders/color_picker_fragment_shader.glsl")) {
             platform_debug_print("Error loading GL program");
-            assert_(false);
+            PANIC("could not load shaders for color picker.");
         }
 
         glGenVertexArrays(1,&ures[RES_COLOR_PICKER_VAO_RECT]);
@@ -212,6 +213,8 @@ gl_programs_ load_programs() {
             glGetUniformLocation(ures[RES_COLOR_PICKER_PROG], "max_p");
         res[RES_COLOR_PICKER_TRANSFORM] =
             glGetUniformLocation(ures[RES_COLOR_PICKER_PROG], "transform");
+        res[RES_COLOR_PICKER_VERTEX_MODELSPACE] =
+            glGetAttribLocation(ures[RES_COLOR_PICKER_PROG], "vertex_modelspace");
     
         GLfloat vertex_data[] = {
             -0.5f, -0.5f, 0.0f,
@@ -1431,7 +1434,7 @@ void draw_render_group(transient_state_* transient_state,
         RENDER_TYPE_CIRCLE,
         RENDER_TYPE_TEXTURE,
         RENDER_TYPE_CIRCLE_OUTLINE,
-		RENDER_TYPE_COLOR_PICKER
+        RENDER_TYPE_COLOR_PICKER
     };
 
     glUseProgram(ures[RES_TEXTURES_PROG]);

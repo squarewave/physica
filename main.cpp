@@ -31,4 +31,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#define EASYTAB_IMPLEMENTATION
+#include "easytab.h"
+
 // #pragma clang diagnostic pop

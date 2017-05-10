@@ -6,6 +6,7 @@
 #define PHYSICA_GAME_H
 
 #include "typedefs.h"
+#include "util.h"
 #include "constants.h"
 #include "debug.h"
 #include "renderer.h"
@@ -134,7 +135,9 @@ struct joystick_input_ {
 
 struct mouse_input_ {
     v2 position; // position in pixel space
+    v2 delta;
     v2 normalized_position;
+    v2 normalized_delta;
     button_input_ left_click;
     button_input_ right_click;
     button_input_ middle_click;
@@ -155,8 +158,22 @@ struct keyboard_input_ {
     b32 shift_down, alt_down, ctrl_down;
 };
 
+struct pen_input_ {
+    v2 position; // position in pixel space
+    v2 delta;
+    v2 normalized_position;
+    v2 normalized_delta;
+    f32 pressure;
+    button_input_ touch_state;
+};
+
 b32 was_pressed(button_input_ button) {
     return button.ended_down && button.transition_count;
+}
+
+b32 was_down(button_input_ button) {
+    // NOTE(doug): this is just for some visual consistency with the other two functions
+    return button.ended_down;
 }
 
 b32 was_released(button_input_ button) {
@@ -181,10 +198,11 @@ struct game_input_ {
     joystick_input_ joystick_l, joystick_r;
 
     mouse_input_ mouse;
+    pen_input_ pen;
     keyboard_input_ keyboard;
 };
 
-struct platform_services_; 
+struct platform_services_;
 
 void game_update_and_render(platform_services_ platform,
                             game_state_* game_state,

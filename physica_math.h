@@ -19,6 +19,8 @@ union v2i {
     i32 e[2];
 };
 
+const v2i v2i_zero = v2i{ 0 };
+
 union v2 {
     struct {
         f32 x, y;
@@ -26,10 +28,14 @@ union v2 {
     f32 e[2];
 };
 
+const v2 v2_zero = v2{ 0 };
+
 struct rect {
     v2 min;
     v2 max;
 };
+
+const rect rect_zero = rect{ 0 };
 
 struct rect_i {
     i32 min_x, min_y, max_x, max_y;
@@ -413,12 +419,24 @@ inline v3 v3_from_ints(i32 x, i32 y, i32 z = 1) {
     return result;
 }
 
+#define __ROW_MULT2(row,col) lhs.row.c1 * rhs.r1.col +\
+            lhs.row.c2 * rhs.r2.col;
+
 #define __ROW_MULT3(row,col) lhs.row.c1 * rhs.r1.col +\
             lhs.row.c2 * rhs.r2.col + lhs.row.c3 * rhs.r3.col;
 
 #define __ROW_MULT4(row,col) lhs.row.c1 * rhs.r1.col +\
             lhs.row.c2 * rhs.r2.col + lhs.row.c3 * rhs.r3.col + \
             lhs.row.c4 * rhs.r4.col;
+
+inline m2x2 operator* (m2x2 lhs, m2x2 rhs) {
+    m2x2 result;
+    result.r1.c1 = __ROW_MULT2(r1,c1);
+    result.r1.c2 = __ROW_MULT2(r1,c2);
+    result.r2.c1 = __ROW_MULT2(r2,c1);
+    result.r2.c2 = __ROW_MULT2(r2,c2);
+    return result;
+}
 
 inline m3x3 operator* (m3x3 lhs, m3x3 rhs) {
     m3x3 result;
@@ -544,6 +562,13 @@ inline v2 operator* (m3x3 lhs, v2 rhs) {
     v2 result;
     result.x = lhs.r1.c1 * rhs.x + lhs.r1.c2 * rhs.y + lhs.r1.c3;
     result.y = lhs.r2.c1 * rhs.x + lhs.r2.c2 * rhs.y + lhs.r2.c3;
+    return result;
+}
+
+inline m2x2 identity_2x2(){
+    m2x2 result;
+    result.r1 = row2_{1,0};
+    result.r2 = row2_{0,1};
     return result;
 }
 

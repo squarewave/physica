@@ -20,7 +20,7 @@ enum ui_element_type_ {
 struct ui_element_;
 
 struct draggable_widget_options_ {
-    v2 initial_mouse_position;
+    v2 drag_anchor;
     ui_element_* child;
 };
 

@@ -311,7 +311,7 @@ render_object_* push_circle(render_group_* render_group,
                              color_ color,
                              v2 center,
                              f32 radius,
-                             f32 z,
+                             f32 z = 0.0f,
                              b32 parallax = false);
 
 render_object_* push_texture(render_group_* render_group,
@@ -376,5 +376,9 @@ void draw_rectangle(window_description_ buffer,
 void add_debug_point(v2 point, i32 color);
 void draw_debug_points();
 void present_seconary_buffer();
+
+v2 invert_y(v2 position, window_description_ window) {
+    return v2 {position.x, window.height - position.y - 1.0f};
+}
 
 #endif //PHYSICA_GAME_RENDER_H

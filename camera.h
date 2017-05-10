@@ -164,4 +164,25 @@ get_inverse_view_transform_3x3(camera_ camera) {
     return view;
 }
 
+inline m2x2
+get_inverse_view_transform_2x2(camera_ camera) {
+    assert_(camera.zoom.factor != 0.0f);
+    v2 to_top_right = camera.to_top_right * (1.0f / camera.zoom.factor);
+    v2 center = camera.center + rotate(v2 {
+        camera.to_top_right.x * camera.zoom.relative_center.x,
+        camera.to_top_right.y * camera.zoom.relative_center.y
+    }, -camera.orientation);
+
+    f32 camera_scale_x = to_top_right.x;
+    f32 camera_scale_y = to_top_right.y;
+    m2x2 view_rotate = get_rotation_matrix(camera.orientation);
+    m2x2 view_scale = identity_2x2();
+    //scale
+    view_scale.r1.c1 = camera_scale_x;
+    view_scale.r2.c2 = camera_scale_y;
+
+    m2x2 view = view_rotate * view_scale;
+    return view;
+}
+
 #endif

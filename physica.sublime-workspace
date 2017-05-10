@@ -1,1 +1,2208 @@
-{}
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"RES_COLO",
+				"RES_COLOR_PICKER_VERTEX_MODELSPACE"
+			],
+			[
+				"dragg",
+				"draggable_widget"
+			],
+			[
+				"mouse",
+				"mouse_position"
+			],
+			[
+				"mos",
+				"mouse_delta"
+			],
+			[
+				"game",
+				"game_state"
+			],
+			[
+				"debug_",
+				"debug_push_ui_text_f"
+			],
+			[
+				"norm",
+				"normalized_delta"
+			],
+			[
+				"normali",
+				"normalized_position"
+			],
+			[
+				"too",
+				"tools_state"
+			],
+			[
+				"active",
+				"active_element"
+			],
+			[
+				"RGBA",
+				"RGBA_BLACK"
+			],
+			[
+				"gam",
+				"game_state"
+			],
+			[
+				"button",
+				"button_input_"
+			],
+			[
+				"notifi",
+				"notificationKey"
+			],
+			[
+				"exi",
+				"existingIndex"
+			],
+			[
+				"notif",
+				"notificationPanel"
+			],
+			[
+				"fu",
+				"function"
+			],
+			[
+				"_clear",
+				"_clearAllNotifications"
+			],
+			[
+				"menuI",
+				"menuItemId"
+			],
+			[
+				"noauto",
+				"noautohide"
+			],
+			[
+				"_onNo",
+				"_onNotificationMenuItemSelected"
+			],
+			[
+				"popupno",
+				"popupnotification"
+			],
+			[
+				"noti",
+				"notification"
+			],
+			[
+				"popupNo",
+				"popupnotification"
+			],
+			[
+				"popupnoti",
+				"popupnotificationID"
+			],
+			[
+				"panelUI",
+				"panelUIPopupListener"
+			],
+			[
+				"popu",
+				"popupListener"
+			],
+			[
+				"popup",
+				"popuphidden"
+			],
+			[
+				"menu",
+				"menuItems"
+			],
+			[
+				"notii",
+				"notifications"
+			],
+			[
+				"no",
+				"notifications"
+			],
+			[
+				"menuIte",
+				"menuItem"
+			],
+			[
+				"panel",
+				"panelUI-notification"
+			],
+			[
+				"notifica",
+				"notifications"
+			],
+			[
+				"pern",
+				"permissionString"
+			],
+			[
+				"plug",
+				"pluginInfo"
+			],
+			[
+				"ena",
+				"enabledState"
+			],
+			[
+				"loca",
+				"locationsSql"
+			],
+			[
+				"toRa",
+				"toRadians"
+			],
+			[
+				"desc",
+				"descriptionsData"
+			],
+			[
+				"print",
+				"print_chars"
+			],
+			[
+				"prin",
+				"printf\tprintf …"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "game.cpp",
+			"settings":
+			{
+				"buffer_size": 22934,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "Searching 87 files for \"typedefs.h\" (regex)\n\nC:\\Users\\doug\\Documents\\github\\physica\\debug.cpp:\n    2  #include <stdarg.h>\n    3  \n    4: #include \"typedefs.h\"\n    5  #include \"game.h\"\n    6  #include \"stb_truetype.h\"\n\nC:\\Users\\doug\\Documents\\github\\physica\\game.h:\n    6  #define PHYSICA_GAME_H\n    7  \n    8: #include \"typedefs.h\"\n    9  #include \"constants.h\"\n   10  #include \"debug.h\"\n\nC:\\Users\\doug\\Documents\\github\\physica\\hashmap.h:\n    6  #define PHYSICA_HASHMAP_H\n    7  \n    8: #include \"typedefs.h\"\n    9  #include \"limits.h\"\n   10  \n\nC:\\Users\\doug\\Documents\\github\\physica\\physica.h:\n    6  #define PHYSICA_PHYSICA_H\n    7  \n    8: #include \"typedefs.h\"\n    9  #include \"sim_entity.h\"\n   10  #include \"hashmap.h\"\n\nC:\\Users\\doug\\Documents\\github\\physica\\renderer.h:\n    6  #define PHYSICA_GAME_RENDER_H\n    7  \n    8: #include \"typedefs.h\"\n    9  #include \"physica_math.h\"\n   10  #include \"camera.h\"\n\nC:\\Users\\doug\\Documents\\github\\physica\\sim_entity.h:\n    6  #define PHYSICA_SIM_ENTITY_H\n    7  \n    8: #include \"typedefs.h\"\n    9  #include \"physica_math.h\"\n   10  #include \"physica.h\"\n\nC:\\Users\\doug\\Documents\\github\\physica\\typedefs.h:\n    3  //\n    4  \n    5: #ifndef PHYSICA_TYPEDEFS_H\n    6: #define PHYSICA_TYPEDEFS_H\n    7  \n    8  #include <assert.h>\n    .\n   29  #define persist static\n   30  \n   31: #endif //PHYSICA_TYPEDEFS_H\n   32  \n\nc:\\users\\doug\\documents\\github\\physica\\renderer.h:\n    6  #define PHYSICA_GAME_RENDER_H\n    7  \n    8: #include \"typedefs.h\"\n    9  #include \"physica_math.h\"\n   10  #include \"camera.h\"\n\n10 matches across 8 files\n",
+			"settings":
+			{
+				"buffer_size": 1571,
+				"line_ending": "Windows",
+				"name": "Find Results",
+				"scratch": true
+			}
+		},
+		{
+			"file": "game.h",
+			"settings":
+			{
+				"buffer_size": 4643,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "renderer.cpp",
+			"settings":
+			{
+				"buffer_size": 52545,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "shaders/simple_vertex_shader.glsl",
+			"settings":
+			{
+				"buffer_size": 163,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "typedefs.h",
+			"settings":
+			{
+				"buffer_size": 516,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "util.h",
+			"settings":
+			{
+				"buffer_size": 6842,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "sdl_platform.cpp",
+			"settings":
+			{
+				"buffer_size": 13914,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "win32sdl_platform.cpp",
+			"settings":
+			{
+				"buffer_size": 40631,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "shaders/color_picker_fragment_shader.glsl",
+			"settings":
+			{
+				"buffer_size": 1514,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "tools.cpp",
+			"settings":
+			{
+				"buffer_size": 12633,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "camera.h",
+			"settings":
+			{
+				"buffer_size": 6275,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "debug.cpp",
+			"settings":
+			{
+				"buffer_size": 13498,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "physica.sublime-project",
+			"settings":
+			{
+				"buffer_size": 475,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "physica_math.h",
+			"settings":
+			{
+				"buffer_size": 16328,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "tools.h",
+			"settings":
+			{
+				"buffer_size": 1413,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "debug.h",
+			"settings":
+			{
+				"buffer_size": 4183,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "build.bat",
+			"settings":
+			{
+				"buffer_size": 605,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "run.bat",
+			"settings":
+			{
+				"buffer_size": 74,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/c/users/doug/documents/github/physica/stb_image.h",
+			"settings":
+			{
+				"buffer_size": 222842,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/c/users/doug/documents/github/physica/renderer.h",
+			"settings":
+			{
+				"buffer_size": 8882,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/User/physica-run.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"build",
+					""
+				],
+				[
+					"run",
+					""
+				]
+			],
+			[
+				"build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"build",
+					""
+				],
+				[
+					"run",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				]
+			],
+			[
+				"build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"build",
+					""
+				],
+				[
+					"run",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/User/physica.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/physica.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"build",
+					""
+				],
+				[
+					"run",
+					""
+				],
+				[
+					"Packages/User/physica.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/physica.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"cl",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				]
+			],
+			[
+				"cl",
+				""
+			]
+		],
+		[
+			[
+				[
+					"run",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/User/physica.sublime-build",
+					""
+				]
+			],
+			[
+				"run",
+				""
+			]
+		],
+		[
+			[
+				[
+					"run",
+					""
+				],
+				[
+					"Packages/User/physica-run.sublime-build",
+					""
+				],
+				[
+					"Packages/User/physica.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/physica-run.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"run",
+					""
+				],
+				[
+					"Packages/User/physica.sublime-build",
+					""
+				]
+			],
+			[
+				"run",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 265.0,
+		"last_filter": "rem",
+		"selected_items":
+		[
+			[
+				"rem",
+				"Package Control: Remove Package"
+			],
+			[
+				"build",
+				"Build With: physica-run"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"gitgu",
+				"GitGutter: Show Diff Popup"
+			],
+			[
+				"git",
+				"Git: Toggle Annotations"
+			],
+			[
+				"commi",
+				"Git: Commit"
+			],
+			[
+				"add",
+				"Git: Add..."
+			],
+			[
+				"commit",
+				"Git: Commit"
+			],
+			[
+				"glue",
+				"Glue - Launch"
+			]
+		],
+		"width": 424.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/doug/Documents/github/physica",
+		"/C/Users/doug/Documents/github/physica/shaders"
+	],
+	"file_history":
+	[
+		"/C/Users/doug/Documents/github/physica/physica.sublime-project",
+		"/C/Users/doug/Documents/github/physica/run.bat",
+		"/C/Users/doug/AppData/Roaming/Sublime Text 3/Packages/User/physica-run.sublime-build",
+		"/C/Users/doug/AppData/Roaming/Sublime Text 3/Packages/User/include-guard.sublime-snippet",
+		"/C/Users/doug/AppData/Roaming/Sublime Text 3/Packages/GLSL Validator/GLSLValidator.sublime-settings",
+		"/C/Users/doug/AppData/Roaming/Sublime Text 3/Packages/User/physica.sublime-build",
+		"/C/Users/doug/Documents/github/physica/build.bat",
+		"/C/Users/doug/Documents/github/physica/build/win32_physica.map",
+		"/C/Users/doug/mercurial/firefox/browser/base/moz.build",
+		"/C/Users/doug/mercurial/firefox/browser/components/customizableui/content/panelUI.css",
+		"/C/Users/doug/mercurial/firefox/toolkit/modules/PanelUINotifications.jsm",
+		"/C/Users/doug/mercurial/firefox/browser/components/customizableui/content/panelUI.js",
+		"/C/Users/doug/mercurial/firefox/tmp.diff",
+		"/C/Users/doug/mercurial/firefox/browser/themes/shared/customizableui/panelUI.inc.css",
+		"/C/Users/doug/Desktop/build.bat",
+		"/C/Users/doug/mercurial.ini",
+		"/C/Users/doug/mercurial/firefox/browser/themes/shared/notification-icons.svg.rej",
+		"/C/Users/doug/mercurial/firefox/toolkit/themes/osx/global/toolbarbutton.css.rej",
+		"/C/Users/doug/mercurial/firefox/toolkit/modules/moz.build.rej",
+		"/C/Users/doug/Documents/github/lenzhound-manager/terminal.glue",
+		"/C/Users/doug/Documents/github/lenzhound-manager/src/terminal.glue",
+		"/C/Users/doug/Documents/github/lenzhound-manager/lib/app-root.js",
+		"/C/Users/doug/AppData/Roaming/Sublime Text 3/Packages/Default/Preferences.sublime-settings",
+		"/C/Program Files (x86)/Microsoft Visual Studio 14.0/Common7/Packages/Debugger/autoexp.dat",
+		"/C/Users/doug/mercurial/firefox/obj-x86_64-pc-mingw32/dist/bin/browser/modules/PluginContent.jsm",
+		"/C/Users/doug/mercurial/firefox/dom/base/nsDOMWindowUtils.cpp",
+		"/C/Users/doug/mercurial/firefox/dom/base/nsDocument.cpp",
+		"/C/Users/doug/mercurial/firefox/xpcom/glue/nsWeakReference.cpp",
+		"/C/Users/doug/mercurial/firefox/browser/base/content/browser-plugins.js",
+		"/C/Users/doug/mercurial/firefox/mozconfig",
+		"/C/Users/doug/mercurial/firefox/browser/base/content/test/plugins/head.js",
+		"/C/Users/doug/mercurial/firefox/xpcom/glue/nsISupportsImpl.h",
+		"/C/Users/doug/mercurial/firefox/browser/base/content/sanitize.js",
+		"/C/Users/doug/mercurial/firefox/dom/plugins/base/nsPluginHost.cpp",
+		"/C/Users/doug/mercurial/firefox/browser/locales/en-US/chrome/browser/browser.properties",
+		"/C/Users/doug/mercurial/firefox/xpcom/base/nsISupportsBase.h",
+		"/C/Users/doug/mercurial/firefox/dom/html/HTMLSharedObjectElement.cpp",
+		"/C/Users/doug/mercurial/firefox/dom/html/moz.build",
+		"/C/Users/doug/mercurial/firefox/browser/modules/PluginContent.jsm",
+		"/C/Users/doug/mercurial/firefox/dom/messagechannel/MessageChannel.cpp",
+		"/C/Users/doug/mercurial/firefox/ipc/glue/WindowsMessageLoop.cpp",
+		"/C/Users/doug/mercurial/firefox/ipc/glue/Neutering.h",
+		"/C/Users/doug/mercurial/firefox/ipc/glue/MessageChannel.cpp",
+		"/C/Users/doug/mercurial/firefox/dom/canvas/WebGLContextUtils.h",
+		"/C/Users/doug/mercurial/firefox/addon-sdk/source/lib/toolkit/loader.js",
+		"/C/Users/doug/mercurial/firefox/obj-x86_64-pc-mingw32/dom/bindings/TestCodeGenBinding.cpp",
+		"/C/Users/doug/mercurial/firefox/obj-x86_64-pc-mingw32/dom/bindings/TestCodeGenBinding.h",
+		"/C/Users/doug/mercurial/firefox/mobile/android/chrome/content/browser.js",
+		"/C/Users/doug/mercurial/firefox/browser/base/content/browser.xul",
+		"/C/Users/doug/mercurial/firefox/dom/bindings/test/TestBindingHeader.h",
+		"/C/Users/doug/mercurial/firefox/layout/style/nsCSSPseudoClassList.h",
+		"/C/Users/doug/mercurial/firefox/dom/base/nsObjectLoadingContent.cpp",
+		"/C/Users/doug/mercurial/firefox/layout/style/nsCSSRuleProcessor.cpp",
+		"/C/Users/doug/mercurial/firefox/dom/events/EventStates.h",
+		"/C/Users/doug/mercurial/firefox/layout/style/nsCSSPseudoClasses.h",
+		"/C/Users/doug/mercurial/firefox/toolkit/modules/SpatialNavigation.jsm",
+		"/C/Users/doug/mercurial/firefox/mobile/android/chrome/content/PluginHelper.js",
+		"/C/Users/doug/mercurial/firefox/dom/plugins/ipc/PluginModuleParent.cpp",
+		"/C/Users/doug/mercurial/firefox/browser/components/preferences/in-content/sync.js",
+		"/C/Users/doug/mercurial/firefox/browser/components/preferences/in-content/advanced.js",
+		"/C/Users/doug/mercurial/firefox/mach",
+		"/C/Users/doug/mercurial/firefox/tst.txt",
+		"/C/Users/doug/js-tools/locations.json",
+		"/C/Users/doug/js-tools/dummy.js",
+		"/C/Users/doug/Documents/tst.html",
+		"/C/Users/doug/playground.cpp",
+		"/C/Users/doug/Documents/rbtree/labrat.h",
+		"/C/Users/doug/Documents/github/fishies/Cargo.toml",
+		"/C/Users/doug/Documents/github/lenzhound-manager/indexnw.html"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			"",
+			"*.h",
+			"",
+			"*.cpp,*.hpp,*.h,*.c,*.js,*.xul,*.xhtml",
+			"*.cpp,*.hpp,*.h,*.c.*.js,*.xul,*.xhtml",
+			"*.cpp,*.hpp,*.h,*.c.*.js",
+			"*.cpp,*.hpp,*.h,*.c",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"RENDER_TYPE_TEXTURE",
+			"RES_COLOR_PICKER_VERTEX_MODELSPACE",
+			"GL_ATTRIB_VERTEX_MODELSPACE",
+			"RES_COLOR_PICKER_HSV",
+			"get_factor",
+			"mouse_delta",
+			"tools_state->active_element",
+			"original_pos",
+			"original",
+			"original_pos",
+			"debug_easy_push_ui_text_f",
+			"debug_push_ui_text",
+			"LINE_HEIGHT",
+			"item.parent_offset",
+			"offset",
+			"tools_state->active_element->",
+			"initial_mouse_position",
+			"normalized_delta",
+			"__ROW_MULT3",
+			"m3x3",
+			"3x3",
+			"delta ",
+			"position",
+			"mouse.position",
+			"offset",
+			"UI_DRAGGA",
+			"0.9f",
+			"delta",
+			"active_element =",
+			"active_element",
+			"ended_down",
+			"left",
+			"handle_sdl_event",
+			"ended_down",
+			"debug_text_start",
+			"global",
+			"debug_push_ui_text",
+			"text",
+			"color",
+			"v2",
+			"zero",
+			"debug_push_ui_text",
+			"draggable_widget",
+			"RENDER_TYPE_COLOR_PICKER",
+			"->type",
+			"typedefs.h",
+			"UI_COLOR_PICKER",
+			"GL_TEXTURE_WRAP_",
+			"42424242",
+			"(\\w+)_t\\b",
+			"\\bsize_t\\b",
+			"entity->",
+			"game_state",
+			"entity->",
+			"game_state",
+			"entity->",
+			"game_state",
+			"entity->",
+			"game_state",
+			"entity->",
+			"game_state->",
+			"game_state",
+			"entity->",
+			"game_input",
+			"game_state",
+			"player_state",
+			"game_state",
+			"player_state* player",
+			"player->",
+			"player",
+			"PLAYER",
+			"player",
+			"PLAYER",
+			"player",
+			"player_state",
+			"ray_body_intersect",
+			"ray_body_intersect_result",
+			"ray_body_intersect",
+			"(\\b)size(\\b)",
+			"animation_group",
+			"animation",
+			"group",
+			"animation",
+			"animation_group",
+			"typedef",
+			"(\\w+)_t\\b",
+			"gMenuButtonBadgeManager.removeBadge",
+			"gMenuButtonBadgeManager.addBadge",
+			"();\n",
+			"_updatenoti",
+			"downloadscomm",
+			"isNotifi",
+			"-",
+			"event.type",
+			"gmenubuttonup",
+			"gMenuButtonUpdateB",
+			"gMenuButton",
+			"();\n",
+			"gMenuButton",
+			"secondaryActions",
+			"gmenubuttonup",
+			"255",
+			"border-radius",
+			"panelUI",
+			"fxa-needs-authentica",
+			"d",
+			"getLocale",
+			"BADGEID_DOWNLOAD",
+			"gmenubuttonbadgemanager",
+			"removeNotification",
+			"popupshowing",
+			"_clearAllNotifications",
+			"_refreshPanel",
+			"clearAllNo",
+			"_clearAllNotifications",
+			"_hideEverything",
+			"hideever",
+			"_clearPanel",
+			"labels",
+			"secondaryAction",
+			"PanelUINotifications",
+			"popupshowing",
+			"panelui-notification-pop",
+			"removeChi",
+			"_showPanel",
+			"iconAnchor",
+			"iconAnch",
+			"doc"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"size_t",
+			"$1_",
+			"42424242",
+			"$1size_t$2",
+			"$1",
+			""
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "game.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 22934,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								542,
+								542
+							]
+						],
+						"settings":
+						{
+							"git_annotation_temp_buffer": "c:\\users\\doug\\appdata\\local\\temp\\git_annotations_xf7w8_",
+							"git_annotation_temp_head": "c:\\users\\doug\\appdata\\local\\temp\\git_annotations_dfx6sq",
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"live_git_annotations": false,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1571,
+						"regions":
+						{
+							"match":
+							{
+								"flags": 112,
+								"regions":
+								[
+									[
+										147,
+										157
+									],
+									[
+										320,
+										330
+									],
+									[
+										497,
+										507
+									],
+									[
+										653,
+										663
+									],
+									[
+										838,
+										848
+									],
+									[
+										1025,
+										1035
+									],
+									[
+										1191,
+										1201
+									],
+									[
+										1225,
+										1235
+									],
+									[
+										1339,
+										1349
+									],
+									[
+										1472,
+										1482
+									]
+								],
+								"scope": ""
+							}
+						},
+						"selection":
+						[
+							[
+								325,
+								325
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"line_numbers": false,
+							"output_tag": 1,
+							"result_base_dir": "",
+							"result_file_regex": "^([^ \t].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 19,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "game.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4643,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4521,
+								4521
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3252.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "renderer.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 52545,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								21165,
+								21165
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 11061.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "shaders/simple_vertex_shader.glsl",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 163,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "typedefs.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 516,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								486,
+								486
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 162.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 20,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "util.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6842,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								975,
+								975
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 18,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "sdl_platform.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13914,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1938,
+								1938
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 801.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "win32sdl_platform.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 40631,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1823,
+								1823
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 915.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "shaders/color_picker_fragment_shader.glsl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1514,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								368,
+								368
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "tools.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 12633,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4170,
+								4170
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1899.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "camera.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6275,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5569,
+								5569
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2490.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "debug.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13498,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3961,
+								3961
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2124.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "physica.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 475,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								475,
+								475
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/JavaScript/JSON.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "physica_math.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 16328,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								502,
+								502
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 60.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "tools.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1413,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								752,
+								768
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 16,
+					"file": "debug.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4183,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2301,
+								2304
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 942.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				},
+				{
+					"buffer": 17,
+					"file": "build.bat",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 605,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								604,
+								604
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/Batch File/Batch File.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 18,
+					"file": "run.bat",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 74,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								57,
+								57
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/Batch File/Batch File.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 17,
+					"type": "text"
+				},
+				{
+					"buffer": 19,
+					"file": "/c/users/doug/documents/github/physica/stb_image.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 222842,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								10579,
+								10579
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3516.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 21,
+					"type": "text"
+				},
+				{
+					"buffer": 20,
+					"file": "/c/users/doug/documents/github/physica/renderer.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8882,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2189,
+								2189
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2382.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 3,
+					"file": "renderer.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 52545,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								41322,
+								41322
+							]
+						],
+						"settings":
+						{
+							"glslvalidator_configured": true,
+							"glslvalidator_enabled": 1,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 21207.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 252.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 118.0
+	},
+	"pinned_build_system": "",
+	"project": "physica.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"rend",
+				"renderer.cpp"
+			],
+			[
+				"",
+				"renderer.cpp"
+			],
+			[
+				"render",
+				"renderer.cpp"
+			],
+			[
+				"ren",
+				"renderer.cpp"
+			],
+			[
+				"too",
+				"tools.h"
+			],
+			[
+				"tool",
+				"tools.h"
+			],
+			[
+				"gam",
+				"game.h"
+			],
+			[
+				"winf",
+				"win32sdl_platform.cpp"
+			],
+			[
+				"game",
+				"game.cpp"
+			],
+			[
+				"debug",
+				"debug.h"
+			],
+			[
+				"math",
+				"physica_math.h"
+			],
+			[
+				"run",
+				"run.bat"
+			],
+			[
+				"bui",
+				"build.bat"
+			],
+			[
+				"win",
+				"win32sdl_platform.cpp"
+			],
+			[
+				"sdl",
+				"sdl_platform.cpp"
+			],
+			[
+				"renderer",
+				"renderer.cpp"
+			],
+			[
+				"rendere",
+				"renderer.cpp"
+			],
+			[
+				"wind",
+				"win32sdl_platform.cpp"
+			],
+			[
+				"typed",
+				"typedefs.h"
+			],
+			[
+				"enemies",
+				"enemies.cpp"
+			],
+			[
+				"npcs",
+				"npcs.cpp"
+			],
+			[
+				"bogger",
+				"bogger.cpp"
+			],
+			[
+				"tile",
+				"tile.cpp"
+			],
+			[
+				"bogge",
+				"bogger.cpp"
+			],
+			[
+				"player",
+				"player.cpp"
+			],
+			[
+				"physi",
+				"physica.cpp"
+			],
+			[
+				"phy",
+				"physica.cpp"
+			],
+			[
+				"hash",
+				"hashmap.h"
+			],
+			[
+				"anima",
+				"animation.h"
+			],
+			[
+				"typede",
+				"typedefs.h"
+			],
+			[
+				"panelui",
+				"browser\\components\\customizableui\\content\\panelUI.js"
+			],
+			[
+				"menubuttonbadgemanager",
+				"browser\\base\\content\\test\\general\\browser_menuButtonBadgeManager.js"
+			],
+			[
+				"toolbarbutt",
+				"toolkit\\themes\\windows\\global\\toolbarbutton.css"
+			],
+			[
+				"browser/base/moz",
+				"browser\\base\\moz.build"
+			],
+			[
+				"nsupdateser",
+				"toolkit\\mozapps\\update\\nsUpdateService.js"
+			],
+			[
+				"updateutil",
+				"toolkit\\modules\\UpdateUtils.jsm"
+			],
+			[
+				"downloadscom",
+				"browser\\components\\downloads\\DownloadsCommon.jsm"
+			],
+			[
+				"indicator",
+				"browser\\components\\downloads\\content\\indicator.js"
+			],
+			[
+				"browser.xu",
+				"browser\\base\\content\\browser.xul"
+			],
+			[
+				"tmp",
+				"tmp.diff"
+			],
+			[
+				"notificationicons",
+				"browser\\themes\\shared\\notification-icons.inc.css"
+			],
+			[
+				"panelui.xu",
+				"browser\\components\\customizableui\\content\\panelUI.inc.xul"
+			],
+			[
+				"browserfxacc",
+				"browser\\base\\content\\browser-fxaccounts.js"
+			],
+			[
+				"panelui.inc",
+				"browser\\themes\\shared\\customizableui\\panelUI.inc.css"
+			],
+			[
+				"paneluino",
+				"toolkit\\modules\\PanelUINotifications.jsm"
+			],
+			[
+				"panelui.xul",
+				"browser\\components\\customizableui\\content\\panelUI.inc.xul"
+			],
+			[
+				"notificationico",
+				"browser\\themes\\shared\\notification-icons.inc.css"
+			],
+			[
+				"browser.js",
+				"browser\\base\\content\\browser.js"
+			],
+			[
+				"browser.dtd",
+				"browser\\locales\\en-US\\chrome\\browser\\browser.dtd"
+			],
+			[
+				"browser.pro",
+				"browser\\locales\\en-US\\chrome\\browser\\browser.properties"
+			],
+			[
+				"popupnotification",
+				"browser\\base\\content\\popup-notifications.inc"
+			],
+			[
+				"panelui.inc.",
+				"browser\\components\\customizableui\\content\\panelUI.inc.xul"
+			],
+			[
+				"browser.dt",
+				"browser\\locales\\en-US\\chrome\\browser\\browser.dtd"
+			],
+			[
+				"tmp.diff",
+				"tmp.diff"
+			],
+			[
+				"popupnotifications.in",
+				"browser\\base\\content\\popup-notifications.inc"
+			],
+			[
+				"panelui.j",
+				"browser\\components\\customizableui\\content\\panelUI.js"
+			],
+			[
+				"paneluiinccss",
+				"browser\\themes\\shared\\customizableui\\panelUI.inc.css"
+			],
+			[
+				"toolbarbo",
+				"toolkit\\themes\\osx\\global\\toolbarbutton.css"
+			],
+			[
+				"notification-icon",
+				"browser\\themes\\shared\\notification-icons.inc.css"
+			],
+			[
+				"tmp.di",
+				"tmp.diff"
+			],
+			[
+				"popupnotifcss",
+				"toolkit\\themes\\shared\\popupnotification.inc.css"
+			],
+			[
+				"browser.css",
+				"browser\\base\\content\\browser.css"
+			],
+			[
+				"tmp.",
+				"tmp.diff"
+			],
+			[
+				"browser.prop",
+				"browser\\locales\\en-US\\chrome\\browser\\browser.properties"
+			],
+			[
+				"popupno",
+				"toolkit\\modules\\PopupNotifications.jsm"
+			],
+			[
+				"pop",
+				"toolkit\\modules\\PopupNotifications.jsm"
+			],
+			[
+				"popup-no",
+				"browser\\base\\content\\popup-notifications.inc"
+			],
+			[
+				"paneluin",
+				"toolkit\\modules\\PanelUINotifications.jsm"
+			],
+			[
+				"browser",
+				"browser\\base\\content\\browser.js"
+			],
+			[
+				"mozcon",
+				"mozconfig"
+			],
+			[
+				"nsupdatese",
+				"toolkit\\mozapps\\update\\nsUpdateService.js"
+			],
+			[
+				"updateuti",
+				"toolkit\\modules\\UpdateUtils.jsm"
+			],
+			[
+				"which.",
+				"python\\which\\which.py"
+			],
+			[
+				"mach",
+				"build\\mach_bootstrap.py"
+			],
+			[
+				"notificationicons.",
+				"browser\\themes\\shared\\notification-icons.svg"
+			],
+			[
+				"notificationicon",
+				"browser\\themes\\shared\\notification-icons.svg.rej"
+			],
+			[
+				"toolkitmodulmoz.build",
+				"toolkit\\modules\\moz.build"
+			],
+			[
+				"moz.build.re",
+				"toolkit\\modules\\moz.build.rej"
+			],
+			[
+				"toolbarbutton.css",
+				"toolkit\\themes\\osx\\global\\toolbarbutton.css"
+			],
+			[
+				"toolbarbutton.css.r",
+				"toolkit\\themes\\osx\\global\\toolbarbutton.css.rej"
+			],
+			[
+				"plugincont",
+				"browser\\modules\\PluginContent.jsm"
+			],
+			[
+				"plugintag",
+				"dom\\plugins\\base\\nsPluginTags.cpp"
+			],
+			[
+				"plguinconte",
+				"obj-x86_64-pc-mingw32\\dist\\bin\\browser\\modules\\PluginContent.jsm"
+			],
+			[
+				"plugincontent",
+				"obj-x86_64-pc-mingw32\\dist\\bin\\browser\\modules\\PluginContent.jsm"
+			],
+			[
+				"browserplugins",
+				"browser\\base\\content\\browser-plugins.js"
+			],
+			[
+				"browser-plugins.js",
+				"obj-x86_64-pc-mingw32\\dist\\bin\\browser\\chrome\\browser\\content\\browser\\browser-plugins.js"
+			],
+			[
+				"specialpowers.j",
+				"testing\\specialpowers\\content\\specialpowers.js"
+			],
+			[
+				"nsdomwindowuti",
+				"dom\\base\\nsDOMWindowUtils.h"
+			],
+			[
+				"domwindowutils",
+				"dom\\base\\nsDOMWindowUtils.cpp"
+			],
+			[
+				"nspltag",
+				"dom\\plugins\\base\\nsPluginTags.h"
+			],
+			[
+				"nsplugho",
+				"dom\\plugins\\base\\nsPluginHost.cpp"
+			],
+			[
+				"nspluigtag",
+				"dom\\plugins\\base\\nsPluginTags.h"
+			],
+			[
+				"nspluginho",
+				"dom\\plugins\\base\\nsPluginHost.cpp"
+			],
+			[
+				"pluginc",
+				"browser\\modules\\PluginContent.jsm"
+			],
+			[
+				"messagechann",
+				"dom\\messagechannel\\MessageChannel.cpp"
+			],
+			[
+				"pluginconten",
+				"browser\\modules\\PluginContent.jsm"
+			],
+			[
+				"nscsspseu",
+				"layout\\style\\nsCSSPseudoClassList.h"
+			],
+			[
+				"testbindingh",
+				"dom\\bindings\\test\\TestBindingHeader.h"
+			],
+			[
+				"testcodegenbin",
+				"obj-x86_64-pc-mingw32\\dom\\bindings\\TestCodeGenBinding.h"
+			],
+			[
+				"testcodegenbind",
+				"obj-x86_64-pc-mingw32\\dom\\bindings\\TestCodeGenBinding.cpp"
+			],
+			[
+				"nsobjectloadingcon",
+				"dom\\base\\nsObjectLoadingContent.cpp"
+			],
+			[
+				"tst",
+				"tst.txt"
+			],
+			[
+				"tst.t",
+				"tst.txt"
+			],
+			[
+				"testbindinghe",
+				"dom\\bindings\\test\\TestBindingHeader.h"
+			],
+			[
+				"spatialn",
+				"toolkit\\modules\\SpatialNavigation.jsm"
+			],
+			[
+				"pluginhe",
+				"mobile\\android\\chrome\\content\\PluginHelper.js"
+			],
+			[
+				"pluginhelp",
+				"mobile\\android\\chrome\\content\\PluginHelper.js"
+			],
+			[
+				"sync",
+				"browser\\components\\preferences\\in-content\\sync.js"
+			],
+			[
+				"pluginmodulepare",
+				"dom\\plugins\\ipc\\PluginModuleParent.cpp"
+			],
+			[
+				"main",
+				"src\\main.rs"
+			],
+			[
+				"ca",
+				"Cargo.toml"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 81.0,
+		"last_filter": "platformrea",
+		"selected_items":
+		[
+			[
+				"platformrea",
+				"platform_read_entire_file"
+			],
+			[
+				"getroa",
+				"get_rotation_matrix"
+			],
+			[
+				"getContentTypeForMIMEType",
+				"GetContentTypeForMIMEType"
+			],
+			[
+				"getcontenttypeformim",
+				"GetContentTypeForMIMEType"
+			],
+			[
+				"getContentTypeFor",
+				"getContentTypeForMIMEType"
+			],
+			[
+				"getContentTypeForM",
+				"getContentTypeForMIMEType"
+			],
+			[
+				"forcecc",
+				"ForceCC"
+			],
+			[
+				"getWeakRefe",
+				"GetWeakReference"
+			],
+			[
+				"plugins",
+				"Plugins"
+			],
+			[
+				"nsIDocum",
+				"nsIDocument"
+			],
+			[
+				"translationnodeli",
+				"nsTranslationNodeList"
+			],
+			[
+				"neuteredwindowre",
+				"NeuteredWindowRegion"
+			],
+			[
+				"CallWindowP",
+				"CallWindowProcedureHook"
+			]
+		],
+		"width": 392.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 364.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

@@ -52,6 +52,8 @@ struct debug_state_ {
     b32 draw_wireframes;
     b32 draw_aabb_tree;
     b32 show_performance;
+
+    v2 current_debug_text_bottom_left;
 };
 
 
@@ -77,15 +79,17 @@ struct timed_block_ {
     }
 };
 
+v2 debug_text_start(window_description_ window) { return v2 {8.0f, (f32)window.height - 20.0f}; }
+
 void process_debug_log(tools_state_* tools_state);
 
-void debug_push_ui_text_f(game_state_* game_state,
-                          tools_state_* tools_state,
-                          window_description_ window,
-                          v2 bottom_left,
-                          rgba_ color,
-                          char* format,
-                          ...);
+v2 debug_push_ui_text_f(game_state_* game_state,
+                        tools_state_* tools_state,
+                        window_description_ window,
+                        v2 bottom_left,
+                        rgba_ color,
+                        char* format,
+                        ...);
 
 void debug_init(tools_state_* tools_state);
 
@@ -97,15 +101,32 @@ void debug_update_and_render(game_state_* game_state,
 
 void debug_load_monospace_font(tools_state_* tools_state);
 
-void debug_push_ui_text(game_state_* game_state,
-                        tools_state_* tools_state,
-                        window_description_ window,
-                        v2 top_left,
-                        char* text);
+v2 debug_easy_push_ui_text(game_state_* game_state,
+                           tools_state_* tools_state,
+                           window_description_ window,
+                           char* text);
+
+v2
+debug_push_ui_text(game_state_* game_state,
+                   tools_state_* tools_state,
+                   window_description_ window,
+                   v2 bottom_left,
+                   rgba_ color,
+                   char* text);
 
 void debug_draw_physics(game_state_* game_state);
 
-void debug_push_ui_text_f(game_state_* game_state,
+v2 debug_easy_push_ui_text_f(game_state_* game_state,
+                               tools_state_* tools_state,
+                               window_description_ window,
+                               char* format,
+                               ...)
+#ifndef _WIN32
+__attribute__ ((format (printf, 6, 7)))
+#endif
+;
+
+v2 debug_push_ui_text_f(game_state_* game_state,
                           tools_state_* tools_state,
                           window_description_ window,
                           v2 bottom_left,

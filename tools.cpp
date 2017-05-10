@@ -1,5 +1,5 @@
-#include "camera.h"
-
+#include "util.h"
+#include "renderer.h"
 
 void tools_init(tools_state_* tools_state) {
     debug_init(tools_state);
@@ -10,7 +10,7 @@ void tools_init(tools_state_* tools_state) {
     tools_state->ui_elements.capacity = max_ui_elements;
 
     ui_element_* main_menu = tools_state->root_element = tools_state->ui_elements.push({0});
-    main_menu->type = UI_MENU;    
+    main_menu->type = UI_MENU;
     main_menu->parent = 0;
     main_menu->offset = v2 {0.0f, 0.0f};
     main_menu->size = v2 {0.0f, 0.0f};
@@ -60,7 +60,7 @@ void tools_init(tools_state_* tools_state) {
 }
 
 inline f32
-get_factor(i32 zoom_level) {
+get_zoom_factor(i32 zoom_level) {
     switch(zoom_level) {
         case -6: { return 0.03125f; }
         case -5: { return 0.0625f; }
@@ -84,6 +84,11 @@ struct ui_draw_stack_item_ {
     ui_element_* element;
     v2 parent_offset;
 };
+
+b32 is_active(tools_state_* tools_state, ui_element_* element)
+{
+    return tools_state->active_element == element;
+}
 
 void draw_tools_menu(game_state_* game_state,
                      tools_state_* tools_state,
@@ -125,19 +130,15 @@ void draw_tools_menu(game_state_* game_state,
                 }
             } break;
             case UI_DRAGGABLE_WIDGET: {
-                v2 mouse_delta = (item.element == tools_state->active_element) ?
-                    (mouse_position - item.element->draggable_widget.initial_mouse_position) :
-                    v2 {0};
-                draw_rect.min += mouse_delta;
-                draw_rect.max += mouse_delta;
                 ui_draw_stack_item_ new_item;
                 new_item.element = item.element->draggable_widget.child;
-                new_item.parent_offset = item.parent_offset + mouse_delta +
-                    item.element->offset;
+                new_item.parent_offset = item.parent_offset + item.element->offset;
+
                 stack[stack_index++] = new_item;
+
                 push_rect(&game_state->ui_render_group,
-                                  color_{0.5f,0.5f,0.5f},
-                                  draw_rect);
+                          color_{0.5f, 0.5f, 0.5f},
+                          draw_rect);
             } break;
             case UI_TOGGLE_MENU: {
                 push_rect(&game_state->ui_render_group,
@@ -191,7 +192,7 @@ void tools_update_and_render(game_state_* game_state,
 
     if (wheel_delta > 0) {
         f32 old_factor = game_state->main_camera.zoom.factor;
-        f32 new_factor = get_factor(tools_state->zoom_level);
+        f32 new_factor = get_zoom_factor(tools_state->zoom_level);
         v2 old_center = game_state->main_camera.zoom.relative_center;
         v2 target_center = v2 {
             (game_input->mouse.position.x / (f32)window.width) * 2.0f - 1.0f,
@@ -205,7 +206,7 @@ void tools_update_and_render(game_state_* game_state,
         game_state->main_camera.zoom.relative_center = new_center;
     } else if (wheel_delta < 0) {
         f32 old_factor = game_state->main_camera.zoom.factor;
-        f32 new_factor = get_factor(tools_state->zoom_level);
+        f32 new_factor = get_zoom_factor(tools_state->zoom_level);
         v2 old_center = game_state->main_camera.zoom.relative_center;
         v2 new_center = (tools_state->zoom_level > 0) ?
             old_center * ((old_factor - new_factor) / (old_factor - 1.0f)) :
@@ -214,20 +215,17 @@ void tools_update_and_render(game_state_* game_state,
         game_state->main_camera.zoom.relative_center = new_center;
     }
 
-    draw_tools_menu(game_state, tools_state, window, game_input);
+    if (was_down(game_input->mouse.left_click)) {
+        ui_element_* element = tools_state->active_element;
 
-    if (was_pressed(game_input->mouse.left_click)) {
-        if (tools_state->hover_element) {
-            tools_state->active_element = tools_state->hover_element;
-
-            switch (tools_state->active_element->type) {
+        if (element) {
+            switch (element->type) {
                 case UI_DRAGGABLE_WIDGET: {
-                    tools_state->active_element->draggable_widget.initial_mouse_position =
-                        mouse_position; 
+                    element->offset = mouse_position - element->draggable_widget.drag_anchor;
                 } break;
                 case UI_COLOR_PICKER: {
-                    v2 item_offset = tools_state->active_element->offset;
-                    ui_element_* parent = tools_state->active_element->parent;
+                    v2 item_offset = element->offset;
+                    ui_element_* parent = element->parent;
                     while (parent) {
                         item_offset += parent->offset;
                         parent = parent->parent;
@@ -235,21 +233,38 @@ void tools_update_and_render(game_state_* game_state,
                     v2 relative_mouse = mouse_position - item_offset;
 
                     v2 normalized = v2 {
-                        relative_mouse.x / tools_state->active_element->size.x,
-                        relative_mouse.y / tools_state->active_element->size.y,
+                        relative_mouse.x / element->size.x,
+                        relative_mouse.y / element->size.y,
                     };
 
-                    if (normalized.x > 0.9f) {
-                        tools_state->active_element->color_picker.hsv.h = normalized.y;
+                    const float hue_selector_start = 0.9f;
+
+                    if (normalized.x > hue_selector_start) {
+                        element->color_picker.hsv.h = normalized.y;
                     } else {
-                        tools_state->active_element->color_picker.hsv.s = normalized.x;
-                        tools_state->active_element->color_picker.hsv.v = normalized.y;
+                        element->color_picker.hsv.s = normalized.x;
+                        element->color_picker.hsv.v = normalized.y;
                     }
                 } break;
             }
         } else {
             if (tools_state->selected_render_item >= 0) {
-                
+
+            }
+        }
+    }
+
+    draw_tools_menu(game_state, tools_state, window, game_input);
+
+    if (was_pressed(game_input->mouse.left_click)) {
+        if (tools_state->hover_element) {
+            tools_state->active_element = tools_state->hover_element;
+            ui_element_* element = tools_state->active_element;
+
+            switch (element->type) {
+                case UI_DRAGGABLE_WIDGET: {
+                    element->draggable_widget.drag_anchor = mouse_position - element->offset;
+                } break;
             }
         }
     }
@@ -257,6 +272,8 @@ void tools_update_and_render(game_state_* game_state,
     if (was_released(game_input->mouse.left_click)) {
         if (tools_state->active_element &&
             tools_state->active_element == tools_state->hover_element) {
+
+            ui_element_* element = tools_state->active_element;
             switch (tools_state->active_element->type) {
                 case UI_TOGGLE_MENU: {
                     tools_state->active_element->parent->menu.active =
@@ -273,12 +290,6 @@ void tools_update_and_render(game_state_* game_state,
                 case UI_TOGGLE_PERFORMANCE: {
                     tools_state->debug_state.show_performance =
                         !tools_state->debug_state.show_performance;
-                } break;
-                case UI_DRAGGABLE_WIDGET: {
-                    v2 delta = mouse_position -
-                        tools_state->active_element->draggable_widget.initial_mouse_position;
-                    tools_state->active_element->offset =
-                        tools_state->active_element->offset + delta;
                 } break;
             }
         } else {
@@ -306,6 +317,16 @@ void tools_update_and_render(game_state_* game_state,
                              "%d",
                              tools_state->selected_render_item);
     }
+
+    push_circle(&game_state->ui_render_group,
+                color_ {0.6f, 0.2f, 0.2f},
+                invert_y(game_input->pen.position, window),
+                5.0f);
+
+    push_circle(&game_state->ui_render_group,
+                color_ {0.2f, 0.6f, 0.2f},
+                invert_y(game_input->mouse.position, window),
+                5.0f);
 
     debug_update_and_render(game_state,
                             tools_state,
